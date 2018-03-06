@@ -1,4 +1,4 @@
-#input a string that represents a polynomial
+#input a string that represents a polynomial equal to 0
 #output coded polynomial as [[" ", variable1, variable2...], [coefficient, exponent1, exponent2...],...]
 #Matrix will be as follows:
 #
