@@ -29,18 +29,19 @@ def parse_poly(s_input):
     
     def addExp(k):
         #replaces 0 in kth entry of term in termMatrix with exponent
+        var = termMatrix[0][k]
         for j in range(len(s)):
             term = s[j]
-            for i in range(len(term)):
-                var = termMatrix[0][k]
-                if term[i] == var:
-                    if i < len(term) - 1:
-                        if term[i+1] == '^':
-                            termMatrix[j+1][k] = int(term[i+2])
-                        else:
-                            termMatrix[j+1][k] = 1 
+            if var in term:
+                i = term.index(var)
+                var_len = len(var)
+                if i < len(term) - var_len:
+                    if term[i+var_len] == '^':
+                        termMatrix[j+1][k] = int(term[i+1+var_len])
                     else:
                         termMatrix[j+1][k] = 1 
+                else:
+                    termMatrix[j+1][k] = 1 
     
     def addCoeff():
         for j in range(len(s)):
@@ -70,12 +71,17 @@ def parse_poly(s_input):
     
     def findVars():
         variables = set()
-        possibleVariables = {'x', 'y', 'z', 't', 'u', 'v', 'r', 
-        'x1', 'x2', 'x3', 'x4', 'x5', 'x6', 'x7', 'x8', 'x9'}
+        possibleVariables = {'x', 'y', 'z', 't', 'u', 'v', 'r'}
         for term in s:
-            for t in term:
-                if t in possibleVariables:
-                    variables.add(t)
+            for t in range(len(term)):
+                if term[t] in possibleVariables:
+                    if t < len(term) - 1:
+                        if term[t+1].isnumeric():
+                            variables.add(term[t]+term[t+1])
+                        else:
+                            variables.add(term[t])
+                    else:
+                        variables.add(term[t])
         return variables
                     
     def fill():
@@ -95,7 +101,8 @@ def parse_poly(s_input):
     return termMatrix
     
 if __name__ == "__main__":
-    poly = 'z^3*4x^2+8+y*z^4'
+    #poly = 'z^3*4x^2+8+y*z^4'
     #poly = '2*X^2y-x-2'
+    poly = 'x1^2*x2^3 - 9Z^4T^2 + 7x^2x2^6'
     print(poly)
     print(parse_poly(poly))
