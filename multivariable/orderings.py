@@ -18,7 +18,6 @@ def order_lex(termMatrix):
         for j in range(len(var_order)):
             term.append(t[i][var_order[j]])
         res.append(term)
-    print(res)
     res= [res[0]] + sorted(res[1:], key = lambda x: x[1:], reverse = True)
     return res
     
