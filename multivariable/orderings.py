@@ -132,7 +132,7 @@ def grev_lex(termMatrix):
     return res
 
 if __name__ == '__main__':
-    print('x^2y^2z+y^3xz+z+x+y')
+    print('-5x^3 + 7x^2z^2 + 4xy^2z + 4z^2')
     termMatrix = [[' ', 'x', 'y', 'z'], [-5, 3, 0, 0], [7, 2, 0, 2], [4, 1, 2, 1], [4, 0, 0, 2]]
     #print(termMatrix)
     print(grev_lex(termMatrix))
