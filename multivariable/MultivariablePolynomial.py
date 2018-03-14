@@ -47,7 +47,6 @@ class Polynomial:
     
     @staticmethod    
     def combine_variables(A, B):
-        #first add variables and order
         var_set = set(A.termMatrix[0]).union(set(B.termMatrix[0]))
         res = [sorted(list(var_set))]
         for var in res[0]:
@@ -64,12 +63,10 @@ class Polynomial:
         return A, B
     
     def LT(self):
+        #leading term
         if len(self.termMatrix) == 1:
             self.termMatrix = [[' '], [0]]
-        #leading term
-        #print('takeing leading term: ', self.termMatrix)
         self.termMatrix = order(self.termMatrix)
-        #print('leading term is: ', Polynomial(Polynomial.clean([self.termMatrix[0], self.termMatrix[1]])).termMatrix)
         res = [[], []]
         for i in range(len(self.termMatrix[0])):
             res[0].append(self.termMatrix[0][i])
@@ -92,7 +89,6 @@ class Polynomial:
         return res
     
     def __add__(self, other):
-        #print('addition happenning between: ', self.termMatrix, other.termMatrix)
         if len(self.termMatrix) == 1:
             self.termMatrix = [[' '], [0]]
         if len(other.termMatrix) == 1:
@@ -100,23 +96,11 @@ class Polynomial:
         var_set = set(self.termMatrix[0]).union(set(other.termMatrix[0]))
         res = [sorted(list(var_set))]
         #first add variables to both, then order both, then combine both
-        for var in res[0]:
-            if var not in self.termMatrix[0]:
-                self.termMatrix[0].append(var)
-                for term in self.termMatrix[1:]:
-                    term.append(0)
-            if var not in other.termMatrix[0]:
-                other.termMatrix[0].append(var)
-                for term in other.termMatrix[1:]:
-                    term.append(0)
-        self.termMatrix = order(self.termMatrix)
-        other.termMatrix = order(other.termMatrix)
+        self, other = Polynomial.combine_variables(self, other)
         res += self.termMatrix[1:]
         res += other.termMatrix[1:]
         res = collectLikeTerms(res)
         res = order(res)
-        #print('sum: ', res)
-        #print('self: ',self.termMatrix,' other: ', other.termMatrix)
         return Polynomial(res)
     
     def __sub__(self, other):
@@ -128,34 +112,19 @@ class Polynomial:
     
     def __mul__(self, other):
         #first add variables and order
-        var_set = set(self.termMatrix[0]).union(set(other.termMatrix[0]))
-        res = [sorted(list(var_set))]
-        for var in res[0]:
-            if var not in self.termMatrix[0]:
-                self.termMatrix[0].append(var)
-                for term in self.termMatrix[1:]:
-                    term.append(0)
-            if var not in other.termMatrix[0]:
-                other.termMatrix[0].append(var)
-                for term in other.termMatrix[1:]:
-                    term.append(0)
-        self.termMatrix = order(self.termMatrix)
-        other.termMatrix = order(other.termMatrix)
-        #then define multiplication of single terms
-        def mul_terms(a, b):
-            product = []
-            product.append(a[0]*b[0])
-            for i in range(1, len(a)):
-                product.append(a[i] + b[i])
-            return product
+        self, other = Polynomial.combine_variables(self, other)
+        res = [self.termMatrix[0]]
         #then distribute that multiplication
         for term in self.termMatrix[1:]:
             for other_term in other.termMatrix[1:]:
-                res.append(mul_terms(term, other_term))
+                product = []
+                product.append(term[0]*other_term[0])
+                for i in range(1, len(term)):
+                    product.append(term[i] + other_term[i])
+                res.append(product)
         res = collectLikeTerms(res)
         res = order(res)
         return Polynomial(res)
-        
     
     def derivative(self, var):
         pass
@@ -187,7 +156,6 @@ class Polynomial:
     
     @staticmethod    
     def divides(A, B):
-        #print('divides happening between: ', A.termMatrix, B.termMatrix)
         #returns True if LT(a) has exponents all less than LT(b)
         if A.termMatrix == [[' ']] or B.termMatrix == [[' ']]:
             return False
@@ -200,14 +168,11 @@ class Polynomial:
                 res = False
         A.termMatrix = collectLikeTerms(A.termMatrix)
         B.termMatrix = collectLikeTerms(B.termMatrix)
-        #print('divides result: ',res, A.termMatrix, B.termMatrix)
         return res
     
     @staticmethod    
     def monomialDivide(A, B):
-        #print('md: ',A.termMatrix, B.termMatrix)
         A, B = Polynomial.combine_variables(A, B)
-        #print('md: ',A.termMatrix, B.termMatrix)
         res = A
         res.termMatrix[1][0] = A.termMatrix[1][0] / B.termMatrix[1][0]
         for i in range(1, len(res.termMatrix[0])):
@@ -233,14 +198,9 @@ class Polynomial:
                 else:
                     i += 1
             if division_occured == False:
-                #print(p.termMatrix)
                 p_LT = p.LT()
-                #print('p after p.LT(): ', p.termMatrix)
                 r += p_LT
-                #print('p after r += p.LT(): ', p.termMatrix)
                 p -= p.LT()
-                #print('p after subtraction: ', p.termMatrix)
-        #return [str(x) for x in a], str(r)
         return a, r
     
     def divide_string(self, *others):
@@ -260,5 +220,4 @@ if __name__ == '__main__':
     S = Polynomial(s)
     T = Polynomial(t)
     E = Polynomial(e)
-    #print(S.divide(T, E))
     print(S.divide_string(T, E))
