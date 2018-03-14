@@ -115,7 +115,21 @@ class Polynomial:
         pass
     
     def __str__(self):
-        pass
+        res = ""
+        if len(self.termMatrix) == 1:
+            return "0"
+        for term in self.termMatrix[1:]:
+            if term[0] != 1:
+                res += str(term[0])
+            for i in range(1, len(self.termMatrix[0])):
+                if term[i] != 0:
+                    res += self.termMatrix[0][i]
+                    if term[i] != 1:
+                        res += "^" + str(term[i])
+            res += " + "
+        if res.endswith(" + "):
+            res = res[:-3]
+        return res
     
     def __truediv__(self, other):
         pass
@@ -130,4 +144,4 @@ if __name__ == '__main__':
     q = Polynomial(t)
     print(s)
     print(t)
-    print((p-q).termMatrix)
+    print(p)
