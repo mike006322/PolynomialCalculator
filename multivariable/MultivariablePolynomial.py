@@ -4,11 +4,14 @@ from CollectLikeTerms import collectLikeTerms
 
 class Polynomial:
     
-    def __init__(self, poly_string):
-        self.termMatrix = parse(poly_string)
-        self.termMatrix = collectLikeTerms(self.termMatrix)
-        self.termMatrix = order(self.termMatrix)
-        #what about zero polynomial?
+    def __init__(self, poly):
+        if type(poly) == list:
+            self.termMatrix = poly
+        if type(poly) == str:
+            self.termMatrix = parse(poly)
+            self.termMatrix = collectLikeTerms(self.termMatrix)
+            self.termMatrix = order(self.termMatrix)
+        
     
     @staticmethod
     def clean(termMatrix):
@@ -34,22 +37,79 @@ class Polynomial:
     def LT(self):
         #leading term
         self.termMatrix = order(self.termMatrix)
-        return Polynomial.clean([self.termMatrix[0], self.termMatrix[1]])
+        return Polynomial(Polynomial.clean([self.termMatrix[0], self.termMatrix[1]]))
     
     def __repr__(self):
-        pass
+        return "Polynomial" + str(self.termMatrix)
     
-    def __call__(self, ):
-        pass
+    def __call__(self, **kwargs):
+        #input is variables as key word arguments, e.g. "x = 2, y = 3"
+        res = 0
+        for term in self.termMatrix[1:]:
+            to_add = term[0]
+            for i in range(1, len(term)):
+                to_add *= kwargs[self.termMatrix[0][i]] ** term[i]
+            res += to_add
+        return res
     
     def __add__(self, other):
-        pass
+        var_set = set(self.termMatrix[0]).union(set(other.termMatrix[0]))
+        res = [sorted(list(var_set))]
+        #first add variables to both, then order both, then combine both
+        for var in res[0]:
+            if var not in self.termMatrix[0]:
+                self.termMatrix[0].append(var)
+                for term in self.termMatrix[1:]:
+                    term.append(0)
+            if var not in other.termMatrix[0]:
+                other.termMatrix[0].append(var)
+                for term in other.termMatrix[1:]:
+                    term.append(0)
+        self.termMatrix = order(self.termMatrix)
+        other.termMatrix = order(other.termMatrix)
+        res += self.termMatrix[1:]
+        res += other.termMatrix[1:]
+        res = collectLikeTerms(res)
+        res = order(res)
+        return Polynomial(res)
     
     def __sub__(self, other):
-        pass
+        if self == other:
+            return Polynomial([[' ']])
+        for term in other.termMatrix[1:]:
+            term[0] = -term[0]
+        return self + other
     
     def __mul__(self, other):
-        pass
+        #first add variables and order
+        var_set = set(self.termMatrix[0]).union(set(other.termMatrix[0]))
+        res = [sorted(list(var_set))]
+        for var in res[0]:
+            if var not in self.termMatrix[0]:
+                self.termMatrix[0].append(var)
+                for term in self.termMatrix[1:]:
+                    term.append(0)
+            if var not in other.termMatrix[0]:
+                other.termMatrix[0].append(var)
+                for term in other.termMatrix[1:]:
+                    term.append(0)
+        self.termMatrix = order(self.termMatrix)
+        other.termMatrix = order(other.termMatrix)
+        #then define multiplication of single terms
+        def mul_terms(a, b):
+            product = []
+            product.append(a[0]*b[0])
+            for i in range(1, len(a)):
+                product.append(a[i] + b[i])
+            return product
+        #then distribute that multiplication
+        for term in self.termMatrix[1:]:
+            for other_term in other.termMatrix[1:]:
+                res.append(mul_terms(term, other_term))
+        res = collectLikeTerms(res)
+        res = order(res)
+        return Polynomial(res)
+        
     
     def derivative(self, var):
         pass
@@ -64,7 +124,10 @@ class Polynomial:
         pass
 
 if __name__ == '__main__':
-    s = 'yx^2+yx+x+x+4+z'
+    s = 'x^2+2'
+    t = 'y^3+3'
     p = Polynomial(s)
+    q = Polynomial(t)
     print(s)
-    print(p.LT())
+    print(t)
+    print((p*p).termMatrix)
