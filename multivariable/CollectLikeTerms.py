@@ -13,9 +13,21 @@ def collectLikeTerms(termMatrix):
                     t[j][0] = 0
     #get rid of 0 terms
     t = [u for u in t if u[0] != 0]
+    #get rid of extra variables
+    if len(t[0]) > 0:
+        for i in range(len(t[0]) - 1, 0, -1): 
+            #in reverse so deletion doesn't affect index of subsequent variables
+            extra = True
+            if len(t) > 0:
+                for term in t[1:]:
+                    if term[i] != 0:
+                        extra = False
+            if extra:
+                for term in t:
+                    del term[i]
     return t
 
 if __name__ == '__main__':
     print('x^2y+4x^2y+8+16+2x+y = 5x^2y+2x+y+24')
-    termMatrix = [[' ', 'y', 'x'], [1.0, 1, 2], [4.0, 1, 2], [8.0, 0, 0], [16.0, 0, 0], [2.0, 0, 1], [1.0, 1, 0]]
+    termMatrix = [[' ', 'y', 'x', 'z'], [1.0, 1, 2, 0], [4.0, 1, 2, 0], [8.0, 0, 0, 0], [16.0, 0, 0, 0], [2.0, 0, 1, 0], [1.0, 1, 0, 0]]
     print(collectLikeTerms(termMatrix))

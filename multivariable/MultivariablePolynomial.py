@@ -125,9 +125,9 @@ class Polynomial:
 
 if __name__ == '__main__':
     s = 'x^2+2'
-    t = 'y^3+3'
+    t = 'y^3+x^2+3'
     p = Polynomial(s)
     q = Polynomial(t)
     print(s)
     print(t)
-    print((p*p).termMatrix)
+    print((p-q).termMatrix)
