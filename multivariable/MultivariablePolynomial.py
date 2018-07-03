@@ -1,4 +1,4 @@
-from parser import parse_poly as parse
+from poly_parser import parse_poly as parse
 from orderings import order_lex as order
 from CollectLikeTerms import collectLikeTerms
 

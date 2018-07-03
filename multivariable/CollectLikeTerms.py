@@ -1,7 +1,9 @@
-#input is termMatrix from parser.py
-#output is another termMatrix with terms collected
+"""
+Input is termMatrix from poly_parser.py
+Output is another termMatrix with terms collected
 
-#termMatrix = [[" ", variable1, variable2...], [coefficient, exponent1, exponent2...],...]
+termMatrix = [[" ", variable1, variable2...], [coefficient, exponent1, exponent2...],...]
+"""
 
 def collectLikeTerms(termMatrix):
     t = termMatrix
