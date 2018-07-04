@@ -107,3 +107,4 @@ if __name__ == "__main__":
     poly = 'x1^2*x2^3 - 9Z^4T^2 + 7x^2x2^6'
     print(poly)
     print(parse_poly(poly))
+    print(parse_poly('x+1'))
