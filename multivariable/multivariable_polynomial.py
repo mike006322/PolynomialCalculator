@@ -154,7 +154,7 @@ class Polynomial:
             return "0"
         for term in self.termMatrix[1:]:
             # display coefficient if it's not 1
-            if term[0] != 1:
+            if term[0] != 1 and len(self.termMatrix[0]) > 1:
                 res += str(term[0])
             # display coefficient if there are no other exponents
             if len(term) == 1:
@@ -277,12 +277,18 @@ if __name__ == '__main__':
     S = Polynomial(s)
     T = Polynomial(t)
     E = Polynomial(e)
-    print(S.division_string(T, E))
-    print(S.division_algorithm(T,E))
+    poly1 = 'x^2-4x+4'
+    poly2 = 'x-2'
+    Poly1 = Polynomial(poly1)
+    Poly2 = Polynomial(poly2)
+    #print(S.division_string(T, E))
+    #print(S.division_algorithm(T,E))
     #print(S.division_algorithm(Polynomial('x'),Polynomial('y')))
     #print(S.division_string(Polynomial('x'),Polynomial('y')))
     #print(Polynomial('x').division_algorithm(Polynomial('y')))
     #print(Polynomial('x^2-1').division_string(Polynomial('x+1')))
     #print(Polynomial('x^2-1')/'x+1')
     #print('x^2-1'/Polynomial('x+1'))
+    print(Polynomial('x+5'))
+    print(Poly1.division_string(Poly2))
 
