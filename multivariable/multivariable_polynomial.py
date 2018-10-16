@@ -1,6 +1,6 @@
 from poly_parser import parse_poly as parse
 from orderings import order_lex as order
-from CollectLikeTerms import collectLikeTerms
+from collect_like_terms import collect_like_terms
 import formulas
 
 class InputError(Exception):
@@ -26,7 +26,7 @@ class Polynomial:
             self.termMatrix = poly
         elif type(poly) == str:
             self.termMatrix = parse(poly)
-            self.termMatrix = collectLikeTerms(self.termMatrix)
+            self.termMatrix = collect_like_terms(self.termMatrix)
             self.termMatrix = order(self.termMatrix)
         else:
             raise InputError
@@ -223,7 +223,7 @@ class Polynomial:
             self_copy, other_copy = Polynomial.combine_variables(self, other)
             res += self_copy.termMatrix[1:]
             res += other_copy.termMatrix[1:]
-            res = collectLikeTerms(res)
+            res = collect_like_terms(res)
             res = order(res)
         else:
             return self + Polynomial(other)
@@ -257,7 +257,7 @@ class Polynomial:
                     for i in range(1, len(term)):
                         product.append(term[i] + other_term[i])
                     res.append(product)
-            res = collectLikeTerms(res)
+            res = collect_like_terms(res)
             res = order(res)
         else:
             return self * Polynomial(other)
