@@ -1,6 +1,7 @@
 from poly_parser import parse_poly as parse
 from orderings import order_lex as order
 from CollectLikeTerms import collectLikeTerms
+import formulas
 
 class InputError(Exception):
 
@@ -11,9 +12,8 @@ class InputError(Exception):
 
 class NonFactor(Exception):
 
-    def __init__(self):
-        print("The denominator is not a factor of the numerator")
-
+    def __init__(self, q, p):
+        super().__init__("{} does not divide {}".format(q, p))
 
 class Polynomial:
 
@@ -31,18 +31,33 @@ class Polynomial:
         else:
             raise InputError
 
+    def derivative(self, var):
+        """
+        returns the derivative with respect to var
+        """
+        return solve(self)
+
+    def solve(self):
+        """
+        returns zeros of the polynomial if able
+        """
+        return formulas.solve(self)
+
     @staticmethod
     def clean(termMatrix):
-        # removes extra variables
+        """
+        input is polynomial in termMatrix
+        returns termMatrix with minimum number of variables
+        """
         res = termMatrix
         j = 0
         while j < len(termMatrix[0]):
             for i in range(1, len(res[0])):
-                allZero = True
+                all_zero = True
                 for term in res[1:]:
                     if term[i] != 0:
-                        allZero = False
-                if allZero:
+                        all_zero = False
+                if all_zero:
                     if i < len(res[0])-1:
                         res = [x[0:i] + x[i+1:] for x in res]
                     else:
@@ -53,6 +68,10 @@ class Polynomial:
 
     @staticmethod
     def combine_variables(A, B):
+        """
+        input is two polynomials
+        returns two polynomials with termMatricies that have same variables
+        """
         a = Polynomial(A.termMatrix[:])
         b = Polynomial(B.termMatrix[:])
         var_set = set(a.termMatrix[0]).union(set(b.termMatrix[0]))
@@ -71,7 +90,9 @@ class Polynomial:
         return a, b
 
     def LT(self):
-        # leading term
+        """
+        returns the leading term of the polynomial
+        """
         if len(self.termMatrix) == 1:
             self.termMatrix = [[' '], [0]]
         self.termMatrix = order(self.termMatrix)
@@ -83,70 +104,75 @@ class Polynomial:
         Polynomial.clean(res)
         return Polynomial(res)
 
-    def __repr__(self):
-        return "Polynomial({})".format(self.termMatrix)
-
-    def __call__(self, **kwargs):
-        # input is variables as key word arguments, e.g. "x = 2, y = 3"
-        res = 0
-        for term in self.termMatrix[1:]:
-            to_add = term[0]
-            for i in range(1, len(term)):
-                to_add *= kwargs[self.termMatrix[0][i]] ** term[i]
-            res += to_add
+    @staticmethod
+    def divides(A, B):
+        """
+        returns True if LT(a) has exponents all less than LT(b)
+        """
+        if A.termMatrix == [[' ']] or B.termMatrix == [[' ']]:
+            return False
+        tempa, tempb = Polynomial.combine_variables(A, B)
+        a = tempa.termMatrix
+        b = tempb.termMatrix
+        res = True
+        for i in range(1, len(a[1])):
+            if a[1][i] > b[1][i]:
+                res = False
         return res
 
-    def __add__(self, other):
-        if type(other) == Polynomial:
-            if len(self.termMatrix) == 1:
-                self.termMatrix = [[' '], [0]]
-            if len(other.termMatrix) == 1:
-                other.termMatrix = [[' '], [0]]
-            var_set = set(self.termMatrix[0]).union(set(other.termMatrix[0]))
-            res = [sorted(list(var_set))]
-            # first add variables to both, then order both, then combine both
-            self, other = Polynomial.combine_variables(self, other)
-            res += self.termMatrix[1:]
-            res += other.termMatrix[1:]
-            res = collectLikeTerms(res)
-            res = order(res)
-        else:
-            return self + Polynomial(other)
-        return Polynomial(res)
+    @staticmethod
+    def monomialDivide(A, B):
+        A, B = Polynomial.combine_variables(A, B)
+        res = A
+        res.termMatrix[1][0] = A.termMatrix[1][0] / B.termMatrix[1][0]
+        for i in range(1, len(res.termMatrix[0])):
+            for j in range(1, len(res.termMatrix)):
+                res.termMatrix[j][i] -= B.termMatrix[j][i]
+        return res
 
-    def __sub__(self, other):
-        if type(other) == Polynomial:
-            if self == other:
-                return Polynomial([[' ']])
-            for term in other.termMatrix[1:]:
-                term[0] = -term[0]
-        else:
-            return self - Polynomial(other)
-        return self + other
+    def division_algorithm(self, *others):
+        """
+        input is polynomial/s
+        output is self divided by other polynomial/s and a remainder as Polynomial classes
+        """
+        # others is an ordered tuple of functions
+        a = []
+        for i in range(len(others)):
+            a.append(Polynomial(0))
+        p = self
+        r = Polynomial(0)
+        while p != Polynomial(0):
+            i = 0
+            division_occured = False
+            while i < len(others) and division_occured == False:
+                if Polynomial.divides(others[i], p):
+                    a[i] += Polynomial.monomialDivide(p.LT(), others[i].LT())
+                    p -= Polynomial.monomialDivide(p.LT(), others[i].LT())*others[i]
+                    division_occured = True
+                else:
+                    i += 1
+            if division_occured == False:
+                p_LT = p.LT()
+                r += p_LT
+                p -= p.LT()
+        return a, r
 
+    def division_string(self, *others):
+        """
+        input is polynomial/s
+        output is string "[self] = ([divisor])*([other polynomial/s]) + ([remainder:]) remainder"
+        """
+        a, r = self.division_algorithm(*others)
+        res = str(self) + ' = '
+        for i in range(len(a)):
+            res += '(' + str(a[i]) + ')' + '*' + '(' + str(others[i]) + ')' + ' + '
+        if res.endswith(" + "):
+            res = res[:-3]
+        res += ' + (remainder:) ' + str(r)
+        return res
 
-    def __mul__(self, other):
-        if type(other) == Polynomial:
-            # first add variables and order
-            self, other = Polynomial.combine_variables(self, other)
-            res = [self.termMatrix[0]]
-            # then distribute that multiplication
-            for term in self.termMatrix[1:]:
-                for other_term in other.termMatrix[1:]:
-                    product = []
-                    product.append(term[0]*other_term[0])
-                    for i in range(1, len(term)):
-                        product.append(term[i] + other_term[i])
-                    res.append(product)
-            res = collectLikeTerms(res)
-            res = order(res)
-        else:
-            return self * Polynomial(other)
-        return Polynomial(res)
-
-
-    def derivative(self, var):
-        pass
+    def __repr__(self):
+        return "Polynomial({})".format(self.termMatrix)
 
     def __str__(self):
         res = ""
@@ -173,6 +199,98 @@ class Polynomial:
             res = res[:-3]
         return res
 
+    def __call__(self, **kwargs):
+        """
+        input is variables as key word arguments, e.g. "x = 2, y = 3"
+        """
+        res = 0
+        for term in self.termMatrix[1:]:
+            to_add = term[0]
+            for i in range(1, len(term)):
+                to_add *= kwargs[self.termMatrix[0][i]] ** term[i]
+            res += to_add
+        return res
+
+    def __add__(self, other):
+        if type(other) == Polynomial:
+            if len(self.termMatrix) == 1:
+                self.termMatrix = [[' '], [0]]
+            if len(other.termMatrix) == 1:
+                other.termMatrix = [[' '], [0]]
+            var_set = set(self.termMatrix[0]).union(set(other.termMatrix[0]))
+            res = [sorted(list(var_set))]
+            # first add variables to both, then order both, then combine both
+            self_copy, other_copy = Polynomial.combine_variables(self, other)
+            res += self_copy.termMatrix[1:]
+            res += other_copy.termMatrix[1:]
+            res = collectLikeTerms(res)
+            res = order(res)
+        else:
+            return self + Polynomial(other)
+        return Polynomial(res)
+
+    __radd__ = __add__
+
+    def __sub__(self, other):
+        if type(other) == Polynomial:
+            if self == other:
+                return Polynomial([[' ']])
+            for term in other.termMatrix[1:]:
+                term[0] = -term[0]
+        else:
+            return self - Polynomial(other)
+        return self + other
+
+    def __rsub__(self, other):
+        return Polynomial(other) - self
+
+    def __mul__(self, other):
+        if type(other) == Polynomial:
+            # first add variables and order
+            self_copy, other_copy = Polynomial.combine_variables(self, other)
+            res = [self_copy.termMatrix[0]]
+            # then distribute that multiplication
+            for term in self_copy.termMatrix[1:]:
+                for other_term in other_copy.termMatrix[1:]:
+                    product = []
+                    product.append(term[0]*other_term[0])
+                    for i in range(1, len(term)):
+                        product.append(term[i] + other_term[i])
+                    res.append(product)
+            res = collectLikeTerms(res)
+            res = order(res)
+        else:
+            return self * Polynomial(other)
+        return Polynomial(res)
+
+    __rmul__ = __mul__
+
+    def __truediv__(self, other):
+        """
+        returns the quotient using the polynomial division algorithm
+        raises error if the denominator is not a factor of the numerator
+        """
+        if type(other) == Polynomial:
+            if other == 1:
+                return self
+            if other == 0:
+                raise ZeroDivisionError
+            div_alg_results = self.division_algorithm(other)
+            if div_alg_results[1] != 0:
+                raise NonFactor(other, self)
+            if self == div_alg_results[1]:
+                return 0
+            else:
+                res = 1
+                for factor in div_alg_results[0]:
+                    res *= factor
+                return res
+        else:
+            return self / Polynomial(other)
+
+    def __rtruediv__(self, other):
+        return Polynomial(other) / self
+
     def __eq__(self, other):
         if type(other) == Polynomial:
             if self.termMatrix == other.termMatrix:
@@ -182,93 +300,6 @@ class Polynomial:
         else:
             return self == Polynomial(other)
 
-    @staticmethod
-    def divides(A, B):
-        # returns True if LT(a) has exponents all less than LT(b)
-        if A.termMatrix == [[' ']] or B.termMatrix == [[' ']]:
-            return False
-        tempa, tempb = Polynomial.combine_variables(A, B)
-        a = tempa.termMatrix
-        b = tempb.termMatrix
-        res = True
-        for i in range(1, len(a[1])):
-            if a[1][i] > b[1][i]:
-                res = False
-        return res
-
-    @staticmethod
-    def monomialDivide(A, B):
-        A, B = Polynomial.combine_variables(A, B)
-        res = A
-        res.termMatrix[1][0] = A.termMatrix[1][0] / B.termMatrix[1][0]
-        for i in range(1, len(res.termMatrix[0])):
-            for j in range(1, len(res.termMatrix)):
-                res.termMatrix[j][i] -= B.termMatrix[j][i]
-        return res
-
-    # change 'divide' to 'division algorithm' or 'factor' and then use division operator to output a quotient and raise error with remainder if it can't evenly divide
-    def division_algorithm(self, *others):
-        # others is an ordered tuple of functions
-        a = []
-        for i in range(len(others)):
-            a.append(Polynomial(0))
-        p = self
-        r = Polynomial(0)
-        while p != Polynomial(0):
-            i = 0
-            division_occured = False
-            while i < len(others) and division_occured == False:
-                if Polynomial.divides(others[i], p):
-                    a[i] += Polynomial.monomialDivide(p.LT(), others[i].LT())
-                    p -= Polynomial.monomialDivide(p.LT(), others[i].LT())*others[i]
-                    division_occured = True
-                else:
-                    i += 1
-            if division_occured == False:
-                p_LT = p.LT()
-                r += p_LT
-                p -= p.LT()
-        return a, r
-
-    def division_string(self, *others):
-        a, r = self.division_algorithm(*others)
-        res = str(self) + ' = '
-        for i in range(len(a)):
-            res += '(' + str(a[i]) + ')' + ' * ' + '(' + str(others[i]) + ')' + ' + '
-        if res.endswith(" + "):
-            res = res[:-3]
-        res += ', remainder = ' + str(r)
-        return res
-
-    def __truediv__(self, other):
-        if type(other) == Polynomial:
-            if other == 1:
-                return self
-            if other == 0:
-                raise ZeroDivisionError
-            div_alg_results = self.division_algorithm(other)
-            if self == div_alg_results[1]:
-                return 0
-            elif div_alg_results[1] != 0:
-                print('self.termMatrix: ', self.termMatrix)
-                print(other.termMatrix)
-                print(self.division_string(other))
-                print("Numerator: {}, Denominator: {}".format(self, other))
-                raise NonFactor
-            else:
-                res = 1
-                for factor in div_alg_results[0]:
-                    res *= factor
-                return res
-        else:
-            return self / Polynomial(other)
-
-    __radd__ = __add__
-    __rmul__ = __mul__
-    def __rsub__(self, other):
-        return Polynomial(other) - self
-    def __rtruediv__(self, other):
-        return Polynomial(other) / self
 
 if __name__ == '__main__':
     s = 'x^2y + xy^2 + y^2'
@@ -281,14 +312,18 @@ if __name__ == '__main__':
     poly2 = 'x-2'
     Poly1 = Polynomial(poly1)
     Poly2 = Polynomial(poly2)
-    #print(S.division_string(T, E))
-    #print(S.division_algorithm(T,E))
+    print(S.division_string(T, E))
+    print(S.division_algorithm(T, E))
     #print(S.division_algorithm(Polynomial('x'),Polynomial('y')))
-    #print(S.division_string(Polynomial('x'),Polynomial('y')))
+    print(S.division_string(Polynomial('x'),Polynomial('y')))
     #print(Polynomial('x').division_algorithm(Polynomial('y')))
     #print(Polynomial('x^2-1').division_string(Polynomial('x+1')))
     #print(Polynomial('x^2-1')/'x+1')
     #print('x^2-1'/Polynomial('x+1'))
     print(Polynomial('x+5'))
     print(Poly1.division_string(Poly2))
+    print(Polynomial('3x^2 + x + 5').termMatrix)
+    print(T.division_string(E))
+    print(T.division_algorithm(E)[1])
+    print(T/E)
 
