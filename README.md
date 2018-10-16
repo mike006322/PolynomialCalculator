@@ -19,7 +19,7 @@ Instead they offer lists of useful commands as options for the user to run.
 - code solution to fourth degree polynomial in one variable
 - have solutions display symbolically
 - option to plot single-variable polynomials
-- create a GUI
+- create a GUI with Python
 
 ### Longer-term goals
 - web GUI
