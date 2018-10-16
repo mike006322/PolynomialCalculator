@@ -1,4 +1,10 @@
 def solve(polynomial):
+    """
+    input is polynomial
+    if more than one variable, returns 'too many variables'
+    looks for formula to apply to coefficients
+    returns solution or 'I cannot solve yet...'
+    """
     if len(polynomial.termMatrix[0]) > 2:
         return 'too many variables'
     elif len(polynomial.termMatrix[0]) == 1:
@@ -17,6 +23,10 @@ def solve(polynomial):
             return 'I cannot solve yet...'
 
 def quadratic_formula(polynomial):
+    """
+    input is single-variable polynomial of degree 2
+    returns zeros
+    """
     if len(polynomial.termMatrix) == 3:
         a, c = polynomial.termMatrix[1][0], polynomial.termMatrix[2][0]
         return (-c/a)**.5
