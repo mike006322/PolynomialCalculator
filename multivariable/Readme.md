@@ -1,6 +1,6 @@
 <h1>Multivariable Polynomials</h1>
 
-Manipulation of polynomials is done by converting them to a standard form, the "termMatrix". This form is implemented as a list where the first element is a list of variables. The following lists are terms in the polynomial.
+Manipulation of polynomials is done by converting them to a standard form, the "termMatrix". This form is implemented as a list where the first element is a list of variables after a blank string. The following lists are terms in the polynomial.
 
 termMatrix = [[' ', variable1, variable2...], [coefficient, exponent1, exponent2...],...]
 
