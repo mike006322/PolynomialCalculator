@@ -1,5 +1,6 @@
 import unittest
 import multivariable_polynomial
+from multivariable_polynomial import Polynomial
 
 class TestParser(unittest.TestCase):
 
@@ -45,6 +46,12 @@ class TestParser(unittest.TestCase):
         self.assertRaises(ZeroDivisionError, lambda: a / 0)
         self.assertTrue(b / b == 1)
         self.assertRaises(multivariable_polynomial.NonFactor, lambda: T / E)
+
+    def test__iter__(self):
+        s = 'x^2y + xy^2 + y^2'
+        S = multivariable_polynomial.Polynomial(s)
+        self.assertEqual([term for term in S], [Polynomial('x^2y'), Polynomial('xy^2'), Polynomial('y^2')])
+
 
 
 if __name__ == '__main__':

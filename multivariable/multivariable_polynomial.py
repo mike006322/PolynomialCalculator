@@ -31,6 +31,17 @@ class Polynomial:
         else:
             raise InputError
 
+    def __iter__(self):
+        """
+        yields terms of the polynomial as individual polynomials
+        """
+        self.termMatrix
+        terms = iter(self.termMatrix)
+        variables = next(terms)
+        for term in terms:
+            p = [variables, term]
+            yield Polynomial(collect_like_terms(p))
+
     def derivative(self, var):
         """
         returns the derivative with respect to var
