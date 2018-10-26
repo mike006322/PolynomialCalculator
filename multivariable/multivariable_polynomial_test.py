@@ -47,6 +47,22 @@ class TestParser(unittest.TestCase):
         self.assertTrue(b / b == 1)
         self.assertRaises(multivariable_polynomial.NonFactor, lambda: T / E)
 
+    def test_LT(self):
+        t = 'xy - 1'
+        T = multivariable_polynomial.Polynomial(t)
+        s = 'x^2y + xy^2 + y^2'
+        S = multivariable_polynomial.Polynomial(s)
+        self.assertEqual(T.LT(), Polynomial('xy'))
+        self.assertEqual(S.LT(), Polynomial('x^2y'))
+
+    def test_divides(self):
+        t = 'xy - 1'
+        T = multivariable_polynomial.Polynomial(t)
+        s = 'x^2y + xy^2 + y^2'
+        S = multivariable_polynomial.Polynomial(s)
+        self.assertEqual(Polynomial.divides(T, S), True)
+        self.assertEqual(Polynomial.divides(S, T), False)
+
     def test__iter__(self):
         s = 'x^2y + xy^2 + y^2'
         S = multivariable_polynomial.Polynomial(s)

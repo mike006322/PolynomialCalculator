@@ -15,6 +15,7 @@ class NonFactor(Exception):
     def __init__(self, q, p):
         super().__init__("{} does not divide {}".format(q, p))
 
+
 class Polynomial:
 
     def __init__(self, poly):
@@ -35,7 +36,6 @@ class Polynomial:
         """
         yields terms of the polynomial as individual polynomials
         """
-        self.termMatrix
         terms = iter(self.termMatrix)
         variables = next(terms)
         for term in terms:
@@ -108,10 +108,10 @@ class Polynomial:
             self.termMatrix = [[' '], [0]]
         self.termMatrix = order(self.termMatrix)
         res = [[], []]
-        for i in range(len(self.termMatrix[0])):
-            res[0].append(self.termMatrix[0][i])
-        for i in range(len(self.termMatrix[1])):
-            res[1].append(self.termMatrix[1][i])
+        for variable in self.termMatrix[0]:
+            res[0].append(variable)
+        for coefficient in self.termMatrix[1]:
+            res[1].append(coefficient)
         Polynomial.clean(res)
         return Polynomial(res)
 
