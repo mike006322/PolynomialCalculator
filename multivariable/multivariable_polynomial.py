@@ -38,6 +38,9 @@ class Polynomial:
         self.termMatrix = self.mod_poly(self.termMatrix)
 
     def mod_poly(self, termMatrix):
+        """
+        mods the termMatrix by the field characteristic if it's greater than 0
+        """
         if self.field_characteristic > 0:
             termMatrix_iter = iter(termMatrix)
             next(termMatrix_iter)
