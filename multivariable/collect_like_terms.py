@@ -25,6 +25,8 @@ def collect_like_terms(termMatrix):
             if extra:
                 for term in t:
                     del term[i]
+    if t == [[]]:
+        return [[' ']]
     return t
 
 if __name__ == '__main__':

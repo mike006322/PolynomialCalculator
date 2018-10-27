@@ -18,19 +18,35 @@ class NonFactor(Exception):
 
 class Polynomial:
 
-    def __init__(self, poly):
+    def __init__(self, poly, char=0):
         if poly == 0:
             self.termMatrix = [[' ']]
+            self.field_characteristic = char
         elif isinstance(poly, (int, float, complex)) and poly != 0:
             self.termMatrix = [[' '], [poly]]
+            self.field_characteristic = char
         elif type(poly) == list:
             self.termMatrix = poly
+            self.field_characteristic = char
         elif type(poly) == str:
             self.termMatrix = parse(poly)
             self.termMatrix = collect_like_terms(self.termMatrix)
             self.termMatrix = order(self.termMatrix)
+            self.field_characteristic = char
         else:
             raise InputError
+        self.termMatrix = self.mod_poly(self.termMatrix)
+
+    def mod_poly(self, termMatrix):
+        if self.field_characteristic > 0:
+            termMatrix_iter = iter(termMatrix)
+            next(termMatrix_iter)
+            for term in termMatrix_iter:
+                term[0] %= self.field_characteristic
+            termMatrix = collect_like_terms(termMatrix)
+            return termMatrix
+        else:
+            return termMatrix
 
     def __iter__(self):
         """
@@ -83,8 +99,8 @@ class Polynomial:
         input is two polynomials
         returns two polynomials with termMatricies that have same variables
         """
-        a = Polynomial(A.termMatrix[:])
-        b = Polynomial(B.termMatrix[:])
+        a = Polynomial([term[:] for term in A.termMatrix[:]])
+        b = Polynomial([term[:] for term in B.termMatrix[:]])
         var_set = set(a.termMatrix[0]).union(set(b.termMatrix[0]))
         res = [sorted(list(var_set))]
         for var in res[0]:
@@ -166,6 +182,9 @@ class Polynomial:
                 p_LT = p.LT()
                 r += p_LT
                 p -= p.LT()
+        for poly in a:
+            poly.termMatrix = self.mod_poly(poly.termMatrix)
+        r.termMatrix = self.mod_poly(r.termMatrix)
         return a, r
 
     def division_string(self, *others):
@@ -236,6 +255,7 @@ class Polynomial:
             res += other_copy.termMatrix[1:]
             res = collect_like_terms(res)
             res = order(res)
+            res = self.mod_poly(res)
         else:
             return self + Polynomial(other)
         return Polynomial(res)
@@ -272,6 +292,7 @@ class Polynomial:
             res = order(res)
         else:
             return self * Polynomial(other)
+        res = self.mod_poly(res)
         return Polynomial(res)
 
     __rmul__ = __mul__
