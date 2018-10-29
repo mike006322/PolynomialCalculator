@@ -36,7 +36,7 @@ def addVar(var, s, termMatrix):
 
 
 def addExp(k, s, termMatrix):
-    # replaces 0 in kth entry of term in termMatrix with exponent
+    # replaces 0 in kth entry of term in term_matrix with exponent
     var = termMatrix[0][k]
     for j in range(len(s)):
         term = s[j]

@@ -1,10 +1,10 @@
-def collect_like_terms(termMatrix):
+def collect_like_terms(term_matrix):
     """
-    input is polynomial in form of termMatrix from poly_parser.py
-    output is another termMatrix with terms collected
-    termMatrix = [[" ", variable1, variable2...], [coefficient, exponent1, exponent2...],...]
+    input is polynomial in form of term_matrix from poly_parser.py
+    output is another term_matrix with terms collected
+    term_matrix = [[" ", variable1, variable2...], [coefficient, exponent1, exponent2...],...]
     """
-    t = [term[:] for term in termMatrix]
+    t = [term[:] for term in term_matrix]
     for i, term in enumerate(t, start=1):
         if i < len(t) - 1:
             for j in range(i+1, len(t)):
@@ -28,6 +28,7 @@ def collect_like_terms(termMatrix):
     if t == [[]]:
         return [[' ']]
     return t
+
 
 if __name__ == '__main__':
     pass

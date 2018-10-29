@@ -1,14 +1,15 @@
 import multivariable_polynomial
 
-def divides(A, B):
+
+def divides(a, b):
     """
     returns True if LT(a) has exponents all less than LT(b)
     """
-    if A.termMatrix == [[' ']] or B.termMatrix == [[' ']]:
+    if a.term_matrix == [[' ']] or b.term_matrix == [[' ']]:
         return False
-    tempa, tempb = multivariable_polynomial.Polynomial.combine_variables(A, B)
-    a = tempa.termMatrix
-    b = tempb.termMatrix
+    a, b = multivariable_polynomial.Polynomial.combine_variables(a, b)
+    a = a.term_matrix
+    b = b.term_matrix
     res = True
     for i in range(1, len(a[1])):
         if a[1][i] > b[1][i]:
@@ -16,13 +17,13 @@ def divides(A, B):
     return res
 
 
-def monomialDivide(A, B):
-    A, B = multivariable_polynomial.Polynomial.combine_variables(A, B)
-    res = A
-    res.termMatrix[1][0] = A.termMatrix[1][0] / B.termMatrix[1][0]
-    for i in range(1, len(res.termMatrix[0])):
-        for j in range(1, len(res.termMatrix)):
-            res.termMatrix[j][i] -= B.termMatrix[j][i]
+def monomial_divide(a, b):
+    a, b = multivariable_polynomial.Polynomial.combine_variables(a, b)
+    res = a
+    res.term_matrix[1][0] = a.term_matrix[1][0] / b.term_matrix[1][0]
+    for i in range(1, len(res.term_matrix[0])):
+        for j in range(1, len(res.term_matrix)):
+            res.term_matrix[j][i] -= b.term_matrix[j][i]
     return res
 
 
@@ -42,8 +43,8 @@ def division_algorithm(input_poly, *others):
         division_occured = False
         while i < len(others) and division_occured == False:
             if divides(others[i], p):
-                a[i] += monomialDivide(p.LT(), others[i].LT())
-                p -= monomialDivide(p.LT(), others[i].LT())*others[i]
+                a[i] += monomial_divide(p.LT(), others[i].LT())
+                p -= monomial_divide(p.LT(), others[i].LT()) * others[i]
                 division_occured = True
             else:
                 i += 1
@@ -52,8 +53,8 @@ def division_algorithm(input_poly, *others):
             r += p_LT
             p -= p.LT()
     for poly in a:
-        poly.termMatrix = input_poly.mod_poly(poly.termMatrix)
-    r.termMatrix = input_poly.mod_poly(r.termMatrix)
+        poly.term_matrix = input_poly.mod_poly(poly.term_matrix)
+    r.term_matrix = input_poly.mod_poly(r.term_matrix)
     return a, r
 
 

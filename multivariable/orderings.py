@@ -1,6 +1,6 @@
 """
-For each ordering, input is in form termMatrix from poly_parser.py
-output is another termMatrix sorted according to the ordering
+For each ordering, input is in form term_matrix from poly_parser.py
+output is another term_matrix sorted according to the ordering
 """
 
 ########## Lexicographic Ordering #############
@@ -134,5 +134,5 @@ def grev_lex(termMatrix):
 if __name__ == '__main__':
     print('-5x^3 + 7x^2z^2 + 4xy^2z + 4z^2')
     termMatrix = [[' ', 'x', 'y', 'z'], [-5, 3, 0, 0], [7, 2, 0, 2], [4, 1, 2, 1], [4, 0, 0, 2]]
-    #print(termMatrix)
+    #print(term_matrix)
     print(grev_lex(termMatrix))

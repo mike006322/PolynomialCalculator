@@ -5,10 +5,10 @@ from multivariable_polynomial import Polynomial
 class TestParser(unittest.TestCase):
 
     def test__init__(self):
-        self.assertEqual(Polynomial(0).termMatrix, [[' ']])
+        self.assertEqual(Polynomial(0).term_matrix, [[' ']])
         t = [[' ', 'y', 'x'], [5.0, 1, 2], [24.0, 0, 0], [2.0, 0, 1], [1.0, 1, 0]]
         t = Polynomial(t, char=2)
-        self.assertEqual(t.termMatrix, [[' ', 'y', 'x'], [1.0, 1, 2], [1.0, 1, 0]])
+        self.assertEqual(t.term_matrix, [[' ', 'y', 'x'], [1.0, 1, 2], [1.0, 1, 0]])
 
     def test_clean(self):
         self.assertEqual(multivariable_polynomial.Polynomial.clean([[' ', 'x', 'y'], [3.0, 2, 0], [1.0, 1, 0], [5.0, 0, 0]]), [[' ', 'x'], [3.0, 2], [1.0, 1], [5.0, 0]])
@@ -75,15 +75,15 @@ class TestParser(unittest.TestCase):
     def test_mod_poly(self):
         t = [[' ', 'y', 'x'], [5.0, 1, 2], [24.0, 0, 0], [2.0, 0, 1], [1.0, 1, 0]]
         t = Polynomial(t, char=2)
-        self.assertEqual(t.termMatrix, [[' ', 'y', 'x'], [1.0, 1, 2], [1.0, 1, 0]])
+        self.assertEqual(t.term_matrix, [[' ', 'y', 'x'], [1.0, 1, 2], [1.0, 1, 0]])
 
     def test_combine_variables(self):
         t = Polynomial('x')
         s = Polynomial('x^2y + xy^2 + y^2')
         res = (Polynomial([[' ', 'x', 'y'], [1.0, 2, 1], [1.0, 1, 2], [1.0, 0, 2]]), Polynomial([[' ', 'x', 'y'], [1.0, 1, 0]]))
         self.assertEqual(Polynomial.combine_variables(s, t), res)
-        self.assertEqual(s.termMatrix, [[' ', 'x', 'y'], [1.0, 2, 1], [1.0, 1, 2], [1.0, 0, 2]])
-        self.assertEqual(t.termMatrix, [[' ', 'x'], [1.0, 1]])
+        self.assertEqual(s.term_matrix, [[' ', 'x', 'y'], [1.0, 2, 1], [1.0, 1, 2], [1.0, 0, 2]])
+        self.assertEqual(t.term_matrix, [[' ', 'x'], [1.0, 1]])
 
 
 

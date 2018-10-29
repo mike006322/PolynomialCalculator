@@ -22,45 +22,45 @@ class Polynomial:
 
     def __init__(self, poly, char=0):
         if poly == 0:
-            self.termMatrix = [[' ']]
+            self.term_matrix = [[' ']]
             self.field_characteristic = char
         elif isinstance(poly, (int, float, complex)) and poly != 0:
-            self.termMatrix = [[' '], [poly]]
+            self.term_matrix = [[' '], [poly]]
             self.field_characteristic = char
         elif type(poly) == list:
-            self.termMatrix = poly
+            self.term_matrix = poly
             self.field_characteristic = char
         elif type(poly) == str:
-            self.termMatrix = parse(poly)
-            self.termMatrix = collect_like_terms(self.termMatrix)
-            self.termMatrix = order(self.termMatrix)
+            self.term_matrix = parse(poly)
+            self.term_matrix = collect_like_terms(self.term_matrix)
+            self.term_matrix = order(self.term_matrix)
             self.field_characteristic = char
         else:
             raise InputError
-        self.termMatrix = self.mod_poly(self.termMatrix)
+        self.term_matrix = self.mod_poly(self.term_matrix)
 
     def copy(self):
-        return Polynomial([t[:] for t in self.termMatrix])
+        return Polynomial([t[:] for t in self.term_matrix])
 
-    def mod_poly(self, termMatrix):
+    def mod_poly(self, term_matrix):
         """
-        mods the termMatrix by the field characteristic if it's greater than 0
+        mods the term_matrix by the field characteristic if it's greater than 0
         """
         if self.field_characteristic > 0:
-            termMatrix_iter = iter(termMatrix)
-            next(termMatrix_iter)
-            for term in termMatrix_iter:
+            term_matrix_iter = iter(term_matrix)
+            next(term_matrix_iter)
+            for term in term_matrix_iter:
                 term[0] %= self.field_characteristic
-            termMatrix = collect_like_terms(termMatrix)
-            return termMatrix
+            term_matrix = collect_like_terms(term_matrix)
+            return term_matrix
         else:
-            return termMatrix
+            return term_matrix
 
     def __iter__(self):
         """
         yields terms of the polynomial as individual polynomials
         """
-        terms = iter(self.termMatrix)
+        terms = iter(self.term_matrix)
         variables = next(terms)
         for term in terms:
             p = [variables, term]
@@ -79,14 +79,14 @@ class Polynomial:
         return formulas.solve(self)
 
     @staticmethod
-    def clean(termMatrix):
+    def clean(term_matrix):
         """
-        input is polynomial in termMatrix
-        returns termMatrix with minimum number of variables
+        input is polynomial in term_matrix
+        returns term_matrix with minimum number of variables
         """
-        res = termMatrix
+        res = term_matrix
         j = 0
-        while j < len(termMatrix[0]):
+        while j < len(term_matrix[0]):
             for i in range(1, len(res[0])):
                 all_zero = True
                 for term in res[1:]:
@@ -105,50 +105,50 @@ class Polynomial:
     def combine_variables(a, b):
         """
         input is two polynomials
-        returns two polynomials with termMatricies that have same variables
+        returns two polynomials with term_matricies that have same variables
         """
         a = a.copy()
         b = b.copy()
-        var_set = set(a.termMatrix[0]).union(set(b.termMatrix[0]))
+        var_set = set(a.term_matrix[0]).union(set(b.term_matrix[0]))
         res = [sorted(list(var_set))]
         for var in res[0]:
-            if var not in a.termMatrix[0]:
-                a.termMatrix[0].append(var)
-                for term in a.termMatrix[1:]:
+            if var not in a.term_matrix[0]:
+                a.term_matrix[0].append(var)
+                for term in a.term_matrix[1:]:
                     term.append(0)
-            if var not in b.termMatrix[0]:
-                b.termMatrix[0].append(var)
-                for term in b.termMatrix[1:]:
+            if var not in b.term_matrix[0]:
+                b.term_matrix[0].append(var)
+                for term in b.term_matrix[1:]:
                     term.append(0)
-        a.termMatrix = order(a.termMatrix)
-        b.termMatrix = order(b.termMatrix)
+        a.term_matrix = order(a.term_matrix)
+        b.term_matrix = order(b.term_matrix)
         return a, b
 
     def LT(self):
         """
         returns the leading term of the polynomial
         """
-        if len(self.termMatrix) == 1:
-            self.termMatrix = [[' '], [0]]
-        self.termMatrix = order(self.termMatrix)
+        if len(self.term_matrix) == 1:
+            self.term_matrix = [[' '], [0]]
+        self.term_matrix = order(self.term_matrix)
         res = [[], []]
-        for variable in self.termMatrix[0]:
+        for variable in self.term_matrix[0]:
             res[0].append(variable)
-        for coefficient in self.termMatrix[1]:
+        for coefficient in self.term_matrix[1]:
             res[1].append(coefficient)
         Polynomial.clean(res)
         return Polynomial(res)
 
     def __repr__(self):
-        return "Polynomial({})".format(self.termMatrix)
+        return "Polynomial({})".format(self.term_matrix)
 
     def __str__(self):
         res = ""
-        if len(self.termMatrix) == 1:
+        if len(self.term_matrix) == 1:
             return "0"
-        for term in self.termMatrix[1:]:
+        for term in self.term_matrix[1:]:
             # display coefficient if it's not 1
-            if term[0] != 1 and len(self.termMatrix[0]) > 1:
+            if term[0] != 1 and len(self.term_matrix[0]) > 1:
                 res += str(term[0])
             # display coefficient if there are no other exponents
             if len(term) == 1:
@@ -157,9 +157,9 @@ class Polynomial:
             if len(term) > 1:
                 if term[0] == 1 and all(x == 0 for x in term[1:]):
                     res += str(term[0])
-            for i in range(1, len(self.termMatrix[0])):
+            for i in range(1, len(self.term_matrix[0])):
                 if term[i] != 0:
-                    res += self.termMatrix[0][i]
+                    res += self.term_matrix[0][i]
                     if term[i] != 1:
                         res += "^" + str(term[i])
             res += " + "
@@ -172,25 +172,25 @@ class Polynomial:
         input is variables as key word arguments, e.g. "x = 2, y = 3"
         """
         res = 0
-        for term in self.termMatrix[1:]:
+        for term in self.term_matrix[1:]:
             to_add = term[0]
             for i in range(1, len(term)):
-                to_add *= kwargs[self.termMatrix[0][i]] ** term[i]
+                to_add *= kwargs[self.term_matrix[0][i]] ** term[i]
             res += to_add
         return res
 
     def __add__(self, other):
         if type(other) == Polynomial:
-            if len(self.termMatrix) == 1:
-                self.termMatrix = [[' '], [0]]
-            if len(other.termMatrix) == 1:
-                other.termMatrix = [[' '], [0]]
-            var_set = set(self.termMatrix[0]).union(set(other.termMatrix[0]))
+            if len(self.term_matrix) == 1:
+                self.term_matrix = [[' '], [0]]
+            if len(other.term_matrix) == 1:
+                other.term_matrix = [[' '], [0]]
+            var_set = set(self.term_matrix[0]).union(set(other.term_matrix[0]))
             res = [sorted(list(var_set))]
             # first add variables to both, then order both, then combine both
             self_copy, other_copy = Polynomial.combine_variables(self, other)
-            res += self_copy.termMatrix[1:]
-            res += other_copy.termMatrix[1:]
+            res += self_copy.term_matrix[1:]
+            res += other_copy.term_matrix[1:]
             res = collect_like_terms(res)
             res = order(res)
             res = self.mod_poly(res)
@@ -204,7 +204,7 @@ class Polynomial:
         if type(other) == Polynomial:
             if self == other:
                 return Polynomial([[' ']])
-            for term in other.termMatrix[1:]:
+            for term in other.term_matrix[1:]:
                 term[0] = -term[0]
         else:
             return self - Polynomial(other)
@@ -217,10 +217,10 @@ class Polynomial:
         if type(other) == Polynomial:
             # first add variables and order
             self_copy, other_copy = Polynomial.combine_variables(self, other)
-            res = [self_copy.termMatrix[0]]
+            res = [self_copy.term_matrix[0]]
             # then distribute that multiplication
-            for term in self_copy.termMatrix[1:]:
-                for other_term in other_copy.termMatrix[1:]:
+            for term in self_copy.term_matrix[1:]:
+                for other_term in other_copy.term_matrix[1:]:
                     product = []
                     product.append(term[0]*other_term[0])
                     for i in range(1, len(term)):
@@ -263,7 +263,7 @@ class Polynomial:
 
     def __eq__(self, other):
         if type(other) == Polynomial:
-            if self.termMatrix == other.termMatrix:
+            if self.term_matrix == other.term_matrix:
                 return True
             else:
                 return False
