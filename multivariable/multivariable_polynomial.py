@@ -37,12 +37,12 @@ class Polynomial:
             self.field_characteristic = char
         else:
             raise InputError
-        self.term_matrix = self.mod_poly(self.term_matrix)
+        self.term_matrix = self.mod_char(self.term_matrix)
 
     def copy(self):
         return Polynomial([t[:] for t in self.term_matrix])
 
-    def mod_poly(self, term_matrix):
+    def mod_char(self, term_matrix):
         """
         mods the term_matrix by the field characteristic if it's greater than 0
         """
@@ -193,7 +193,7 @@ class Polynomial:
             res += other_copy.term_matrix[1:]
             res = collect_like_terms(res)
             res = order(res)
-            res = self.mod_poly(res)
+            res = self.mod_char(res)
         else:
             return self + Polynomial(other)
         return Polynomial(res)
@@ -230,7 +230,7 @@ class Polynomial:
             res = order(res)
         else:
             return self * Polynomial(other)
-        res = self.mod_poly(res)
+        res = self.mod_char(res)
         return Polynomial(res)
 
     __rmul__ = __mul__

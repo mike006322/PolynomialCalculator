@@ -53,8 +53,8 @@ def division_algorithm(input_poly, *others):
             r += p_LT
             p -= p.LT()
     for poly in a:
-        poly.term_matrix = input_poly.mod_poly(poly.term_matrix)
-    r.term_matrix = input_poly.mod_poly(r.term_matrix)
+        poly.term_matrix = input_poly.mod_char(poly.term_matrix)
+    r.term_matrix = input_poly.mod_char(r.term_matrix)
     return a, r
 
 

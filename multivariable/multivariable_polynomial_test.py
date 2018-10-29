@@ -72,7 +72,7 @@ class TestParser(unittest.TestCase):
         S = Polynomial('x^2y + xy^2 + y^2')
         self.assertEqual([term for term in S], [Polynomial('x^2y'), Polynomial('xy^2'), Polynomial('y^2')])
 
-    def test_mod_poly(self):
+    def test_mod_char(self):
         t = [[' ', 'y', 'x'], [5.0, 1, 2], [24.0, 0, 0], [2.0, 0, 1], [1.0, 1, 0]]
         t = Polynomial(t, char=2)
         self.assertEqual(t.term_matrix, [[' ', 'y', 'x'], [1.0, 1, 2], [1.0, 1, 0]])
@@ -84,7 +84,6 @@ class TestParser(unittest.TestCase):
         self.assertEqual(Polynomial.combine_variables(s, t), res)
         self.assertEqual(s.term_matrix, [[' ', 'x', 'y'], [1.0, 2, 1], [1.0, 1, 2], [1.0, 0, 2]])
         self.assertEqual(t.term_matrix, [[' ', 'x'], [1.0, 1]])
-
 
 
 if __name__ == '__main__':
