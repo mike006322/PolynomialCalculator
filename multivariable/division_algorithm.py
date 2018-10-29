@@ -35,7 +35,7 @@ def division_algorithm(input_poly, *others):
     a = []
     for i in range(len(others)):
         a.append(multivariable_polynomial.Polynomial(0))
-    p = multivariable_polynomial.Polynomial([t[:] for t in input_poly.termMatrix[:]])
+    p = input_poly.copy()
     r = multivariable_polynomial.Polynomial(0)
     while p != multivariable_polynomial.Polynomial(0):
         i = 0

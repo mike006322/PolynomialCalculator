@@ -4,6 +4,7 @@ from collect_like_terms import collect_like_terms
 from division_algorithm import division_algorithm
 import formulas
 
+
 class InputError(Exception):
 
     def __init__(self):
@@ -37,6 +38,9 @@ class Polynomial:
         else:
             raise InputError
         self.termMatrix = self.mod_poly(self.termMatrix)
+
+    def copy(self):
+        return Polynomial([t[:] for t in self.termMatrix])
 
     def mod_poly(self, termMatrix):
         """
@@ -98,13 +102,13 @@ class Polynomial:
         return res
 
     @staticmethod
-    def combine_variables(A, B):
+    def combine_variables(a, b):
         """
         input is two polynomials
         returns two polynomials with termMatricies that have same variables
         """
-        a = Polynomial([term[:] for term in A.termMatrix[:]])
-        b = Polynomial([term[:] for term in B.termMatrix[:]])
+        a = a.copy()
+        b = b.copy()
         var_set = set(a.termMatrix[0]).union(set(b.termMatrix[0]))
         res = [sorted(list(var_set))]
         for var in res[0]:
