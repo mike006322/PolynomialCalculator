@@ -1,6 +1,7 @@
 from poly_parser import parse_poly as parse
 from orderings import order_lex as order
 from collect_like_terms import collect_like_terms
+from division_algorithm import division_algorithm
 import formulas
 
 class InputError(Exception):
@@ -134,76 +135,6 @@ class Polynomial:
         Polynomial.clean(res)
         return Polynomial(res)
 
-    @staticmethod
-    def divides(A, B):
-        """
-        returns True if LT(a) has exponents all less than LT(b)
-        """
-        if A.termMatrix == [[' ']] or B.termMatrix == [[' ']]:
-            return False
-        tempa, tempb = Polynomial.combine_variables(A, B)
-        a = tempa.termMatrix
-        b = tempb.termMatrix
-        res = True
-        for i in range(1, len(a[1])):
-            if a[1][i] > b[1][i]:
-                res = False
-        return res
-
-    @staticmethod
-    def monomialDivide(A, B):
-        A, B = Polynomial.combine_variables(A, B)
-        res = A
-        res.termMatrix[1][0] = A.termMatrix[1][0] / B.termMatrix[1][0]
-        for i in range(1, len(res.termMatrix[0])):
-            for j in range(1, len(res.termMatrix)):
-                res.termMatrix[j][i] -= B.termMatrix[j][i]
-        return res
-
-    def division_algorithm(self, *others):
-        """
-        input is polynomial/s
-        output is self divided by other polynomial/s and a remainder as Polynomial classes
-        """
-        # others is an ordered tuple of functions
-        a = []
-        for i in range(len(others)):
-            a.append(Polynomial(0))
-        p = self
-        r = Polynomial(0)
-        while p != Polynomial(0):
-            i = 0
-            division_occured = False
-            while i < len(others) and division_occured == False:
-                if Polynomial.divides(others[i], p):
-                    a[i] += Polynomial.monomialDivide(p.LT(), others[i].LT())
-                    p -= Polynomial.monomialDivide(p.LT(), others[i].LT())*others[i]
-                    division_occured = True
-                else:
-                    i += 1
-            if division_occured == False:
-                p_LT = p.LT()
-                r += p_LT
-                p -= p.LT()
-        for poly in a:
-            poly.termMatrix = self.mod_poly(poly.termMatrix)
-        r.termMatrix = self.mod_poly(r.termMatrix)
-        return a, r
-
-    def division_string(self, *others):
-        """
-        input is polynomial/s
-        output is string "[self] = ([divisor])*([other polynomial/s]) + ([remainder:]) remainder"
-        """
-        a, r = self.division_algorithm(*others)
-        res = str(self) + ' = '
-        for i in range(len(a)):
-            res += '(' + str(a[i]) + ')' + '*' + '(' + str(others[i]) + ')' + ' + '
-        if res.endswith(" + "):
-            res = res[:-3]
-        res += ' + (remainder:) ' + str(r)
-        return res
-
     def __repr__(self):
         return "Polynomial({})".format(self.termMatrix)
 
@@ -310,7 +241,7 @@ class Polynomial:
                 return self
             if other == 0:
                 raise ZeroDivisionError
-            div_alg_results = self.division_algorithm(other)
+            div_alg_results = division_algorithm(self, other)
             if div_alg_results[1] != 0:
                 raise NonFactor(other, self)
             if self == div_alg_results[1]:
@@ -334,31 +265,3 @@ class Polynomial:
                 return False
         else:
             return self == Polynomial(other)
-
-
-if __name__ == '__main__':
-    s = 'x^2y + xy^2 + y^2'
-    t = 'xy - 1'
-    e = 'y^2 - 1'
-    S = Polynomial(s)
-    T = Polynomial(t)
-    E = Polynomial(e)
-    poly1 = 'x^2-4x+4'
-    poly2 = 'x-2'
-    Poly1 = Polynomial(poly1)
-    Poly2 = Polynomial(poly2)
-    print(S.division_string(T, E))
-    print(S.division_algorithm(T, E))
-    #print(S.division_algorithm(Polynomial('x'),Polynomial('y')))
-    print(S.division_string(Polynomial('x'),Polynomial('y')))
-    #print(Polynomial('x').division_algorithm(Polynomial('y')))
-    #print(Polynomial('x^2-1').division_string(Polynomial('x+1')))
-    #print(Polynomial('x^2-1')/'x+1')
-    #print('x^2-1'/Polynomial('x+1'))
-    print(Polynomial('x+5'))
-    print(Poly1.division_string(Poly2))
-    print(Polynomial('3x^2 + x + 5').termMatrix)
-    print(T.division_string(E))
-    print(T.division_algorithm(E)[1])
-    print(T/E)
-

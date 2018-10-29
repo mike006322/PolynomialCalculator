@@ -62,18 +62,11 @@ class TestParser(unittest.TestCase):
         b = Polynomial('x + 1', char=2)
         self.assertTrue(a / b == 0)
 
-
     def test_LT(self):
         t = Polynomial('xy - 1')
         s = Polynomial('x^2y + xy^2 + y^2')
         self.assertEqual(t.LT(), Polynomial('xy'))
         self.assertEqual(s.LT(), Polynomial('x^2y'))
-
-    def test_divides(self):
-        t = Polynomial('xy - 1')
-        s = Polynomial('x^2y + xy^2 + y^2')
-        self.assertEqual(Polynomial.divides(t, s), True)
-        self.assertEqual(Polynomial.divides(s, t), False)
 
     def test__iter__(self):
         S = Polynomial('x^2y + xy^2 + y^2')
