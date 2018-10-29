@@ -2,6 +2,13 @@
 
 By participating in this project we can practice our mathematics and programming skills.
 
+### Features
+
+- Polynomial addition, subtraction, multiplication, division
+- Supports polynomials over field of characteristic > 0
+- Supports multi-variable polynomials
+- Can solve degree 1 and 2 single-variabel polynomials
+
 ### Near-term goals:
 - code algorithm to find Gröbner basis
 - code solution to third degree polynomials in one variable
