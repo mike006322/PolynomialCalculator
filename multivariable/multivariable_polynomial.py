@@ -270,6 +270,13 @@ class Polynomial:
         else:
             return self % Polynomial(other)
 
+    def __rmod__(self, other):
+        """
+        returns the remainder of other/self
+        """
+        # __rmod__ cannot override the string's LHS __mod__ operator, see bug at: https://bugs.python.org/issue28598
+        pass
+
     def __eq__(self, other):
         if type(other) == Polynomial:
             if self.term_matrix == other.term_matrix:

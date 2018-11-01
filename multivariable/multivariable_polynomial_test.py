@@ -26,6 +26,8 @@ class TestParser(unittest.TestCase):
         a = Polynomial('x')
         b = Polynomial(0)
         self.assertTrue(a + b == a)
+        self.assertTrue(a + 0 == a)
+        self.assertTrue('x' + a == Polynomial('2x'))
         a = Polynomial('x', char=2)
         self.assertTrue(a + a == 0)
 
@@ -45,6 +47,8 @@ class TestParser(unittest.TestCase):
         b = Polynomial(2)
         c = Polynomial('2x')
         self.assertTrue(a * b == c)
+        self.assertTrue('x' * b == c)
+        self.assertTrue(a * 2 == c)
         a = Polynomial('x', char=2)
         b = Polynomial(2, char=2)
         self.assertTrue(a * b == 0)
@@ -88,7 +92,9 @@ class TestParser(unittest.TestCase):
 
     def test_mod(self):
         self.assertEqual(Polynomial('x^2y + xy^2 + y^2') % Polynomial('x'), Polynomial('y^2'))
-
+        self.assertEqual(Polynomial('x^2y + xy^2 + y^2') % 'x', Polynomial('y^2'))
+        # self.assertEqual('x^2y + xy^2 + y^2' % Polynomial('x'), Polynomial('y^2'))
+        # __rmod__ cannot override the string's LHS __mod__ operator, see bug at: https://bugs.python.org/issue28598
 
 if __name__ == '__main__':
     unittest.main()
