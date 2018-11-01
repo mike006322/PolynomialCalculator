@@ -85,6 +85,9 @@ class TestParser(unittest.TestCase):
         self.assertEqual(s.term_matrix, [[' ', 'x', 'y'], [1.0, 2, 1], [1.0, 1, 2], [1.0, 0, 2]])
         self.assertEqual(t.term_matrix, [[' ', 'x'], [1.0, 1]])
 
+    def test_mod(self):
+        self.assertEqual(Polynomial('x^2y + xy^2 + y^2') % Polynomial('x'), Polynomial('y^2'))
+
 
 if __name__ == '__main__':
     unittest.main()

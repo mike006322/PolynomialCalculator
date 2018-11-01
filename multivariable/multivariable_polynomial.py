@@ -261,6 +261,15 @@ class Polynomial:
     def __rtruediv__(self, other):
         return Polynomial(other) / self
 
+    def __mod__(self, other):
+        """
+        returns the remainder of self/other
+        """
+        if type(other) == Polynomial:
+            return division_algorithm(self, other)[1]
+        else:
+            return self % Polynomial(other)
+
     def __eq__(self, other):
         if type(other) == Polynomial:
             if self.term_matrix == other.term_matrix:
