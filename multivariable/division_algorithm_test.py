@@ -4,6 +4,7 @@ from division_algorithm import division_algorithm
 from division_algorithm import division_string
 from division_algorithm import divides
 
+
 class TestParser(unittest.TestCase):
 
     def test_division_algorithm(self):
@@ -29,6 +30,7 @@ class TestParser(unittest.TestCase):
         s = Polynomial('x^2y + xy^2 + y^2')
         self.assertEqual(divides(t, s), True)
         self.assertEqual(divides(s, t), False)
+
 
 if __name__ == '__main__':
     unittest.main()

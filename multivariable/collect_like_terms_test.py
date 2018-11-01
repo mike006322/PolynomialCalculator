@@ -1,6 +1,7 @@
 import unittest
 from collect_like_terms import collect_like_terms
 
+
 class TestParser(unittest.TestCase):
 
     def test_collect_like_terms(self):
@@ -13,6 +14,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(collect_like_terms(term_matrix), [[' ']])
         term_matrix = [[' ', 'x'], [1, 1], [1, 1]]
         self.assertEqual(collect_like_terms(term_matrix), [[' ', 'x'], [2, 1]])
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -2,6 +2,7 @@ import unittest
 import multivariable_polynomial
 from multivariable_polynomial import Polynomial
 
+
 class TestParser(unittest.TestCase):
 
     def test__init__(self):
