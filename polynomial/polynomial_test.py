@@ -12,7 +12,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(t.term_matrix, [[' ', 'y', 'x'], [1.0, 1, 2], [1.0, 1, 0]])
 
     def test_clean(self):
-        self.assertEqual(polynomial.Polynomial.clean([[' ', 'x', 'y'], [3.0, 2, 0], [1.0, 1, 0], [5.0, 0, 0]]), [[' ', 'x'], [3.0, 2], [1.0, 1], [5.0, 0]])
+        self.assertEqual(Polynomial.clean([[' ', 'x', 'y'], [3.0, 2, 0], [1.0, 1, 0], [5.0, 0, 0]]), [[' ', 'x'], [3.0, 2], [1.0, 1], [5.0, 0]])
 
     def test_equals(self):
         a = Polynomial(0)
@@ -95,6 +95,12 @@ class TestParser(unittest.TestCase):
         self.assertEqual(Polynomial('x^2y + xy^2 + y^2') % 'x', Polynomial('y^2'))
         # self.assertEqual('x^2y + xy^2 + y^2' % Polynomial('x'), Polynomial('y^2'))
         # __rmod__ cannot override the string's LHS __mod__ operator, see bug at: https://bugs.python.org/issue28598
+
+    def test_degree(self):
+        self.assertEqual(Polynomial('x + x^2').degree(), 2)
+        self.assertEqual(Polynomial('8 + x + x^2').degree(), 2)
+        self.assertEqual(Polynomial('8 + x + y + y^3 + x^2').degree(), 3)
+        self.assertEqual(Polynomial('8 + x + y + y^3x^3 + x^2').degree(), 6)
 
 if __name__ == '__main__':
     unittest.main()

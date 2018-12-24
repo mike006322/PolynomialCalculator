@@ -1,5 +1,6 @@
 from poly_parser import parse_poly as parse
 from orderings import order_lex as order
+from orderings import graded_lex as graded_order
 from collect_like_terms import collect_like_terms
 from division_algorithm import division_algorithm
 import formulas
@@ -77,6 +78,18 @@ class Polynomial:
         returns zeros of the polynomial if able
         """
         return formulas.solve(self)
+
+    def degree(self):
+        """
+        returns degree of polynomial if single variable
+        returns highest power if multivariable
+        """
+        if len(self.term_matrix[0]) == 1:
+            return 0
+        else:
+            t = self.copy()
+            t.term_matrix = graded_order(t.term_matrix)
+            return sum(t.term_matrix[1][1:])
 
     @staticmethod
     def clean(term_matrix):
