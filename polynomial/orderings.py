@@ -3,10 +3,14 @@ For each ordering, input is in form term_matrix from poly_parser.py
 output is another term_matrix sorted according to the ordering
 """
 
-########## Lexicographic Ordering #############
+# Lexicographic Ordering
 
-def order_lex(termMatrix):
-    t = termMatrix
+
+def order_lex(term_matrix):
+    """
+    orders lexicographically
+    """
+    t = term_matrix
     # first move around variables within terms
     # then move terms around
     var_order = list(zip(t[0], list(range(len(t[0])))))
@@ -22,11 +26,14 @@ def order_lex(termMatrix):
     return res
     
 
-########## Graded Lexicographic Ordering #############
+# Graded Lexicographic Ordering
 
-def graded_lex(termMatrix):
-    t = termMatrix
-    # first move terms aroud
+def graded_lex(term_matrix):
+    """
+    orders by degree first, then breaks ties with lexicographical ordering
+    """
+    t = term_matrix
+    # first move terms around
     var_order = list(zip(t[0], list(range(len(t[0])))))
     var_order.sort()
     var_order = [u[1] for u in var_order]
@@ -69,10 +76,10 @@ def graded_lex(termMatrix):
     return res
         
 
-########## Reverse Graded Lexicographic Ordering #############
+# Reverse Graded Lexicographic Ordering
 
-def reverse_lex(termMatrix):
-    t = termMatrix
+def reverse_lex(term_matrix):
+    t = term_matrix
     # first move around variables within terms
     # then move terms around
     var_order = list(zip(t[0], list(range(len(t[0])))))
@@ -86,9 +93,10 @@ def reverse_lex(termMatrix):
         res.append(term)
     res = [res[0]] + sorted(res[1:], key=lambda x: x[1:])
     return res
+
     
-def grev_lex(termMatrix):
-    t = termMatrix
+def grev_lex(term_matrix):
+    t = term_matrix
     # first move terms around
     var_order = list(zip(t[0], list(range(len(t[0])))))
     var_order.sort()
@@ -131,8 +139,12 @@ def grev_lex(termMatrix):
             res[i] = res[i][:-1]
     return res
 
+
 if __name__ == '__main__':
     print('-5x^3 + 7x^2z^2 + 4xy^2z + 4z^2')
-    termMatrix = [[' ', 'x', 'y', 'z'], [-5, 3, 0, 0], [7, 2, 0, 2], [4, 1, 2, 1], [4, 0, 0, 2]]
-    #print(term_matrix)
-    print(grev_lex(termMatrix))
+    term_matrix = [[' ', 'x', 'y', 'z'], [-5, 3, 0, 0], [7, 2, 0, 2], [4, 1, 2, 1], [4, 0, 0, 2]]
+    # print(term_matrix)
+    print(grev_lex(term_matrix))
+    print(reverse_lex(term_matrix))
+    print(order_lex(term_matrix))
+    print(order_lex([[' ', 'x', 'y'], [1.0, 2, 0], [1.0, 1, 0], [1.0, 0, 3], [1.0, 0, 1], [8.0, 0, 0]]))
