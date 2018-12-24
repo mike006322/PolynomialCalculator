@@ -22,6 +22,7 @@ def solve(polynomial):
         if degree > 2:
             return 'I cannot solve yet...'
 
+
 def quadratic_formula(polynomial):
     """
     input is single-variable polynomial of degree 2
@@ -36,6 +37,7 @@ def quadratic_formula(polynomial):
     if ans1 == ans2:
         return ans1
     return ans1, ans2
+
 
 if __name__ == '__main__':
     pass
