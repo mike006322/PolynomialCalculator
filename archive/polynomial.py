@@ -1,5 +1,6 @@
-#Polynomal class for polynomials of one variable (x)
-#Python 3 for division to work properly (truediv method overload)
+# Polynomal class for polynomials of one variable (x)
+# Python 3 for division to work properly (truediv method overload)
+
 
 class Polynomial:
     
@@ -10,26 +11,24 @@ class Polynomial:
         # coefficients are stored in the object as a tuple
         self.coefficients = coefficients[::-1]
         #LT = leading term in form (coefficient, degree)
-        
-      
-    # method to return the canonical string representation of a polynomial
+
     def __repr__(self):
         return "Polynomial" + str(self.coefficients)
         
     def __call__(self, x):    
         res = 0
         for index, coeff in enumerate(self.coefficients):
-            res += coeff * x** index
+            res += coeff * x**index
         return res
 
     def degree(self):
         return len(self.coefficients) - 1
-        #this means that a_n must be non-zero and there must be a value for all n
+        # this means that a_n must be non-zero and there must be a value for all n
         
     @staticmethod
     def zip_longest(iter1, iter2, fillchar=0):  
-    # used to zip together coefficients 
-    # pairing 0 with the coefficients of highest degree if the counterpart doesn't have as high of a degree.
+        # used to zip together coefficients
+        # pairing 0 with the coefficients of highest degree if the counterpart doesn't have as high of a degree.
         for i in range(max(len(iter1), len(iter2))):
             if i >= len(iter1):
                 yield (fillchar, iter2[i])
@@ -78,15 +77,15 @@ class Polynomial:
             res = "0"
         for i in range(len(self.coefficients)-1, -1, -1):
             if self.coefficients[i] == 1 and str(i) == "1":
-                res +=  "x" + " + "
+                res += "x" + " + "
             elif self.coefficients[i] == 1 and str(i) != "1":
-                res +=  "x^" + str(i) + " + "
+                res += "x^" + str(i) + " + "
             elif self.coefficients[i] != 0 and str(i) == "0":
-                res +=  str(self.coefficients[i]) + " + "
+                res += str(self.coefficients[i]) + " + "
             elif self.coefficients[i] != 0 and str(i) == "1":
-                res +=  str(self.coefficients[i]) + "x" + " + "
+                res += str(self.coefficients[i]) + "x" + " + "
             elif self.coefficients[i] != 0 and str(i) != "0" and str(i) != "1":
-                res +=  str(self.coefficients[i]) + "x^" + str(i) + " + "
+                res += str(self.coefficients[i]) + "x^" + str(i) + " + "
         if res.endswith(" + "):
             res = res[:-3]
         return res
@@ -96,7 +95,6 @@ class Polynomial:
             return Polynomial(self.coefficients[-1],*[0]*(len(self.coefficients)-1)) 
         else: 
             return Polynomial()
-     
       
     def __truediv__(self, other):
         q = Polynomial(0)
@@ -117,6 +115,7 @@ class Polynomial:
             s = rem
         return h
 
+
 if __name__ == "__main__":
     p = Polynomial(1, 2, 3, 4, 5)
     print(p, " 'print(p)'")
@@ -125,9 +124,9 @@ if __name__ == "__main__":
     print(p.coefficients, " 'print(p.coefficients)'")
     print(p-p, " 'print(p-p)'")
     print(p/p, " 'print(p/p)'")
-    print(Polynomial(1,0,-1)/Polynomial(1,-1), " 'print(Polynomial(1,0,-1)/Polynomial(1,-1))'")
-    print(Polynomial(1,0,-1), " 'print(Polynomial(1,0,-1))'")
-    print(Polynomial.GCD(Polynomial(1,0,-1), Polynomial(1,-1)))
+    print(Polynomial(1, 0, -1)/Polynomial(1, -1), " 'print(Polynomial(1,0,-1)/Polynomial(1,-1))'")
+    print(Polynomial(1, 0, -1), " 'print(Polynomial(1,0,-1))'")
+    print(Polynomial.GCD(Polynomial(1, 0, -1), Polynomial(1, -1)))
     
 '''
 import numpy as np

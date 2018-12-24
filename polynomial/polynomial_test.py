@@ -1,6 +1,6 @@
 import unittest
-import multivariable_polynomial
-from multivariable_polynomial import Polynomial
+import polynomial
+from polynomial import Polynomial
 
 
 class TestParser(unittest.TestCase):
@@ -12,7 +12,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(t.term_matrix, [[' ', 'y', 'x'], [1.0, 1, 2], [1.0, 1, 0]])
 
     def test_clean(self):
-        self.assertEqual(multivariable_polynomial.Polynomial.clean([[' ', 'x', 'y'], [3.0, 2, 0], [1.0, 1, 0], [5.0, 0, 0]]), [[' ', 'x'], [3.0, 2], [1.0, 1], [5.0, 0]])
+        self.assertEqual(polynomial.Polynomial.clean([[' ', 'x', 'y'], [3.0, 2, 0], [1.0, 1, 0], [5.0, 0, 0]]), [[' ', 'x'], [3.0, 2], [1.0, 1], [5.0, 0]])
 
     def test_equals(self):
         a = Polynomial(0)
@@ -62,7 +62,7 @@ class TestParser(unittest.TestCase):
         self.assertTrue(a / b == c)
         self.assertRaises(ZeroDivisionError, lambda: a / 0)
         self.assertTrue(b / b == 1)
-        self.assertRaises(multivariable_polynomial.NonFactor, lambda: t / s)
+        self.assertRaises(polynomial.NonFactor, lambda: t / s)
         a = Polynomial('2x^2 - 2', char=2)
         b = Polynomial('x + 1', char=2)
         self.assertTrue(a / b == 0)

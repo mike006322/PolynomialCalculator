@@ -1,4 +1,4 @@
-import multivariable_polynomial
+import polynomial
 
 
 def divides(a, b):
@@ -7,7 +7,7 @@ def divides(a, b):
     """
     if a.term_matrix == [[' ']] or b.term_matrix == [[' ']]:
         return False
-    a, b = multivariable_polynomial.Polynomial.combine_variables(a, b)
+    a, b = polynomial.Polynomial.combine_variables(a, b)
     a = a.term_matrix
     b = b.term_matrix
     res = True
@@ -18,7 +18,7 @@ def divides(a, b):
 
 
 def monomial_divide(a, b):
-    a, b = multivariable_polynomial.Polynomial.combine_variables(a, b)
+    a, b = polynomial.Polynomial.combine_variables(a, b)
     res = a
     res.term_matrix[1][0] = a.term_matrix[1][0] / b.term_matrix[1][0]
     for i in range(1, len(res.term_matrix[0])):
@@ -35,10 +35,10 @@ def division_algorithm(input_poly, *others):
     # others is an ordered tuple of functions
     a = []
     for i in range(len(others)):
-        a.append(multivariable_polynomial.Polynomial(0))
+        a.append(polynomial.Polynomial(0))
     p = input_poly.copy()
-    r = multivariable_polynomial.Polynomial(0)
-    while p != multivariable_polynomial.Polynomial(0):
+    r = polynomial.Polynomial(0)
+    while p != polynomial.Polynomial(0):
         i = 0
         division_occured = False
         while i < len(others) and division_occured == False:

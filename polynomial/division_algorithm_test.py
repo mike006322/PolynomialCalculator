@@ -1,5 +1,5 @@
 import unittest
-from multivariable_polynomial import Polynomial
+from polynomial import Polynomial
 from division_algorithm import division_algorithm
 from division_algorithm import division_string
 from division_algorithm import divides
