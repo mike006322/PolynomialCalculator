@@ -1,5 +1,6 @@
 import unittest
 from division_algorithm import *
+from polynomial import Polynomial
 
 
 class TestParser(unittest.TestCase):
