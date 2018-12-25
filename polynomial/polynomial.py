@@ -1,9 +1,9 @@
-from poly_parser import parse_poly as parse
-from orderings import order_lex as order
-from orderings import graded_lex as graded_order
-from collect_like_terms import collect_like_terms
-from division_algorithm import division_algorithm
-import formulas
+from polynomial.poly_parser import parse_poly as parse
+from polynomial.orderings import order_lex as order
+from polynomial.orderings import graded_lex as graded_order
+from polynomial.collect_like_terms import collect_like_terms
+from polynomial.division_algorithm import division_algorithm
+from polynomial.formulas import *
 
 
 class InputError(Exception):
@@ -77,7 +77,7 @@ class Polynomial:
         """
         returns zeros of the polynomial if able
         """
-        return formulas.solve(self)
+        return solve(self)
 
     def degree(self):
         """
@@ -234,7 +234,7 @@ class Polynomial:
             # then distribute that multiplication
             for term in self_copy.term_matrix[1:]:
                 for other_term in other_copy.term_matrix[1:]:
-                    product = []
+                    product = list()
                     product.append(term[0]*other_term[0])
                     for i in range(1, len(term)):
                         product.append(term[i] + other_term[i])
