@@ -71,3 +71,27 @@ def division_string(p, *others):
         res = res[:-3]
     res += ' + (remainder:) ' + str(r)
     return res
+
+
+def gcd(a, b):
+    """
+    input is polynomials of one variable
+    returns greatest common divisor
+    """
+    a = a.copy()
+    b = b.copy()
+    if a.degree() == b.degree():
+        if a == b:
+            return a
+        else:
+            return 1
+    elif a.degree() > b.degree():
+        r = a % b
+        while r != 0:
+            a = b
+            b = r
+            r = a % b
+        return a
+    else:
+        a, b = b, a
+        return gcd(a, b)

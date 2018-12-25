@@ -1,9 +1,6 @@
 import unittest
 from polynomial import Polynomial
-from division_algorithm import division_algorithm
-from division_algorithm import division_string
-from division_algorithm import divides
-
+from division_algorithm import *
 
 class TestParser(unittest.TestCase):
 
@@ -30,6 +27,10 @@ class TestParser(unittest.TestCase):
         s = Polynomial('x^2y + xy^2 + y^2')
         self.assertEqual(divides(t, s), True)
         self.assertEqual(divides(s, t), False)
+
+    def test_gcd(self):
+        self.assertEqual(gcd(Polynomial('x^2-1'), Polynomial('x-1')), Polynomial('x^2 + -1.0'))
+        self.assertEqual(gcd(Polynomial('x-1'), Polynomial('x^2-1')), Polynomial('x^2 + -1.0'))
 
 
 if __name__ == '__main__':
