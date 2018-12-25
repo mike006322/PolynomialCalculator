@@ -102,5 +102,6 @@ class TestParser(unittest.TestCase):
         self.assertEqual(Polynomial('8 + x + y + y^3 + x^2').degree(), 3)
         self.assertEqual(Polynomial('8 + x + y + y^3x^3 + x^2').degree(), 6)
 
+
 if __name__ == '__main__':
     unittest.main()
