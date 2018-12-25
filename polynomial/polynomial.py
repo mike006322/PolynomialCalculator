@@ -248,6 +248,17 @@ class Polynomial:
 
     __rmul__ = __mul__
 
+    def __pow__(self, other):
+        """
+        power must be positive integer
+        """
+        res = self.copy()
+        n = other
+        while n > 1:
+            res *= res
+            n -= 1
+        return res
+
     def __truediv__(self, other):
         """
         returns the quotient using the polynomial division algorithm

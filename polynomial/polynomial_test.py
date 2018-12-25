@@ -53,6 +53,10 @@ class TestParser(unittest.TestCase):
         b = Polynomial(2, char=2)
         self.assertTrue(a * b == 0)
 
+    def test_pow(self):
+        x = Polynomial('x')
+        print(x**2)
+
     def test_division(self):
         t = Polynomial('xy - 1')
         s = Polynomial('y^2 - 1')
