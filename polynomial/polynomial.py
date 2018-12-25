@@ -252,10 +252,12 @@ class Polynomial:
         """
         power must be positive integer
         """
+        if other == 0:
+            return Polynomial('1')
         res = self.copy()
         n = other
         while n > 1:
-            res *= res
+            res *= self
             n -= 1
         return res
 
