@@ -1,6 +1,5 @@
 import unittest
-import polynomial
-from polynomial import Polynomial
+from polynomial import *
 
 
 class TestParser(unittest.TestCase):
@@ -55,7 +54,7 @@ class TestParser(unittest.TestCase):
 
     def test_pow(self):
         x = Polynomial('x')
-        print(x**2)
+        self.assertEqual(x**2, Polynomial('x^2'))
 
     def test_division(self):
         t = Polynomial('xy - 1')
@@ -66,7 +65,7 @@ class TestParser(unittest.TestCase):
         self.assertTrue(a / b == c)
         self.assertRaises(ZeroDivisionError, lambda: a / 0)
         self.assertTrue(b / b == 1)
-        self.assertRaises(polynomial.NonFactor, lambda: t / s)
+        self.assertRaises(NonFactor, lambda: t / s)
         a = Polynomial('2x^2 - 2', char=2)
         b = Polynomial('x + 1', char=2)
         self.assertTrue(a / b == 0)

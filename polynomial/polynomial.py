@@ -1,9 +1,9 @@
-from polynomial.poly_parser import parse_poly as parse
-from polynomial.orderings import order_lex as order
-from polynomial.orderings import graded_lex as graded_order
-from polynomial.collect_like_terms import collect_like_terms
-from polynomial.division_algorithm import division_algorithm
-from polynomial.formulas import *
+from poly_parser import parse_poly as parse
+from orderings import order_lex as order
+from orderings import graded_lex as graded_order
+from collect_like_terms import collect_like_terms
+import division_algorithm
+from formulas import *
 
 
 class InputError(Exception):
@@ -271,7 +271,7 @@ class Polynomial:
                 return self
             if other == 0:
                 raise ZeroDivisionError
-            div_alg_results = division_algorithm(self, other)
+            div_alg_results = division_algorithm.division_algorithm(self, other)
             if div_alg_results[1] != 0:
                 raise NonFactor(other, self)
             if self == div_alg_results[1]:
@@ -292,7 +292,7 @@ class Polynomial:
         returns the remainder of self/other
         """
         if type(other) == Polynomial:
-            return division_algorithm(self, other)[1]
+            return division_algorithm.division_algorithm(self, other)[1]
         else:
             return self % Polynomial(other)
 
