@@ -11,12 +11,13 @@ coefficient, exponent1     , exponent2
   .
 """
 
-def findVars(s):
+
+def find_vars(s):
     variables = set()
-    possibleVariables = {'x', 'y', 'z', 't', 'u', 'v', 'r'}
+    possible_variables = {'x', 'y', 'z', 't', 'u', 'v', 'r'}
     for term in s:
         for t in range(len(term)):
-            if term[t] in possibleVariables:
+            if term[t] in possible_variables:
                 if t < len(term) - 1:
                     if term[t+1].isnumeric():
                         variables.add(term[t]+term[t+1])
@@ -27,17 +28,17 @@ def findVars(s):
     return variables
 
 
-def addVar(var, s, termMatrix):
+def add_var(var, s, term_matrix):
     # if var is present, adds var to the list of variables
     for term in s:
         if var in term:
-            if var not in termMatrix[0]:
-                termMatrix[0].append(var)
+            if var not in term_matrix[0]:
+                term_matrix[0].append(var)
 
 
-def addExp(k, s, termMatrix):
+def add_exp(k, s, term_matrix):
     # replaces 0 in kth entry of term in term_matrix with exponent
-    var = termMatrix[0][k]
+    var = term_matrix[0][k]
     for j in range(len(s)):
         term = s[j]
         if var in term:
@@ -45,14 +46,14 @@ def addExp(k, s, termMatrix):
             var_len = len(var)
             if i < len(term) - var_len:
                 if term[i+var_len] == '^':
-                    termMatrix[j+1][k] = int(term[i+1+var_len])
+                    term_matrix[j+1][k] = int(term[i+1+var_len])
                 else:
-                    termMatrix[j+1][k] = 1
+                    term_matrix[j+1][k] = 1
             else:
-                termMatrix[j+1][k] = 1
+                term_matrix[j+1][k] = 1
 
 
-def addCoeff(s, termMatrix):
+def add_coeff(s, term_matrix):
     for j in range(len(s)):
         t = s[j]
         coeff = ''
@@ -76,35 +77,31 @@ def addCoeff(s, termMatrix):
                     break
         if coeff == '-' or coeff == '':
             coeff += '1'
-        termMatrix[j+1][0] = float(coeff)
+        term_matrix[j+1][0] = float(coeff)
 
 
 def parse_poly(s_input):
-    s = s_input.replace(" ", "").replace("-","+-").replace("*", "").lower().split("+")
-    termMatrix = [[" "]]
+    s = s_input.replace(" ", "").replace("-", "+-").replace("*", "").replace("++", "+").lower().split("+")
+    term_matrix = [[" "]]
     num_terms = len(s)
     for _ in range(num_terms):
-        termMatrix.append([])
+        term_matrix.append([])
     num_var = 0
-    variables = findVars(s)
+    variables = find_vars(s)
     for v in variables:
-        addVar(v, s, termMatrix)
+        add_var(v, s, term_matrix)
         num_var += 1
-    for i in range(1, len(termMatrix)):
-        termMatrix[i].append('coeff')
-    addCoeff(s, termMatrix)
-    for i in range(1, len(termMatrix)):
+    for i in range(1, len(term_matrix)):
+        term_matrix[i].append('coeff')
+    add_coeff(s, term_matrix)
+    for i in range(1, len(term_matrix)):
         for _ in range(num_var):
-            termMatrix[i].append(0)
+            term_matrix[i].append(0)
     for i in range(1, num_var+1):
-        addExp(i, s, termMatrix)
+        add_exp(i, s, term_matrix)
 
-    return termMatrix
+    return term_matrix
+
 
 if __name__ == "__main__":
-    #poly = 'z^3*4x^2+8+y*z^4'
-    #poly = '2*X^2y-x-2'
-    poly = 'x1^2*x2^3 - 9Z^4T^2 + 7x^2x2^6'
-    print(poly)
-    print(parse_poly(poly))
-    print(parse_poly('x+1'))
+    pass
