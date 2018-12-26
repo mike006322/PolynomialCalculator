@@ -29,6 +29,7 @@ class TestParser(unittest.TestCase):
         self.assertTrue('x' + a == Polynomial('2x'))
         a = Polynomial('x', char=2)
         self.assertTrue(a + a == 0)
+        self.assertEqual(Polynomial('x^2-x') + 'x', Polynomial('x^2'))
 
     def test_subtraction(self):
         a = Polynomial('x + 1')
@@ -104,6 +105,35 @@ class TestParser(unittest.TestCase):
         self.assertEqual(Polynomial('8 + x + x^2').degree(), 2)
         self.assertEqual(Polynomial('8 + x + y + y^3 + x^2').degree(), 3)
         self.assertEqual(Polynomial('8 + x + y + y^3x^3 + x^2').degree(), 6)
+
+    def test_division_algorithm(self):
+        s = Polynomial('x^2y + xy^2 + y^2')
+        t = Polynomial('xy - 1')
+        e = Polynomial('y^2 - 1')
+        res1 = ([Polynomial('x + y'), Polynomial('1')], Polynomial('x + y + 1.0'))
+        res2 = ([Polynomial('xy + y^2'), Polynomial('y')], Polynomial('0'))
+        self.assertEqual(res1, division_algorithm(s, t, e))
+        self.assertEqual(res2, division_algorithm(s, Polynomial('x'), Polynomial('y')))
+
+    def test_division_string(self):
+        s = Polynomial('x^2y + xy^2 + y^2')
+        t = Polynomial('xy - 1')
+        e = Polynomial('y^2 - 1')
+        res1 = 'x^2y + xy^2 + y^2 = (x + y)*(xy + -1.0) + (1.0)*(y^2 + -1.0) + (remainder:) x + y + 1.0'
+        res2 = 'x^2y + xy^2 + y^2 = (xy + y^2)*(x) + (y)*(y) + (remainder:) 0'
+        self.assertEqual(res1, division_string(s, t, e))
+        self.assertEqual(res2, division_string(s, Polynomial('x'), Polynomial('y')))
+
+    def test_divides(self):
+        t = Polynomial('xy - 1')
+        s = Polynomial('x^2y + xy^2 + y^2')
+        self.assertEqual(divides(t, s), True)
+        self.assertEqual(divides(s, t), False)
+
+    def test_gcd(self):
+        self.assertEqual(gcd(Polynomial('x^2-1'), Polynomial('x-1')), Polynomial('x + -1.0'))
+        self.assertEqual(gcd(Polynomial('x-1'), Polynomial('x^2-1')), Polynomial('x + -1.0'))
+        self.assertEqual(gcd(Polynomial('x', 2)**2 - Polynomial('x', 2), Polynomial('x^3 + x + 1', 2)), 1)
 
 
 if __name__ == '__main__':

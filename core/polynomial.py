@@ -2,7 +2,6 @@ from core.poly_parser import parse_poly as parse
 from core.orderings import order_lex as order
 from core.orderings import graded_lex as graded_order
 from core.collect_like_terms import collect_like_terms
-import core.division_algorithm
 from core.formulas import *
 
 
@@ -41,7 +40,7 @@ class Polynomial:
         self.term_matrix = self.mod_char(self.term_matrix)
 
     def copy(self):
-        return Polynomial([t[:] for t in self.term_matrix])
+        return Polynomial([t[:] for t in self.term_matrix], self.field_characteristic)
 
     def mod_char(self, term_matrix):
         """
@@ -208,19 +207,19 @@ class Polynomial:
             res = order(res)
             res = self.mod_char(res)
         else:
-            return self + Polynomial(other)
-        return Polynomial(res)
+            return self + Polynomial(other, self.field_characteristic)
+        return Polynomial(res, self.field_characteristic)
 
     __radd__ = __add__
 
     def __sub__(self, other):
         if type(other) == Polynomial:
             if self == other:
-                return Polynomial([[' ']])
+                return Polynomial([[' ']], self.field_characteristic)
             for term in other.term_matrix[1:]:
                 term[0] = -term[0]
         else:
-            return self - Polynomial(other)
+            return self - Polynomial(other, self.field_characteristic)
         return self + other
 
     def __rsub__(self, other):
@@ -242,9 +241,9 @@ class Polynomial:
             res = collect_like_terms(res)
             res = order(res)
         else:
-            return self * Polynomial(other)
+            return self * Polynomial(other, self.field_characteristic)
         res = self.mod_char(res)
-        return Polynomial(res)
+        return Polynomial(res, self.field_characteristic)
 
     __rmul__ = __mul__
 
@@ -253,7 +252,7 @@ class Polynomial:
         power must be positive integer
         """
         if other == 0:
-            return Polynomial('1')
+            return Polynomial('1', self.field_characteristic)
         res = self.copy()
         n = other
         while n > 1:
@@ -271,7 +270,7 @@ class Polynomial:
                 return self
             if other == 0:
                 raise ZeroDivisionError
-            div_alg_results = core.division_algorithm.division_algorithm(self, other)
+            div_alg_results = division_algorithm(self, other)
             if div_alg_results[1] != 0:
                 raise NonFactor(other, self)
             if self == div_alg_results[1]:
@@ -282,7 +281,7 @@ class Polynomial:
                     res *= factor
                 return res
         else:
-            return self / Polynomial(other)
+            return self / Polynomial(other, self.field_characteristic)
 
     def __rtruediv__(self, other):
         return Polynomial(other) / self
@@ -292,9 +291,9 @@ class Polynomial:
         returns the remainder of self/other
         """
         if type(other) == Polynomial:
-            return core.division_algorithm.division_algorithm(self, other)[1]
+            return division_algorithm(self, other)[1]
         else:
-            return self % Polynomial(other)
+            return self % Polynomial(other, self.field_characteristic)
 
     def __rmod__(self, other):
         """
@@ -310,4 +309,102 @@ class Polynomial:
             else:
                 return False
         else:
-            return self == Polynomial(other)
+            return self == Polynomial(other, self.field_characteristic)
+
+
+def divides(a, b):
+    """
+    returns True if LT(a) has exponents all less than LT(b)
+    """
+    if a.term_matrix == [[' ']] or b.term_matrix == [[' ']]:
+        return False
+    a, b = Polynomial.combine_variables(a, b)
+    a = a.term_matrix
+    b = b.term_matrix
+    res = True
+    for i in range(1, len(a[1])):
+        if a[1][i] > b[1][i]:
+            res = False
+    return res
+
+
+def monomial_divide(a, b):
+    a, b = Polynomial.combine_variables(a, b)
+    res = a
+    res.term_matrix[1][0] = a.term_matrix[1][0] / b.term_matrix[1][0]
+    for i in range(1, len(res.term_matrix[0])):
+        for j in range(1, len(res.term_matrix)):
+            res.term_matrix[j][i] -= b.term_matrix[j][i]
+    return res
+
+
+def division_algorithm(input_poly, *others):
+    """
+    input is polynomial/s
+    output is first polynomial divided by other polynomial/s and a remainder as Polynomial classes
+    """
+    # others is an ordered tuple of functions
+    a = []
+    for i in range(len(others)):
+        # print(input_poly.field_characteristic)
+        a.append(Polynomial(0, input_poly.field_characteristic))
+    p = input_poly.copy()
+    r = Polynomial(0, input_poly.field_characteristic)
+    while p != Polynomial(0):
+        i = 0
+        division_occured = False
+        while i < len(others) and division_occured == False:
+            if divides(others[i], p):
+                a[i] += monomial_divide(p.LT(), others[i].LT())
+                p -= monomial_divide(p.LT(), others[i].LT()) * others[i]
+                division_occured = True
+            else:
+                i += 1
+        if division_occured == False:
+            p_LT = p.LT()
+            r += p_LT
+            p -= p.LT()
+    for poly in a:
+        poly.term_matrix = input_poly.mod_char(poly.term_matrix)
+    r.term_matrix = input_poly.mod_char(r.term_matrix)
+    return a, r
+
+
+def division_string(p, *others):
+    """
+    input is polynomial/s
+    output is string "[p] = ([divisor])*([other polynomial/s]) + ([remainder:]) remainder"
+    """
+    a, r = division_algorithm(p, *others)
+    res = str(p) + ' = '
+    for i in range(len(a)):
+        res += '(' + str(a[i]) + ')' + '*' + '(' + str(others[i]) + ')' + ' + '
+    if res.endswith(" + "):
+        res = res[:-3]
+    res += ' + (remainder:) ' + str(r)
+    return res
+
+
+def gcd(a, b):
+    """
+    input is polynomials of one variable
+    returns greatest common divisor
+    """
+    a = a.copy()
+    b = b.copy()
+    if a.degree() == b.degree():
+        if a == b:
+            return a
+        else:
+            return 1
+    elif a.degree() > b.degree():
+        r = a % b
+        while r != 0:
+            a = b
+            b = r
+            r = a % b
+        return b
+    else:
+        a, b = b, a
+        return gcd(a, b)
+
