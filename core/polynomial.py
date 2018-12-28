@@ -395,9 +395,7 @@ def gcd(a, b):
     if a.degree() == b.degree():
         if a == b:
             return a
-        else:
-            return 1
-    elif a.degree() > b.degree():
+    if a.degree() >= b.degree():
         r = a % b
         while r != 0:
             a = b

@@ -134,6 +134,7 @@ class TestParser(unittest.TestCase):
         self.assertEqual(gcd(Polynomial('x^2-1'), Polynomial('x-1')), Polynomial('x + -1.0'))
         self.assertEqual(gcd(Polynomial('x-1'), Polynomial('x^2-1')), Polynomial('x + -1.0'))
         self.assertEqual(gcd(Polynomial('x', 2)**2 - Polynomial('x', 2), Polynomial('x^3 + x + 1', 2)), 1)
+        self.assertEqual(gcd(Polynomial('x^4 + x^2 + 1.0', 2), Polynomial('x^4-x', 2)), Polynomial('x^2 + x + 1.0'))
 
 
 if __name__ == '__main__':
