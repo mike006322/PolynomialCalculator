@@ -12,7 +12,7 @@ import random
 
 class ZechLogarithmTable:
 
-    def __init__(self, p, i):
+    def __init__(self, p, i, h=None):
         """
         Multiplication table for GF(p^i)
         finds an irreducible polynomial over field F_p[x], called h
@@ -20,7 +20,10 @@ class ZechLogarithmTable:
         then makes a Zech logarithm table populated with powers of the primitive element
         """
         self.field_characteristic = p**i
-        self.h = find_irreducible(p, i)
+        if not h:
+            self.h = find_irreducible(p, i)
+        else:
+            self.h = h
         # find primitive element beta
         beta = find_primitive_element(self.h, p, i)
         self.poly_to_power = dict()
@@ -31,6 +34,16 @@ class ZechLogarithmTable:
             self.power_to_poly[j] = beta_j
             beta_j = (beta_j*beta) % self.h
             j += 1
+
+    def multiply(self, poly1, poly2):
+        """
+        input two polynomials
+        look up their representation as powers of beta, the primitive field element
+        return beta to the sum of the powers modulo p^i-1
+        """
+        i = self.poly_to_power[str(poly1)]
+        j = self.poly_to_power[str(poly2)]
+        return self.power_to_poly[(i+j) % (self.field_characteristic - 1)]
 
 
 def random_monic(p, n):
