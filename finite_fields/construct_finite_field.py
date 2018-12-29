@@ -20,13 +20,17 @@ class ZechLogarithmTable:
         then makes a Zech logarithm table populated with powers of the primitive element
         """
         self.field_characteristic = p**i
-        h = find_irreducible(p, self.field_characteristic, 2)
+        self.h = find_irreducible(p, i)
         # find primitive element beta
-        # start with polynomial of small degree and work upwards checking if the order is p**i - 1
-        poly_to_power = dict()
-        power_to_poly = dict()
+        beta = find_primitive_element(self.h, p, i)
+        self.poly_to_power = dict()
+        self.power_to_poly = dict()
+        beta_j = 1
         for j in range(self.field_characteristic - 1):
-            pass
+            self.poly_to_power[str(beta_j)] = j
+            self.power_to_poly[j] = beta_j
+            beta_j = (beta_j*beta) % self.h
+            j += 1
 
 
 def random_monic(p, n):
@@ -42,28 +46,29 @@ def random_monic(p, n):
     return f
 
 
-def find_irreducible(p, q, n):
+def find_irreducible(p, n):
     """
-    q is a power of prime p
-    returns an irreducible polynomial of degree n over F_q
+    returns an irreducible polynomial of degree n over F_q where q is a power of p
+    https://math.stackexchange.com/questions/1654562/algorithm-to-find-the-irreducible-polynomial
     """
     # Find irreducible polynomial of degree n in F_q[x]
-    # 1. Randomly choose monic f in F_q[x] of degree n
+    # 1. Randomly choose monic f in F_p[x] of degree n
     # 2. For i from 1 to n//2:
-    # g_i = gcd(x^(q^i) - x, f)
+    # g_i = gcd(x^(p^i) - x, f)
     # if g_i != 1 then go to 1.
     # return f
     while True:
         f = random_monic(p, n)
-        # print('f = ', f)
         i = 1
         reducible = False
         while i <= n//2:
-            g_i = gcd(Polynomial('x', p)**(q**i) - Polynomial('x', p), f)
-            # print(g_i)
-            # g_i = gcd(x^(q^i) - x, f)
-            if g_i != 1 and g_i != f:
-                reducible = True
+            g_i = gcd(Polynomial('x', p)**(p**i) - Polynomial('x', p), f)
+            # g_i = gcd(x^(p^i) - x, f)
+            if g_i != 1:
+                if g_i != f:
+                    reducible = True
+                elif Polynomial('x', p)**(p**i) - Polynomial('x', p) == f:
+                    reducible = True
                 break
             i += 1
         if not reducible:
@@ -78,7 +83,6 @@ def find_primitive_element(h, p, i):
     # related: https://arxiv.org/pdf/1304.1206v4.pdf
     # https://www.sciencedirect.com/science/article/pii/S1071579705000456
     q = p**i
-    # print('h = ', h)
 
     def order(b):
         if b == 0:
@@ -90,11 +94,8 @@ def find_primitive_element(h, p, i):
             b_j *= b
             b_j %= h
             if b_j == 0:
-                # print('order = 0')
                 return 0
-            # print(b_j)
             j += 1
-        # print('order = ', j)
         return j
 
     f = Polynomial('x', p)
@@ -103,7 +104,6 @@ def find_primitive_element(h, p, i):
         a = random.randint(1, i-1)
         for k in range(a):
             f += random.randint(0, p-1)*Polynomial('x')**k
-        # print('f = ', f)
     return f
 
 
