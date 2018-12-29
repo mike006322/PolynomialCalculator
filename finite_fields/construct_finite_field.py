@@ -15,7 +15,7 @@ class ZechLogarithmTable:
     def __init__(self, p, i, h=None):
         """
         Multiplication table for GF(p^i)
-        finds an irreducible polynomial over field F_p[x], called h
+        Uses or finds an irreducible polynomial over field F_p[x], called h
         then finds the primitive element, beta, of the multiplication group of F_p[x]/h
         then makes a Zech logarithm table populated with powers of the primitive element
         """
