@@ -149,7 +149,7 @@ class Polynomial:
         for coefficient in self.term_matrix[1]:
             res[1].append(coefficient)
         Polynomial.clean(res)
-        return Polynomial(res)
+        return Polynomial(res, self.field_characteristic)
 
     def __repr__(self):
         return "Polynomial({})".format(self.term_matrix)
@@ -346,7 +346,6 @@ def division_algorithm(input_poly, *others):
     # others is an ordered tuple of functions
     a = []
     for i in range(len(others)):
-        # print(input_poly.field_characteristic)
         a.append(Polynomial(0, input_poly.field_characteristic))
     p = input_poly.copy()
     r = Polynomial(0, input_poly.field_characteristic)
@@ -389,6 +388,8 @@ def gcd(a, b):
     """
     input is polynomials of one variable
     returns greatest common divisor
+    alternative/faster algorithm to implement:
+    https://en.wikipedia.org/wiki/Polynomial_greatest_common_divisor#B%C3%A9zout's_identity_and_extended_GCD_algorithm
     """
     a = a.copy()
     b = b.copy()

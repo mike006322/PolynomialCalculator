@@ -20,11 +20,17 @@ def collect_like_terms(term_matrix):
             extra = True
             if len(t) > 0:
                 for term in t[1:]:
-                    if term[i] != 0:
-                        extra = False
+                    try:
+                        if term[i] != 0:
+                            extra = False
+                    except IndexError:
+                        extra = True
             if extra:
                 for term in t:
-                    del term[i]
+                    try:
+                        del term[i]
+                    except IndexError:
+                        pass
     if t == [[]]:
         return [[' ']]
     return t
