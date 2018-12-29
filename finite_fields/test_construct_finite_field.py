@@ -2,7 +2,7 @@ import unittest
 from construct_finite_field import *
 
 
-class TestParser(unittest.TestCase):
+class TestConstructFiniteFields(unittest.TestCase):
 
     def test_random_monic(self):
         self.assertEqual(random_monic(2, 2).degree(), 2)

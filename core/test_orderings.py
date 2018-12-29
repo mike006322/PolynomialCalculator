@@ -2,7 +2,7 @@ import unittest
 from orderings import *
 
 
-class TestParser(unittest.TestCase):
+class TestOrderings(unittest.TestCase):
 
     def test_order_lex(self):
         # -5x^3 + 7x^2z^2 + 4xy^2z + 4z^2

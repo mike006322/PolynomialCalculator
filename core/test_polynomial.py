@@ -2,7 +2,7 @@ import unittest
 from polynomial import *
 
 
-class TestParser(unittest.TestCase):
+class TestPolynomial(unittest.TestCase):
 
     def test__init__(self):
         self.assertEqual(Polynomial(0).term_matrix, [[' ']])

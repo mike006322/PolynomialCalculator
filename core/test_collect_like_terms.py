@@ -2,7 +2,7 @@ import unittest
 from collect_like_terms import collect_like_terms
 
 
-class TestParser(unittest.TestCase):
+class TestCollectLikeTerms(unittest.TestCase):
 
     def test_collect_like_terms(self):
         # 'x^2y+4x^2y+8+16+2x+y = 5x^2y+2x+y+24'

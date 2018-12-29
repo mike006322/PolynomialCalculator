@@ -2,7 +2,7 @@ import unittest
 from polynomial import Polynomial
 
 
-class TestParser(unittest.TestCase):
+class TestFormulas(unittest.TestCase):
 
     def test_solve_num_of_variables(self):
         s = Polynomial('xy')
