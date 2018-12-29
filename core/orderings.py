@@ -3,7 +3,7 @@ For each ordering, input is in form term_matrix from poly_parser.py
 output is another term_matrix sorted according to the ordering
 """
 
-# Lexicographic Ordering
+# ----- Lexicographic Ordering -----
 
 
 def order_lex(term_matrix):
@@ -26,7 +26,7 @@ def order_lex(term_matrix):
     return res
     
 
-# Graded Lexicographic Ordering
+# ----- Graded Lexicographic Ordering -----
 
 def graded_lex(term_matrix):
     """
@@ -76,7 +76,7 @@ def graded_lex(term_matrix):
     return res
         
 
-# Reverse Graded Lexicographic Ordering
+# ----- Reverse Graded Lexicographic Ordering -----
 
 def reverse_lex(term_matrix):
     t = term_matrix
@@ -138,13 +138,3 @@ def grev_lex(term_matrix):
         if len(res[i]) > len(res[0]):
             res[i] = res[i][:-1]
     return res
-
-
-if __name__ == '__main__':
-    print('-5x^3 + 7x^2z^2 + 4xy^2z + 4z^2')
-    term_matrix = [[' ', 'x', 'y', 'z'], [-5, 3, 0, 0], [7, 2, 0, 2], [4, 1, 2, 1], [4, 0, 0, 2]]
-    # print(term_matrix)
-    print(grev_lex(term_matrix))
-    print(reverse_lex(term_matrix))
-    print(order_lex(term_matrix))
-    print(order_lex([[' ', 'x', 'y'], [1.0, 2, 0], [1.0, 1, 0], [1.0, 0, 3], [1.0, 0, 1], [8.0, 0, 0]]))
