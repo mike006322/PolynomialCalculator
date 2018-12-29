@@ -10,7 +10,7 @@ For example, 5x^2y + 2x + y + 24 is stored as the following:
 [[' ', 'y', 'x'], [5.0, 1, 2], [24.0, 0, 0], [2.0, 0, 1], [1.0, 1, 0]]
 
 ### Operations:
-Polynomial addition, subtraction, multiplication, division are defined in the Polynomial class.
+Polynomial addition, subtraction, multiplication, division, modulo are defined in the Polynomial class.
 
 'gcd' function is also defined.
 
