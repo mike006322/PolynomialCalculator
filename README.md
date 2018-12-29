@@ -1,6 +1,5 @@
 # PolynomialCalculator
-
-By participating in this project we can practice our mathematics and programming skills.
+Computer Algebra System
 
 ### Features
 
@@ -11,6 +10,8 @@ By participating in this project we can practice our mathematics and programming
 - Support for constructing finite fields with polynomials
 
 ### Near-term goals:
+- implement faster gcd algorithm
+- implement lookup tables for primitive field elements
 - implement 'factor' algorithm to factor over polynomials over finite fields
 - implement algorithm to find Gröbner basis
 - implement solution to third degree polynomials in one variable
