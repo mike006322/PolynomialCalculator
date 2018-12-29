@@ -1,6 +1,6 @@
 <h1>Core Polynomial modules</h1>
 
-The Polynomial class stores data as a "term_matrix". This is implemented as a list
+The Polynomial class stores data as a "term_matrix". This is implemented as a list with
 variables given first, then terms.
 
 term_matrix = [[' ', variable1, variable2...], [coefficient, exponent1, exponent2...],...]
