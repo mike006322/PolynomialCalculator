@@ -15,7 +15,7 @@ class TestPolynomial(unittest.TestCase):
 
     def test_equals(self):
         a = Polynomial(0)
-        b = Polynomial(0)
+        b = Polynomial('0')
         c = 0
         self.assertEqual(a, c)
         self.assertEqual(a, b)
@@ -76,6 +76,14 @@ class TestPolynomial(unittest.TestCase):
         s = Polynomial('x^2y + xy^2 + y^2')
         self.assertEqual(t.LT(), Polynomial('xy'))
         self.assertEqual(s.LT(), Polynomial('x^2y'))
+        self.assertEqual(Polynomial('0').LT(), 0)
+
+    def test_LM(self):
+        t = Polynomial('3xy - 1')
+        s = Polynomial('5x^2y + xy^2 + y^2')
+        self.assertEqual(t.LM(), Polynomial('xy'))
+        self.assertEqual(s.LM(), Polynomial('x^2y'))
+        self.assertEqual(Polynomial('0').LM(), 0)
 
     def test__iter__(self):
         S = Polynomial('x^2y + xy^2 + y^2')

@@ -141,7 +141,7 @@ class Polynomial:
         returns the leading term of the polynomial
         """
         if len(self.term_matrix) == 1:
-            self.term_matrix = [[' '], [0]]
+            return Polynomial(0, self.field_characteristic)
         self.term_matrix = order(self.term_matrix)
         res = [[], []]
         for variable in self.term_matrix[0]:
@@ -150,6 +150,15 @@ class Polynomial:
             res[1].append(coefficient)
         Polynomial.clean(res)
         return Polynomial(res, self.field_characteristic)
+
+    def LM(self):
+        """
+        returns leading monomial
+        """
+        res = self.LT()
+        if res != 0:
+            res.term_matrix[1][0] /= res.term_matrix[1][0]
+        return res
 
     def __repr__(self):
         return "Polynomial({})".format(self.term_matrix)
