@@ -32,7 +32,7 @@ def collect_like_terms(term_matrix):
                     except IndexError:
                         pass
     if t == [[]]:
-        return [[' ']]
+        return [['constant']]
     return t
 
 

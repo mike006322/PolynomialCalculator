@@ -9,7 +9,7 @@ class InputError(Exception):
 
     def __init__(self):
         print("Polynomial input needs to be similar to following example: 'x^2+2xy^3+4'")
-        print("Alternatively, try a term matrix in form [[' ', 'x', 'y'], [1.0, 2, 0], [2.0, 1, 3], [4.0, 0, 0]]")
+        print("Alternatively, try a term matrix in form [['constant, 'x', 'y'], [1.0, 2, 0], [2.0, 1, 3], [4.0, 0, 0]]")
 
 
 class NonFactor(Exception):
@@ -22,10 +22,10 @@ class Polynomial:
 
     def __init__(self, poly, char=0):
         if poly == 0:
-            self.term_matrix = [[' ']]
+            self.term_matrix = [['constant']]
             self.field_characteristic = char
         elif isinstance(poly, (int, float, complex)) and poly != 0:
-            self.term_matrix = [[' '], [poly]]
+            self.term_matrix = [['constant'], [poly]]
             self.field_characteristic = char
         elif type(poly) == list:
             self.term_matrix = poly
@@ -216,9 +216,9 @@ class Polynomial:
     def __add__(self, other):
         if type(other) == Polynomial:
             if len(self.term_matrix) == 1:
-                self.term_matrix = [[' '], [0]]
+                self.term_matrix = [['constant'], [0]]
             if len(other.term_matrix) == 1:
-                other.term_matrix = [[' '], [0]]
+                other.term_matrix = [['constant'], [0]]
             var_set = set(self.term_matrix[0]).union(set(other.term_matrix[0]))
             res = [sorted(list(var_set))]
             # first add variables to both, then order both, then combine both
@@ -237,7 +237,7 @@ class Polynomial:
     def __sub__(self, other):
         if type(other) == Polynomial:
             if self == other:
-                return Polynomial([[' ']], self.field_characteristic)
+                return Polynomial([['constant']], self.field_characteristic)
             for term in other.term_matrix[1:]:
                 term[0] = -term[0]
         else:
@@ -338,7 +338,7 @@ def divides(a, b):
     """
     returns True if LT(a) has exponents all less than LT(b)
     """
-    if a.term_matrix == [[' ']] or b.term_matrix == [[' ']]:
+    if a.term_matrix == [['constant']] or b.term_matrix == [['constant']]:
         return False
     a, b = Polynomial.combine_variables(a, b)
     a = a.term_matrix
@@ -418,7 +418,7 @@ def gcd(a, b):
     if a.number_of_variables() <= 1 and b.number_of_variables() <= 1:
         return gcd_singlevariate(a, b)
     variables = set(a.term_matrix[0]).union(set(b.term_matrix[0]))
-    variables.remove(' ')
+    variables.remove('constant')
     res = 1
     for variable in variables:
         a = a.isolate(variable)

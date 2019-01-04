@@ -5,13 +5,13 @@ from core.polynomial import *
 class TestPolynomial(unittest.TestCase):
 
     def test__init__(self):
-        self.assertEqual(Polynomial(0).term_matrix, [[' ']])
-        t = [[' ', 'y', 'x'], [5.0, 1, 2], [24.0, 0, 0], [2.0, 0, 1], [1.0, 1, 0]]
+        self.assertEqual(Polynomial(0).term_matrix, [['constant']])
+        t = [['constant', 'y', 'x'], [5.0, 1, 2], [24.0, 0, 0], [2.0, 0, 1], [1.0, 1, 0]]
         t = Polynomial(t, char=2)
-        self.assertEqual(t.term_matrix, [[' ', 'y', 'x'], [1.0, 1, 2], [1.0, 1, 0]])
+        self.assertEqual(t.term_matrix, [['constant', 'y', 'x'], [1.0, 1, 2], [1.0, 1, 0]])
 
     def test_clean(self):
-        self.assertEqual(Polynomial.clean([[' ', 'x', 'y'], [3.0, 2, 0], [1.0, 1, 0], [5.0, 0, 0]]), [[' ', 'x'], [3.0, 2], [1.0, 1], [5.0, 0]])
+        self.assertEqual(Polynomial.clean([['constant', 'x', 'y'], [3.0, 2, 0], [1.0, 1, 0], [5.0, 0, 0]]), [['constant', 'x'], [3.0, 2], [1.0, 1], [5.0, 0]])
 
     def test_equals(self):
         a = Polynomial(0)
@@ -90,17 +90,17 @@ class TestPolynomial(unittest.TestCase):
         self.assertEqual([term for term in S], [Polynomial('x^2y'), Polynomial('xy^2'), Polynomial('y^2')])
 
     def test_mod_char(self):
-        t = [[' ', 'y', 'x'], [5.0, 1, 2], [24.0, 0, 0], [2.0, 0, 1], [1.0, 1, 0]]
+        t = [['constant', 'y', 'x'], [5.0, 1, 2], [24.0, 0, 0], [2.0, 0, 1], [1.0, 1, 0]]
         t = Polynomial(t, char=2)
-        self.assertEqual(t.term_matrix, [[' ', 'y', 'x'], [1.0, 1, 2], [1.0, 1, 0]])
+        self.assertEqual(t.term_matrix, [['constant', 'y', 'x'], [1.0, 1, 2], [1.0, 1, 0]])
 
     def test_combine_variables(self):
         t = Polynomial('x')
         s = Polynomial('x^2y + xy^2 + y^2')
-        res = (Polynomial([[' ', 'x', 'y'], [1.0, 2, 1], [1.0, 1, 2], [1.0, 0, 2]]), Polynomial([[' ', 'x', 'y'], [1.0, 1, 0]]))
+        res = (Polynomial([['constant', 'x', 'y'], [1.0, 2, 1], [1.0, 1, 2], [1.0, 0, 2]]), Polynomial([['constant', 'x', 'y'], [1.0, 1, 0]]))
         self.assertEqual(Polynomial.combine_variables(s, t), res)
-        self.assertEqual(s.term_matrix, [[' ', 'x', 'y'], [1.0, 2, 1], [1.0, 1, 2], [1.0, 0, 2]])
-        self.assertEqual(t.term_matrix, [[' ', 'x'], [1.0, 1]])
+        self.assertEqual(s.term_matrix, [['constant', 'x', 'y'], [1.0, 2, 1], [1.0, 1, 2], [1.0, 0, 2]])
+        self.assertEqual(t.term_matrix, [['constant', 'x'], [1.0, 1]])
 
     def test_mod(self):
         self.assertEqual(Polynomial('x^2y + xy^2 + y^2') % Polynomial('x'), Polynomial('y^2'))
