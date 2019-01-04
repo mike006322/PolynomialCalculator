@@ -90,11 +90,19 @@ class Polynomial:
             t.term_matrix = graded_order(t.term_matrix)
             return sum(t.term_matrix[1][1:])
 
+    def variables(self):
+        """
+        returns the variables of the polynomial as a set
+        """
+        res = set(self.term_matrix[0])
+        res.remove('constant')
+        return res
+
     def number_of_variables(self):
         """
         returns the number of variables in the polynomial
         """
-        return len(self.term_matrix[0]) - 1
+        return len(self.variables())
 
     @staticmethod
     def clean(term_matrix):
@@ -417,10 +425,8 @@ def gcd(a, b):
     b = b.copy()
     if a.number_of_variables() <= 1 and b.number_of_variables() <= 1:
         return gcd_singlevariate(a, b)
-    variables = set(a.term_matrix[0]).union(set(b.term_matrix[0]))
-    variables.remove('constant')
     res = 1
-    for variable in variables:
+    for variable in a.variables().union(b.variables()):
         a = a.isolate(variable)
         b = b.isolate(variable)
         res *= gcd_singlevariate(a, b)
