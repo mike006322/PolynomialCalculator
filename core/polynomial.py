@@ -90,6 +90,12 @@ class Polynomial:
             t.term_matrix = graded_order(t.term_matrix)
             return sum(t.term_matrix[1][1:])
 
+    def number_of_variables(self):
+        """
+        returns the number of variables in the polynomial
+        """
+        return len(self.term_matrix[0]) - 1
+
     @staticmethod
     def clean(term_matrix):
         """
@@ -159,6 +165,13 @@ class Polynomial:
         if res != 0:
             res.term_matrix[1][0] /= res.term_matrix[1][0]
         return res
+
+    def isolate(self, variable):
+        """
+        isolates a single variable, not necessarily in self
+        returns a polynomial of one variable with polynomial constant terms
+        """
+        pass
 
     def __repr__(self):
         return "Polynomial({})".format(self.term_matrix)
@@ -395,6 +408,27 @@ def division_string(p, *others):
 
 def gcd(a, b):
     """
+    input is polynomials
+    output the greatest common divisor
+    if input is multivariate, recurse on the variables solving one at a time
+    i.e. if a, b in R[x_1, x_2], first do a, b in R[x_1][x_2]
+    """
+    a = a.copy()
+    b = b.copy()
+    if a.number_of_variables() <= 1 and b.number_of_variables() <= 1:
+        return gcd_singlevariate(a, b)
+    variables = set(a.term_matrix[0]).union(set(b.term_matrix[0]))
+    variables.remove(' ')
+    res = 1
+    for variable in variables:
+        a = a.isolate(variable)
+        b = b.isolate(variable)
+        res *= gcd_singlevariate(a, b)
+    return res
+
+
+def gcd_singlevariate(a, b):
+    """
     input is polynomials of one variable
     returns greatest common divisor
     alternative/faster algorithm to implement:
@@ -416,3 +450,9 @@ def gcd(a, b):
         a, b = b, a
         return gcd(a, b)
 
+
+def lcm(a, b):
+    """
+    returns least common multiple of two polynomials
+    """
+    return a*b/gcd(a, b)

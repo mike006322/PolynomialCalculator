@@ -114,6 +114,10 @@ class TestPolynomial(unittest.TestCase):
         self.assertEqual(Polynomial('8 + x + y + y^3 + x^2').degree(), 3)
         self.assertEqual(Polynomial('8 + x + y + y^3x^3 + x^2').degree(), 6)
 
+    def test_number_of_variables(self):
+        self.assertEqual(Polynomial('2x^3+x+8').number_of_variables(), 1)
+        self.assertEqual(Polynomial('2x^3+xy+8').number_of_variables(), 2)
+
     def test_division_algorithm(self):
         s = Polynomial('x^2y + xy^2 + y^2')
         t = Polynomial('xy - 1')
@@ -139,11 +143,16 @@ class TestPolynomial(unittest.TestCase):
         self.assertEqual(divides(s, t), False)
 
     def test_gcd(self):
+        self.assertEqual(gcd(Polynomial('2x'), Polynomial('2')), 2)
         self.assertEqual(gcd(Polynomial('x^2-1'), Polynomial('x-1')), Polynomial('x + -1.0'))
         self.assertEqual(gcd(Polynomial('x-1'), Polynomial('x^2-1')), Polynomial('x + -1.0'))
         self.assertEqual(gcd(Polynomial('x', 2)**2 - Polynomial('x', 2), Polynomial('x^3 + x + 1', 2)), 1)
         self.assertEqual(gcd(Polynomial('x^4 + x^2 + 1.0', 2), Polynomial('x^4-x', 2)), Polynomial('x^2 + x + 1.0'))
         self.assertEqual(gcd(Polynomial('x', 2)**(2**3) - Polynomial('x', 2), Polynomial('x^5 + x^3 + 1.0', 2)), 1)
+    #     self.print(gcd(Polynomial('x^3y^2'), Polynomial('x^4y')))
+    #
+    # def test_lcm(self):
+    #     self.assertEqual(lcm(Polynomial('x^3y^2'), Polynomial('x^4y')), Polynomial('x^4y^2'))
 
 
 if __name__ == '__main__':
