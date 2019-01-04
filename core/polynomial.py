@@ -351,15 +351,15 @@ def division_algorithm(input_poly, *others):
     r = Polynomial(0, input_poly.field_characteristic)
     while p != Polynomial(0):
         i = 0
-        division_occured = False
-        while i < len(others) and division_occured == False:
+        division_occurred = False
+        while i < len(others) and not division_occurred:
             if divides(others[i], p):
                 a[i] += monomial_divide(p.LT(), others[i].LT())
                 p -= monomial_divide(p.LT(), others[i].LT()) * others[i]
-                division_occured = True
+                division_occurred = True
             else:
                 i += 1
-        if division_occured == False:
+        if not division_occurred:
             p_LT = p.LT()
             r += p_LT
             p -= p.LT()
