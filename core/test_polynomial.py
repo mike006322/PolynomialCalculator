@@ -146,6 +146,13 @@ class TestPolynomial(unittest.TestCase):
         self.assertEqual(divides(t, s), True)
         self.assertEqual(divides(s, t), False)
 
+    def test_isolate_variable(self):
+        s = Polynomial('x^2y + xy^2 + y^2')
+        tm = [['constant', 'y'], [Polynomial([['constant', 'x'], [1.0, 2]]), 1], [Polynomial([['constant', 'x'], [1.0, 1], [1.0, 0]]), 2]]
+        self.assertEqual(s.isolate('y').term_matrix, tm)
+        # print(Polynomial('xyz+z+z^2').isolate('z'))
+        # print(Polynomial('x').isolate('y'))
+
     def test_gcd(self):
         self.assertEqual(gcd(Polynomial('2x'), Polynomial('2')), 2)
         self.assertEqual(gcd(Polynomial('x^2-1'), Polynomial('x-1')), Polynomial('x + -1.0'))
@@ -153,10 +160,10 @@ class TestPolynomial(unittest.TestCase):
         self.assertEqual(gcd(Polynomial('x', 2)**2 - Polynomial('x', 2), Polynomial('x^3 + x + 1', 2)), 1)
         self.assertEqual(gcd(Polynomial('x^4 + x^2 + 1.0', 2), Polynomial('x^4-x', 2)), Polynomial('x^2 + x + 1.0'))
         self.assertEqual(gcd(Polynomial('x', 2)**(2**3) - Polynomial('x', 2), Polynomial('x^5 + x^3 + 1.0', 2)), 1)
-    #     self.print(gcd(Polynomial('x^3y^2'), Polynomial('x^4y')))
-    #
-    # def test_lcm(self):
-    #     self.assertEqual(lcm(Polynomial('x^3y^2'), Polynomial('x^4y')), Polynomial('x^4y^2'))
+        self.assertEqual(gcd(Polynomial('x^3y^2'), Polynomial('x^4y')), Polynomial('x^3y'))
+
+    def test_lcm(self):
+        self.assertEqual(lcm(Polynomial('x^3y^2'), Polynomial('x^4y')), Polynomial('x^4y^2'))
 
 
 if __name__ == '__main__':

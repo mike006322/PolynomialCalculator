@@ -179,7 +179,21 @@ class Polynomial:
         isolates a single variable, not necessarily in self
         returns a polynomial of one variable with polynomial constant terms
         """
-        pass
+        poly = self.copy()
+        if variable in poly.variables():
+            i = poly.term_matrix[0].index(variable)
+        else:
+            return self
+        if i != len(poly.variables()):
+            remaining_vars = poly.term_matrix[0][:i] + poly.term_matrix[0][i+1:]
+        else:
+            remaining_vars = poly.term_matrix[0][:i]
+        res = Polynomial([['constant', variable]], poly.field_characteristic)
+        for term in poly.term_matrix[1:]:
+            variable_power = term.pop(i)
+            res.term_matrix += [[Polynomial(Polynomial.clean([remaining_vars, term])), variable_power]]
+        res.term_matrix = collect_like_terms(res.term_matrix)
+        return res
 
     def __repr__(self):
         return "Polynomial({})".format(self.term_matrix)
@@ -191,7 +205,10 @@ class Polynomial:
         for term in self.term_matrix[1:]:
             # display coefficient if it's not 1
             if term[0] != 1 and len(self.term_matrix[0]) > 1:
-                res += str(term[0])
+                if type(term[0]) == Polynomial:
+                    res += '(' + str(term[0]) + ')'
+                else:
+                    res += str(term[0])
             # display coefficient if there are no other exponents
             if len(term) == 1:
                 res += str(term[0])
@@ -420,16 +437,19 @@ def gcd(a, b):
     output the greatest common divisor
     if input is multivariate, recurse on the variables solving one at a time
     i.e. if a, b in R[x_1, x_2], first do a, b in R[x_1][x_2]
+    # multivariate currently only works for monomials
     """
     a = a.copy()
     b = b.copy()
     if a.number_of_variables() <= 1 and b.number_of_variables() <= 1:
         return gcd_singlevariate(a, b)
-    res = 1
+    if len(a.term_matrix) > 2 or len(b.term_matrix) > 2:
+        raise NotImplemented
+    res = gcd_singlevariate(Polynomial(a.term_matrix[1][0]), Polynomial(b.term_matrix[1][0]))
     for variable in a.variables().union(b.variables()):
-        a = a.isolate(variable)
-        b = b.isolate(variable)
-        res *= gcd_singlevariate(a, b)
+        isolated_a = a.isolate(variable)
+        isolated_b = b.isolate(variable)
+        res *= Polynomial(variable)**min(isolated_a.term_matrix[1][1], isolated_b.term_matrix[1][1])
     return res
 
 
