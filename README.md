@@ -10,6 +10,7 @@ Computer Algebra System
 - Support for constructing finite fields with polynomials
 
 ### Near-term goals:
+- add support to the parser for rational coefficients
 - implement faster gcd algorithm
 - implement lookup tables for primitive field elements
 - implement 'factor' algorithm to factor over polynomials over finite fields
