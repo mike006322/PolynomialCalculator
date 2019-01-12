@@ -11,10 +11,12 @@ class TestIdeal(unittest.TestCase):
         I = Ideal(f, g)
         self.assertEqual(I.polynomials, (f, g))
 
-    # def test_s_polynomial(self):
-    #     f = Polynomial('x^4y')
-    #     g = Polynomial('x^3y^2')
-    #     self.assertEqual(Ideal.s_polynomial(f, g), Polynomial('−x^3y^3 + x^2 − (1/3)y^3'))
+    def test_s_polynomial(self):
+        f = Polynomial('x^3y^2 -x^2y^3 + x')
+        g = Polynomial('3x^4y + y^2')
+        # print(Polynomial('−x^3y^3 + x^2 − (1/3)y^3').term_matrix)
+        # parser doesn't support rational inputs yet
+        self.assertEqual(Ideal.s_polynomial(f, g), Polynomial([['constant', 'x', 'y'], [-1.0, 3, 3], [1.0, 2, 0], [-0.3333333333333333, 0, 3]]))
 
 
 if __name__ == '__main__':
