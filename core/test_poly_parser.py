@@ -31,9 +31,11 @@ class TestParser(unittest.TestCase):
         # poly = 'z^3*4x^2+8+y*z^4'
         # poly = '2*X^2y-x-2'
         test1 = 'x1^2*x2^3 - 9Z^4T^2 + 7x1^2x2^6'
+        test2 = '-x^3 + x^2'
         self.assertEqual(order_lex(parse_poly(test1)), [['constant', 't', 'x1', 'x2', 'z'], [-9.0, 2, 0, 0, 4], [7.0, 0, 2, 6, 0], [1.0, 0, 2, 3, 0]])
         self.assertEqual(parse_poly('x+1'), [['constant', 'x'], [1.0, 1], [1.0, 0]])
         self.assertEqual(parse_poly('x^2 + -1.0'), [['constant', 'x'], [1.0, 2], [-1.0, 0]])
+        self.assertEqual(parse_poly(test2), [['constant', 'x'], [-1.0, 3], [1.0, 2]])
 
 
 if __name__ == '__main__':

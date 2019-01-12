@@ -82,6 +82,8 @@ def add_coeff(s, term_matrix):
 
 def parse_poly(s_input):
     s = s_input.replace(" ", "").replace("-", "+-").replace("*", "").replace("++", "+").lower().split("+")
+    while '' in s:
+        s.remove('')
     term_matrix = [['constant']]
     num_terms = len(s)
     for _ in range(num_terms):
