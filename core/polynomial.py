@@ -174,6 +174,13 @@ class Polynomial:
             res.term_matrix[1][0] /= res.term_matrix[1][0]
         return res
 
+    def terms(self):
+        """
+        yields terms of the polynomial
+        """
+        for term in self.term_matrix[1:]:
+            yield Polynomial(Polynomial.clean([self.term_matrix[0], term]), self.field_characteristic)
+
     def isolate(self, variable):
         """
         isolates a single variable, not necessarily in self

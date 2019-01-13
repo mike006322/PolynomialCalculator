@@ -85,6 +85,10 @@ class TestPolynomial(unittest.TestCase):
         self.assertEqual(s.LM(), Polynomial('x^2y'))
         self.assertEqual(Polynomial('0').LM(), 0)
 
+    def test_terms(self):
+        s = Polynomial('5x^2y + xy^2 + y^2')
+        self.assertEqual(list(s.terms()), [Polynomial('5x^2y'), Polynomial('xy^2'), Polynomial('y^2')])
+
     def test__iter__(self):
         S = Polynomial('x^2y + xy^2 + y^2')
         self.assertEqual([term for term in S], [Polynomial('x^2y'), Polynomial('xy^2'), Polynomial('y^2')])
