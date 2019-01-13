@@ -23,10 +23,13 @@ class TestIdeal(unittest.TestCase):
         g = Polynomial('xy^2 - x')
         I = Ideal(f, g)
         print(*I.groebner_basis())
-        f = Polynomial('xy^2 - x')
-        g = Polynomial('x^2 - y')
-        I = Ideal(f, g)
-        print(*I.groebner_basis())
+        # f = Polynomial('xy^2 - x')
+        # g = Polynomial('x^2 - y')
+        # I = Ideal(f, g)
+        # print(*I.groebner_basis())
+        # test if this modifies self.polynomials
+        self.assertEqual(I.polynomials, (f, g))
+        pass
 
 
 if __name__ == '__main__':
