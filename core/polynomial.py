@@ -337,6 +337,10 @@ class Polynomial:
         """
         returns the remainder of self/other
         """
+        if type(other) == list:
+            return division_algorithm(self, *other)[1]
+        if type(other) == tuple:
+            return division_algorithm(self, *other)[1]
         if type(other) == Polynomial:
             return division_algorithm(self, other)[1]
         else:
