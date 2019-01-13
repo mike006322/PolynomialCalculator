@@ -453,7 +453,8 @@ def gcd(a, b):
     for variable in a.variables().union(b.variables()):
         isolated_a = a.isolate(variable)
         isolated_b = b.isolate(variable)
-        res *= Polynomial(variable)**min(isolated_a.term_matrix[1][1], isolated_b.term_matrix[1][1])
+        if len(isolated_a.term_matrix[1]) > 1 and len(isolated_b.term_matrix[1]) > 1:
+            res *= Polynomial(variable)**min(isolated_a.term_matrix[1][1], isolated_b.term_matrix[1][1])
     return res
 
 
