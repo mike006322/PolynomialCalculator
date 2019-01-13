@@ -18,6 +18,16 @@ class TestIdeal(unittest.TestCase):
         # parser doesn't support rational inputs yet
         self.assertEqual(Ideal.s_polynomial(f, g), Polynomial([['constant', 'x', 'y'], [-1.0, 3, 3], [1.0, 2, 0], [-0.3333333333333333, 0, 3]]))
 
+    def test_groebner_basis(self):
+        f = Polynomial('x^2y - 1')
+        g = Polynomial('xy^2 - x')
+        I = Ideal(f, g)
+        print(*I.groebner_basis())
+        f = Polynomial('xy^2 - x')
+        g = Polynomial('x^2 - y')
+        I = Ideal(f, g)
+        print(*I.groebner_basis())
+
 
 if __name__ == '__main__':
     unittest.main()
