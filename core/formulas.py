@@ -30,7 +30,7 @@ def quadratic_formula(polynomial):
     """
     if len(polynomial.term_matrix) == 3:
         a, c = polynomial.term_matrix[1][0], polynomial.term_matrix[2][0]
-        return (-c/a)**.5
+        return (-c/a)**.5, -(-c/a)**.5
     a, b, c = polynomial.term_matrix[1][0], polynomial.term_matrix[2][0], polynomial.term_matrix[3][0]
     ans1 = (-b + (b**2 - 4*a*c)**.5)/2*a
     ans2 = (-b - (b**2 - 4*a*c)**.5)/2*a

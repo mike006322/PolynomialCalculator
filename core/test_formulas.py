@@ -25,7 +25,7 @@ class TestFormulas(unittest.TestCase):
     def test_quadratic_formula(self):
         s = Polynomial('x^2-1')
         t = Polynomial('x^2-3x+2')
-        self.assertEqual(s.solve(), 1)
+        self.assertEqual(set(s.solve()), {1, -1})
         self.assertEqual(set(t.solve()), {1, 2})
 
 
