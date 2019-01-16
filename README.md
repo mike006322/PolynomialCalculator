@@ -1,5 +1,6 @@
-# PolynomialCalculator
-Computer Algebra System
+![Logo](https://github.com/mike006322/PolynomialCalculator/blob/master/logo.png?raw=true)
+
+##### Computer Algebra System
 
 ### Features
 
