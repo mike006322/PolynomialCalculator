@@ -214,8 +214,18 @@ class Polynomial:
             if term[0] != 1 and len(self.term_matrix[0]) > 1:
                 if type(term[0]) == Polynomial:
                     res += '(' + str(term[0]) + ')'
-                else:
+                elif term[0] != -1:
                     res += str(term[0])
+                else:
+                    has_var = False
+                    for var in term[1:]:
+                        if var > 0:
+                            has_var = True
+                            break
+                    if has_var:
+                        res += '-'
+                    else:
+                        res += str(term[0])
             # display coefficient if there are no other exponents
             if len(term) == 1:
                 res += str(term[0])

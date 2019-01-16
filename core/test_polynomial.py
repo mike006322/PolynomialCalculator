@@ -13,6 +13,9 @@ class TestPolynomial(unittest.TestCase):
     def test_clean(self):
         self.assertEqual(Polynomial.clean([['constant', 'x', 'y'], [3.0, 2, 0], [1.0, 1, 0], [5.0, 0, 0]]), [['constant', 'x'], [3.0, 2], [1.0, 1], [5.0, 0]])
 
+    def test___str__(self):
+        self.assertEqual(Polynomial('-x^2 -1'), '-x^2 - 1.0')
+
     def test_equals(self):
         a = Polynomial(0)
         b = Polynomial('0')
