@@ -22,14 +22,19 @@ class TestIdeal(unittest.TestCase):
         f = Polynomial('x^2y - 1')
         g = Polynomial('xy^2 - x')
         I = Ideal(f, g)
-        print(*I.groebner_basis())
-        # f = Polynomial('xy^2 - x')
-        # g = Polynomial('x^2 - y')
-        # I = Ideal(f, g)
-        # print(*I.groebner_basis())
-        # test if this modifies self.polynomials
-        self.assertEqual(I.polynomials, (f, g))
-        pass
+        self.assertEqual(I.groebner_basis(), [Polynomial('x^2 + -1.0y'), Polynomial('y^2 + -1.0')])
+        f = Polynomial('xy^2 - x')
+        g = Polynomial('x^2 - y')
+        I = Ideal(f, g)
+        self.assertEqual(I.groebner_basis(), [Polynomial('y^3 + -1.0y'), Polynomial('xy^2 + -1.0x'), Polynomial('x^2 + -1.0y')])
+
+    def test_reduce(self):
+        f = Polynomial('x^3y^2 -x^2y^3 + x')
+        g = Polynomial('3x^4y + y^2')
+        h = Polynomial('x^5y + y^2')
+        G = [f, g, h]
+        res = [Polynomial([['constant', 'x', 'y'], [-0.3333333333333333, 1, 2], [1.0, 0, 2]]), Polynomial([['constant', 'x', 'y'], [3.0, 4, 1], [1.0, 0, 2]]), Polynomial([['constant', 'x', 'y'], [1.0, 3, 2], [-1.0, 2, 3], [1.0, 1, 0]])]
+        self.assertEqual(Ideal.reduce(G), res)
 
 
 if __name__ == '__main__':

@@ -15,15 +15,43 @@ class Ideal:
         """
         return (lcm(f.LT(), g.LT())/f.LT())*f - (lcm(f.LT(), g.LT())/g.LT())*g
 
+    @staticmethod
+    def minimize(G):
+        """
+        LC(p) = 1 for all p ∈ G
+        For all p ∈ G, no monomial of p lies in <LT(G −{p})>
+        """
+        res = list(G)
+        extra = list()
+        for p in res:
+            for term in p.terms():
+                for q in res:
+                    if p != q:
+                        if term % q.LT() == 0:
+                            extra.append(p)
+        for p in extra:
+            res.remove(p)
+        return res
+
+    @staticmethod
+    def reduce(G):
+        """
+        input minimum basis for G
+        output reduced basis
+        """
+        res = list(G)
+        for i in range(len(G)):
+            res.remove(G[i])
+            h = G[i] % res
+            res = [h] + res
+        return res
+
     def groebner_basis(self):
         """
-        returns groebner basis for self.polynomials
-        # one can modify this algorithm so that it will automatically produce a reduced Groebner basis.
-        # i.e. unique up to constant factors
-        # The basic idea is to systematically reduce G each time it is enlarged
+        returns reduced groebner basis
         """
         B = set(combinations(range(len(self.polynomials)), 2))
-        G = list(self.polynomials)
+        G = Ideal.reduce(list(self.polynomials))
         F = list(self.polynomials)
         # test if this modifies self.polynomials
         # polynomials are indexed 0 to s
@@ -36,8 +64,10 @@ class Ideal:
                 if s != 0:
                     t += 1
                     F[t] = S
-                    # reduce G as we are adding to it
                     G.append(F[t])
+                    # reduce G as we are adding to it
+                    G = Ideal.reduce(G)
+                    G = Ideal.minimize(G)
                     B = B.union(set(combinations(range(t - 1), 2)))
         return G
 
