@@ -1,4 +1,4 @@
-![Logo](https://github.com/mike006322/PolynomialCalculator/blob/master/logo.png?raw=true)
+![Logo](https://github.com/mike006322/PolynomialCalculator/blob/master/PolyCalc%20Logo.svg?sanitize=true)
 
 ##### Computer Algebra System
 
