@@ -453,7 +453,7 @@ def gcd(a, b):
     """
     a = a.copy()
     b = b.copy()
-    if a.number_of_variables() <= 1 and b.number_of_variables() <= 1:
+    if len(a.variables().union(b.variables())) <= 1:
         return gcd_singlevariate(a, b)
     if len(a.term_matrix) > 2 or len(b.term_matrix) > 2:
         raise NotImplemented
@@ -462,7 +462,8 @@ def gcd(a, b):
         isolated_a = a.isolate(variable)
         isolated_b = b.isolate(variable)
         if len(isolated_a.term_matrix[1]) > 1 and len(isolated_b.term_matrix[1]) > 1:
-            res *= Polynomial(variable)**min(isolated_a.term_matrix[1][1], isolated_b.term_matrix[1][1])
+            if variable in isolated_a.variables() and variable in isolated_b.variables():
+                res *= Polynomial(variable)**min(isolated_a.term_matrix[1][1], isolated_b.term_matrix[1][1])
     return res
 
 
