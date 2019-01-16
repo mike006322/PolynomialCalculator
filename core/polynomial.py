@@ -231,6 +231,7 @@ class Polynomial:
             res += " + "
         if res.endswith(" + "):
             res = res[:-3]
+        res = res.replace('+ -', '- ')
         return res
 
     def __call__(self, **kwargs):
