@@ -26,9 +26,11 @@ Computer Algebra System
 - Mobile app
 
 ### Similar projects:
-- Sympy
-    https://github.com/sympy/sympy
+- [SAGE](http://doc.sagemath.org/)
 
-- http://cocoa.dima.unige.it/ written in C++ and CoCa language
+- [Sympy](https://github.com/sympy/sympy)
+
+
+- [CoCa](http://cocoa.dima.unige.it/) written in C++ and CoCa language
 
 - jasymchat - Computer Algebra System written in Java (won't run on phone, seems defunct)
