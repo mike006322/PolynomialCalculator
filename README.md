@@ -11,6 +11,8 @@
 - Support for constructing finite fields with polynomials
 - Can find Gröbner basis for polynomial Ideals
 
+<img src = "https://github.com/mike006322/PolynomialCalculator/blob/master/demo.png?raw=true">
+
 ### Near-term goals:
 - add support to the parser for rational coefficients
 - implement faster gcd algorithm
