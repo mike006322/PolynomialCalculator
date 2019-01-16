@@ -36,6 +36,19 @@ class TestIdeal(unittest.TestCase):
         res = [Polynomial([['constant', 'x', 'y'], [-0.3333333333333333, 1, 2], [1.0, 0, 2]]), Polynomial([['constant', 'x', 'y'], [3.0, 4, 1], [1.0, 0, 2]]), Polynomial([['constant', 'x', 'y'], [1.0, 3, 2], [-1.0, 2, 3], [1.0, 1, 0]])]
         self.assertEqual(Ideal.reduce(G), res)
 
+    def test___eq__(self):
+        f = Polynomial('x^2y - 1')
+        g = Polynomial('xy^2 - x')
+        I = Ideal(f, g)
+        s = Polynomial('-x^2 + 1.0y')
+        t = Polynomial('-y^2 + 1.0')
+        J = Ideal(s, t)
+        # print(*I.groebner_basis()) x^2 - 1.0y y^2 - 1.0
+        # print(*J.groebner_basis()) -1.0y^2 + 1.0 -1.0x^2 + y
+        self.assertFalse(I.groebner_basis() == J.groebner_basis())
+        self.assertTrue(I == I)
+        self.assertTrue(I == J)
+
 
 if __name__ == '__main__':
     unittest.main()

@@ -7,6 +7,22 @@ class Ideal:
     def __init__(self, *polynomials):
         self.polynomials = polynomials
 
+    def __eq__(self, other):
+        """
+        Two ideals are equal if they have the same Groebner basis up to constant multiple
+        """
+        g = self.groebner_basis()
+        for poly in other.groebner_basis():
+            if poly not in g and (-1)*poly not in g:
+                return False
+        return True
+
+    def __repr__(self):
+        pass
+
+    def __str__(self):
+        pass
+
     @staticmethod
     def s_polynomial(f, g):
         """
@@ -61,7 +77,7 @@ class Ideal:
             (i, j) = B.pop()
             if lcm(F[i].LT(), F[j].LT()) != F[i].LT()*F[j].LT() and not self.criterion(i, j, B):
                 S = Ideal.s_polynomial(F[i], F[j]) % G
-                if s != 0:
+                if S != 0:
                     t += 1
                     F[t] = S
                     G.append(F[t])
