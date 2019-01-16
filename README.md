@@ -1,4 +1,4 @@
-<img src = "https://github.com/mike006322/PolynomialCalculator/blob/master/PolyCalc%20Logo.svg" height = 200>
+<img src = "https://github.com/mike006322/PolynomialCalculator/blob/master/logo.svg" height = 200>
 
 ##### Computer Algebra System
 
