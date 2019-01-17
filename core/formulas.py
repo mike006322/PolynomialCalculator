@@ -29,6 +29,9 @@ def quadratic_formula(polynomial):
     returns zeros
     """
     if len(polynomial.term_matrix) == 3:
+        if polynomial.term_matrix[2][1] == 1:
+            a, b = polynomial.term_matrix[1][0], polynomial.term_matrix[2][0]
+            return 0, -b/a
         a, c = polynomial.term_matrix[1][0], polynomial.term_matrix[2][0]
         return (-c/a)**.5, -(-c/a)**.5
     a, b, c = polynomial.term_matrix[1][0], polynomial.term_matrix[2][0], polynomial.term_matrix[3][0]

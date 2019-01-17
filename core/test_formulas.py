@@ -23,10 +23,12 @@ class TestFormulas(unittest.TestCase):
     # python is rounding the answers
 
     def test_quadratic_formula(self):
-        s = Polynomial('x^2-1')
-        t = Polynomial('x^2-3x+2')
-        self.assertEqual(set(s.solve()), {1, -1})
-        self.assertEqual(set(t.solve()), {1, 2})
+        r = Polynomial('x^2-1')
+        s = Polynomial('x^2-3x+2')
+        t = Polynomial('3x^2 + 5x')
+        self.assertEqual(set(r.solve()), {1, -1})
+        self.assertEqual(set(s.solve()), {1, 2})
+        self.assertEqual(t.solve(), (0, -1.6666666666666667))
 
 
 if __name__ == '__main__':
