@@ -460,6 +460,7 @@ def gcd(a, b):
     if input is multivariate, recurse on the variables solving one at a time
     i.e. if a, b in R[x_1, x_2], first do a, b in R[x_1][x_2]
     # multivariate currently only works for monomials
+    # https://pdfs.semanticscholar.org/e64a/29b3b0a991d292acd97ba2da88247a0be1e1.pdf
     """
     a = a.copy()
     b = b.copy()
