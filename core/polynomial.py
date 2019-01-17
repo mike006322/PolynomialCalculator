@@ -70,7 +70,7 @@ class Polynomial:
         """
         returns the derivative with respect to var
         """
-        return solve(self)
+        raise NotImplemented
 
     def solve(self):
         """
