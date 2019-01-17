@@ -18,10 +18,13 @@ class Ideal:
         return True
 
     def __repr__(self):
-        pass
+        return str(self)
 
     def __str__(self):
-        pass
+        res = '<'
+        for p in self.polynomials:
+            res += str(p) + ', '
+        return res[:-2] + '>'
 
     @staticmethod
     def s_polynomial(f, g):
@@ -54,6 +57,7 @@ class Ideal:
         """
         input minimum basis for G
         output reduced basis
+        http://pi.math.cornell.edu/~dmehrle/notes/old/alggeo/15BuchbergersAlgorithm.pdf
         """
         res = list(G)
         for i in range(len(G)):

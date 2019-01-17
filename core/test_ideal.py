@@ -11,6 +11,12 @@ class TestIdeal(unittest.TestCase):
         I = Ideal(f, g)
         self.assertEqual(I.polynomials, (f, g))
 
+    def test___str__(self):
+        f = Polynomial('x^4y')
+        g = Polynomial('x^3y^2')
+        I = Ideal(f, g)
+        self.assertEqual(str(I), '<x^4y, x^3y^2>')
+
     def test_s_polynomial(self):
         f = Polynomial('x^3y^2 -x^2y^3 + x')
         g = Polynomial('3x^4y + y^2')
