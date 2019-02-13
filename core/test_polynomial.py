@@ -172,6 +172,12 @@ class TestPolynomial(unittest.TestCase):
     def test_lcm(self):
         self.assertEqual(lcm(Polynomial('x^3y^2'), Polynomial('x^4y')), Polynomial('x^4y^2'))
 
+    def test_orderings(self):
+        f = Polynomial('xy+x^2+xz+y^2+yz+z^2+x+y+z+1')
+        f.term_matrix = graded_order(f.term_matrix)
+        g = Polynomial([['constant', 'x', 'y', 'z'], [1.0, 2, 0, 0], [1.0, 1, 1, 0], [1.0, 1, 0, 1], [1.0, 0, 2, 0], [1.0, 0, 1, 1], [1.0, 0, 0, 2], [1.0, 1, 0, 0], [1.0, 0, 1, 0], [1.0, 0, 0, 1], [1.0, 0, 0, 0]])
+        self.assertEqual(f, g)
+
 
 if __name__ == '__main__':
     unittest.main()
