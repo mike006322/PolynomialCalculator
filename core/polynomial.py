@@ -452,47 +452,45 @@ def division_string(p, *others):
     res += ' + (remainder:) ' + str(r)
     return res
 
+# This is commented out because it is a partial attempt to solve the following test case:
+# self.assertEqual(gcd(Polynomial('x^3y^2'), Polynomial('x^4y')), Polynomial('x^3y'))
+
+# def gcd(a, b):
+#     """
+#     input is polynomials
+#     output the greatest common divisor
+#     if input is multivariate, recurse on the variables solving one at a time
+#     i.e. if a, b in R[x_1, x_2], first do a, b in R[x_1][x_2]
+#     # multivariate currently only works for monomials
+#     # https://pdfs.semanticscholar.org/e64a/29b3b0a991d292acd97ba2da88247a0be1e1.pdf
+#     """
+#     a = a.copy()
+#     b = b.copy()
+#     if len(a.variables().union(b.variables())) <= 1:
+#         return gcd_singlevariate(a, b)
+#     if len(a.term_matrix) > 2 or len(b.term_matrix) > 2:
+#         raise NotImplemented
+#     res = gcd_singlevariate(Polynomial(a.term_matrix[1][0]), Polynomial(b.term_matrix[1][0]))
+#     for variable in a.variables().union(b.variables()):
+#         isolated_a = a.isolate(variable)
+#         isolated_b = b.isolate(variable)
+#         if len(isolated_a.term_matrix[1]) > 1 and len(isolated_b.term_matrix[1]) > 1:
+#             if variable in isolated_a.variables() and variable in isolated_b.variables():
+#                 res *= Polynomial(variable)**min(isolated_a.term_matrix[1][1], isolated_b.term_matrix[1][1])
+#     return res
+
 
 def gcd(a, b):
     """
-    input is polynomials
-    output the greatest common divisor
-    if input is multivariate, recurse on the variables solving one at a time
-    i.e. if a, b in R[x_1, x_2], first do a, b in R[x_1][x_2]
-    # multivariate currently only works for monomials
-    # https://pdfs.semanticscholar.org/e64a/29b3b0a991d292acd97ba2da88247a0be1e1.pdf
-    """
-    a = a.copy()
-    b = b.copy()
-    if len(a.variables().union(b.variables())) <= 1:
-        return gcd_singlevariate(a, b)
-    if len(a.term_matrix) > 2 or len(b.term_matrix) > 2:
-        raise NotImplemented
-    res = gcd_singlevariate(Polynomial(a.term_matrix[1][0]), Polynomial(b.term_matrix[1][0]))
-    for variable in a.variables().union(b.variables()):
-        isolated_a = a.isolate(variable)
-        isolated_b = b.isolate(variable)
-        if len(isolated_a.term_matrix[1]) > 1 and len(isolated_b.term_matrix[1]) > 1:
-            if variable in isolated_a.variables() and variable in isolated_b.variables():
-                res *= Polynomial(variable)**min(isolated_a.term_matrix[1][1], isolated_b.term_matrix[1][1])
-    return res
-
-
-def gcd_singlevariate(a, b):
-    """
     input is polynomials of one variable
-    returns greatest common divisor
-    alternative/faster algorithm to implement:
-    https://en.wikipedia.org/wiki/Polynomial_greatest_common_divisor#B%C3%A9zout's_identity_and_extended_GCD_algorithm
+    returns greatest common divisor unique up to multiplication by constant
     """
     a = a.copy()
     b = b.copy()
-    if a.degree() == b.degree():
-        if a == b:
-            return a
     if a.degree() >= b.degree():
         r = a % b
         while r != 0:
+            print('r = ', r)
             a = b
             b = r
             r = a % b
