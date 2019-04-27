@@ -50,28 +50,48 @@ class Integer:
         return str(self.value)
 
     def __add__(self, other):
-        return Integer(self.value + other.value)
+        if type(other) == int:
+            return Integer(self.value*other)
+        elif type(other) == Rational:
+            return Rational(self)+other
+        else:
+            return Integer(self.value + other.value)
 
     def __sub__(self, other):
         return Integer(self.value - other.value)
 
+    def __neg__(self):
+        return Integer(-self.value)
+
     def __mul__(self, other):
-        return Integer(self.value * other.value)
+        if type(other) == int:
+            return Integer(self.value*other)
+        else:
+            return Integer(self.value*other.value)
+
+    def __rmul__(self, other):
+        return Integer(self)*Integer(other)
 
     def __pow__(self, power, modulo=None):
         return Integer(self.value**(int(power)))
 
     def __mod__(self, other):
-        return Integer(self.value % other.value)
+        if type(other) == Integer:
+            return Integer(self.value % other.value)
+        else:
+            return self % Integer(other)
 
     def __floordiv__(self, other):
         return Integer(self.value // other.value)
 
     def __truediv__(self, other):
-        if self.value % other.value == 0:
-            return self//other
+        if type(other) == Integer:
+            if self.value % other.value == 0:
+                return self//other
+            else:
+                return Rational(self, other)
         else:
-            return Rational(self, other)
+            return self / Integer(other)
 
 
 class Rational:
@@ -106,12 +126,16 @@ class Rational:
 
     @staticmethod
     def normalize(q):
-        g = Rational.gcd(q.numerator, q.denominator)
-        q.numerator = q.numerator // g
-        q.denominator = q.denominator // g
-        if q.denominator < Integer(0):
-            q.denominator *= Integer(-1)
-            q.numerator *= Integer(-1)
+        if q.numerator != 0:
+            g = Rational.gcd(q.numerator, q.denominator)
+            q.numerator = q.numerator // g
+            q.denominator = q.denominator // g
+            if q.denominator < Integer(0):
+                q.denominator *= Integer(-1)
+                q.numerator *= Integer(-1)
+
+    def value(self):
+        return self.numerator.value / self.denominator.value
 
     def __int__(self):
         return self.numerator // self.denominator
@@ -149,6 +173,9 @@ class Rational:
             return Rational(self.numerator*other.denominator - other.numerator*self.denominator, self.denominator*other.denominator)
         else:
             return self-Rational(other)
+
+    def __neg__(self):
+        return Rational(-self.numerator, self.denominator)
 
     def __pow__(self, power, modulo=None):
         return Rational(self.numerator**power, self.denominator**power)
