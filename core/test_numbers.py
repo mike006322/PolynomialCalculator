@@ -45,6 +45,7 @@ class TestInteger(unittest.TestCase):
         a = Integer(2)
         b = Integer(3)
         self.assertEqual(a*b, Integer(6))
+        self.assertEqual(a*8, 16)
 
     def test__pow__(self):
         a = Integer(2)
