@@ -141,8 +141,21 @@ class Rational:
         return self.numerator // self.denominator
 
     def __eq__(self, other):
-        if self.numerator == other.numerator and self.denominator == other.denominator:
-            return True
+        if type(other) == Rational:
+            if self.numerator == other.numerator and self.denominator == other.denominator:
+                return True
+            else:
+                return False
+        if type(other) == Integer:
+            if self.value() == other.value:
+                return True
+            else:
+                return False
+        else:
+            if self.value() == other:
+                return True
+            else:
+                return False
 
     def __str__(self):
         return str(self.numerator) + '/' + str(self.denominator)
