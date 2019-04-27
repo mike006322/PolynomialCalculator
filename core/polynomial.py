@@ -3,6 +3,7 @@ from core.orderings import order_lex as order
 from core.orderings import graded_lex as graded_order
 from core.collect_like_terms import collect_like_terms
 from core.formulas import *
+from core.numbers import Integer, Rational
 
 
 class InputError(Exception):
@@ -24,7 +25,10 @@ class Polynomial:
         if poly == 0:
             self.term_matrix = [['constant']]
             self.field_characteristic = char
-        elif isinstance(poly, (int, float, complex)) and poly != 0:
+        elif isinstance(poly, int) and poly != 0:
+            self.term_matrix = [['constant'], [Integer(poly)]]
+            self.field_characteristic = char
+        elif isinstance(poly, (float, complex, Integer, Rational)) and poly != 0:
             self.term_matrix = [['constant'], [poly]]
             self.field_characteristic = char
         elif type(poly) == list:
@@ -258,16 +262,14 @@ class Polynomial:
 
     def __add__(self, other):
         if type(other) == Polynomial:
-            if len(self.term_matrix) == 1:
-                self.term_matrix = [['constant'], [0]]
-            if len(other.term_matrix) == 1:
-                other.term_matrix = [['constant'], [0]]
             var_set = set(self.term_matrix[0]).union(set(other.term_matrix[0]))
             res = [sorted(list(var_set))]
             # first add variables to both, then order both, then combine both
             self_copy, other_copy = Polynomial.combine_variables(self, other)
-            res += self_copy.term_matrix[1:]
-            res += other_copy.term_matrix[1:]
+            if len(self.term_matrix) != 1:
+                res += self_copy.term_matrix[1:]
+            if len(other.term_matrix) != 1:
+                res += other_copy.term_matrix[1:]
             res = collect_like_terms(res)
             res = order(res)
             res = self.mod_char(res)
@@ -452,35 +454,35 @@ def division_string(p, *others):
     res += ' + (remainder:) ' + str(r)
     return res
 
-# This is commented out because it is a partial attempt to solve the following test case:
 # self.assertEqual(gcd(Polynomial('x^3y^2'), Polynomial('x^4y')), Polynomial('x^3y'))
-
-# def gcd(a, b):
-#     """
-#     input is polynomials
-#     output the greatest common divisor
-#     if input is multivariate, recurse on the variables solving one at a time
-#     i.e. if a, b in R[x_1, x_2], first do a, b in R[x_1][x_2]
-#     # multivariate currently only works for monomials
-#     # https://pdfs.semanticscholar.org/e64a/29b3b0a991d292acd97ba2da88247a0be1e1.pdf
-#     """
-#     a = a.copy()
-#     b = b.copy()
-#     if len(a.variables().union(b.variables())) <= 1:
-#         return gcd_singlevariate(a, b)
-#     if len(a.term_matrix) > 2 or len(b.term_matrix) > 2:
-#         raise NotImplemented
-#     res = gcd_singlevariate(Polynomial(a.term_matrix[1][0]), Polynomial(b.term_matrix[1][0]))
-#     for variable in a.variables().union(b.variables()):
-#         isolated_a = a.isolate(variable)
-#         isolated_b = b.isolate(variable)
-#         if len(isolated_a.term_matrix[1]) > 1 and len(isolated_b.term_matrix[1]) > 1:
-#             if variable in isolated_a.variables() and variable in isolated_b.variables():
-#                 res *= Polynomial(variable)**min(isolated_a.term_matrix[1][1], isolated_b.term_matrix[1][1])
-#     return res
 
 
 def gcd(a, b):
+    """
+    input is polynomials
+    output the greatest common divisor
+    if input is multivariate, recurse on the variables solving one at a time
+    i.e. if a, b in R[x_1, x_2], first do a, b in R[x_1][x_2]
+    # multivariate currently only works for monomials
+    # https://pdfs.semanticscholar.org/e64a/29b3b0a991d292acd97ba2da88247a0be1e1.pdf
+    """
+    a = a.copy()
+    b = b.copy()
+    if len(a.variables().union(b.variables())) <= 1:
+        return gcd_singlevariate(a, b)
+    if len(a.term_matrix) > 2 or len(b.term_matrix) > 2:
+        raise NotImplemented
+    res = gcd_singlevariate(Polynomial(a.term_matrix[1][0]), Polynomial(b.term_matrix[1][0]))
+    for variable in a.variables().union(b.variables()):
+        isolated_a = a.isolate(variable)
+        isolated_b = b.isolate(variable)
+        if len(isolated_a.term_matrix[1]) > 1 and len(isolated_b.term_matrix[1]) > 1:
+            if variable in isolated_a.variables() and variable in isolated_b.variables():
+                res *= Polynomial(variable)**min(isolated_a.term_matrix[1][1], isolated_b.term_matrix[1][1])
+    return res
+
+
+def gcd_singlevariate(a, b):
     """
     input is polynomials of one variable
     returns greatest common divisor unique up to multiplication by constant
@@ -490,14 +492,12 @@ def gcd(a, b):
     if a.degree() >= b.degree():
         r = a % b
         while r != 0:
-            print('r = ', r)
             a = b
             b = r
             r = a % b
         return b
     else:
-        a, b = b, a
-        return gcd(a, b)
+        return gcd(b, a)
 
 
 def lcm(a, b):

@@ -97,17 +97,17 @@ class TestPolynomial(unittest.TestCase):
         self.assertEqual([term for term in S], [Polynomial('x^2y'), Polynomial('xy^2'), Polynomial('y^2')])
 
     def test_mod_char(self):
-        t = [['constant', 'y', 'x'], [5.0, 1, 2], [24.0, 0, 0], [2.0, 0, 1], [1.0, 1, 0]]
+        t = [['constant', 'y', 'x'], [5, 1, 2], [24, 0, 0], [2, 0, 1], [1, 1, 0]]
         t = Polynomial(t, char=2)
-        self.assertEqual(t.term_matrix, [['constant', 'y', 'x'], [1.0, 1, 2], [1.0, 1, 0]])
+        self.assertEqual(t.term_matrix, [['constant', 'y', 'x'], [1, 1, 2], [1, 1, 0]])
 
     def test_combine_variables(self):
         t = Polynomial('x')
         s = Polynomial('x^2y + xy^2 + y^2')
-        res = (Polynomial([['constant', 'x', 'y'], [1.0, 2, 1], [1.0, 1, 2], [1.0, 0, 2]]), Polynomial([['constant', 'x', 'y'], [1.0, 1, 0]]))
+        res = (Polynomial([['constant', 'x', 'y'], [1, 2, 1], [1, 1, 2], [1, 0, 2]]), Polynomial([['constant', 'x', 'y'], [1, 1, 0]]))
         self.assertEqual(Polynomial.combine_variables(s, t), res)
-        self.assertEqual(s.term_matrix, [['constant', 'x', 'y'], [1.0, 2, 1], [1.0, 1, 2], [1.0, 0, 2]])
-        self.assertEqual(t.term_matrix, [['constant', 'x'], [1.0, 1]])
+        self.assertEqual(s.term_matrix, [['constant', 'x', 'y'], [1, 2, 1], [1, 1, 2], [1, 0, 2]])
+        self.assertEqual(t.term_matrix, [['constant', 'x'], [1, 1]])
 
     def test_mod(self):
         self.assertEqual(Polynomial('x^2y + xy^2 + y^2') % Polynomial('x'), Polynomial('y^2'))
@@ -142,7 +142,7 @@ class TestPolynomial(unittest.TestCase):
         s = Polynomial('x^2y + xy^2 + y^2')
         t = Polynomial('xy - 1')
         e = Polynomial('y^2 - 1')
-        res1 = 'x^2y + xy^2 + y^2 = (x + y)*(xy - 1.0) + (1.0)*(y^2 - 1.0) + (remainder:) x + y + 1.0'
+        res1 = 'x^2y + xy^2 + y^2 = (x + y)*(xy - 1) + (1)*(y^2 - 1) + (remainder:) x + y + 1'
         res2 = 'x^2y + xy^2 + y^2 = (xy + y^2)*(x) + (y)*(y) + (remainder:) 0'
         self.assertEqual(res1, division_string(s, t, e))
         self.assertEqual(res2, division_string(s, Polynomial('x'), Polynomial('y')))
@@ -155,7 +155,7 @@ class TestPolynomial(unittest.TestCase):
 
     def test_isolate_variable(self):
         s = Polynomial('x^2y + xy^2 + y^2')
-        tm = [['constant', 'y'], [Polynomial([['constant', 'x'], [1.0, 2]]), 1], [Polynomial([['constant', 'x'], [1.0, 1], [1.0, 0]]), 2]]
+        tm = [['constant', 'y'], [Polynomial([['constant', 'x'], [1, 2]]), 1], [Polynomial([['constant', 'x'], [1, 1], [1, 0]]), 2]]
         self.assertEqual(s.isolate('y').term_matrix, tm)
         # print(Polynomial('xyz+z+z^2').isolate('z'))
         # print(Polynomial('x').isolate('y'))
@@ -168,7 +168,8 @@ class TestPolynomial(unittest.TestCase):
         self.assertEqual(gcd(Polynomial('x^4 + x^2 + 1.0', 2), Polynomial('x^4-x', 2)), Polynomial('x^2 + x + 1.0'))
         self.assertEqual(gcd(Polynomial('x', 2)**(2**3) - Polynomial('x', 2), Polynomial('x^5 + x^3 + 1.0', 2)), 1)
         self.assertEqual(gcd(Polynomial('x^2-2x+1'), Polynomial('x^2-1')) % Polynomial('x-1').degree(), 0)
-        # self.assertEqual(gcd(Polynomial('x^3y^2'), Polynomial('x^4y')), Polynomial('x^3y'))
+        # print(gcd(Polynomial('x^3y^2'), Polynomial('x^4y')).term_matrix)
+        self.assertEqual(gcd(Polynomial('x^3y^2'), Polynomial('x^4y')), Polynomial('x^3y'))
 
     def test_lcm(self):
         self.assertEqual(lcm(Polynomial('x^3y^2'), Polynomial('x^4y')), Polynomial('x^4y^2'))
@@ -176,7 +177,7 @@ class TestPolynomial(unittest.TestCase):
     def test_orderings(self):
         f = Polynomial('xy+x^2+xz+y^2+yz+z^2+x+y+z+1')
         f.term_matrix = graded_order(f.term_matrix)
-        g = Polynomial([['constant', 'x', 'y', 'z'], [1.0, 2, 0, 0], [1.0, 1, 1, 0], [1.0, 1, 0, 1], [1.0, 0, 2, 0], [1.0, 0, 1, 1], [1.0, 0, 0, 2], [1.0, 1, 0, 0], [1.0, 0, 1, 0], [1.0, 0, 0, 1], [1.0, 0, 0, 0]])
+        g = Polynomial([['constant', 'x', 'y', 'z'], [1, 2, 0, 0], [1, 1, 1, 0], [1, 1, 0, 1], [1, 0, 2, 0], [1, 0, 1, 1], [1, 0, 0, 2], [1, 1, 0, 0], [1, 0, 1, 0], [1, 0, 0, 1], [1, 0, 0, 0]])
         self.assertEqual(f, g)
 
 
