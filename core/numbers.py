@@ -14,13 +14,13 @@ class Integer:
         return self.value
 
     def __eq__(self, other):
-        if type(other) == int:
-            if int(self) == other:
+        if type(other) == Integer or type(other) == Rational:
+            if self.value == other.value:
                 return True
             else:
                 return False
         else:
-            if self.value == other.value:
+            if int(self) == other:
                 return True
             else:
                 return False
