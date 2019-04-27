@@ -1,3 +1,5 @@
+from core.numbers import *
+
 """
 Input a string that represents a polynomial equal to 0
 Output coded polynomial as [[" ", variable1, variable2...], [coefficient, exponent1, exponent2...],...]
@@ -77,7 +79,7 @@ def add_coeff(s, term_matrix):
                     break
         if coeff == '-' or coeff == '':
             coeff += '1'
-        term_matrix[j+1][0] = float(coeff)
+        term_matrix[j+1][0] = Integer(coeff)
 
 
 def parse_poly(s_input):
