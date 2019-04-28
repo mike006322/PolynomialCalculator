@@ -27,6 +27,9 @@ class TestInteger(unittest.TestCase):
     def test__int__(self):
         self.assertEqual(int(Integer(2)), 2)
 
+    def test__float__(self):
+        self.assertEqual(float(Integer(2)), 2)
+
     def test__str__(self):
         a = Integer(4)
         self.assertEqual(str(a), '4')
@@ -92,6 +95,9 @@ class TestRational(unittest.TestCase):
         Rational.normalize(p)
         self.assertEqual(p, q)
         self.assertEqual(Rational(1, 4), Rational(2, 8))
+
+    def test__float__(self):
+        self.assertEqual(float(Rational(2, 4)), .5)
 
     def test__mul__(self):
         q = Rational(1, 4)

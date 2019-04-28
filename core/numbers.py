@@ -13,6 +13,9 @@ class Integer:
     def __int__(self):
         return self.value
 
+    def __float__(self):
+        return float(self.value)
+
     def __eq__(self, other):
         if type(other) == Integer or type(other) == Rational:
             if self.value == other.value:
@@ -135,6 +138,9 @@ class Rational:
                 q.numerator *= Integer(-1)
 
     def value(self):
+        return self.numerator.value / self.denominator.value
+
+    def __float__(self):
         return self.numerator.value / self.denominator.value
 
     def __int__(self):
