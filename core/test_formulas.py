@@ -7,13 +7,11 @@ class TestFormulas(unittest.TestCase):
     def test_solve_num_of_variables(self):
         s = Polynomial('xy')
         t = Polynomial('2')
-        u = Polynomial('x^3+x+1')
         # v = Polynomial('x^2+x+1')
         z = Polynomial('3x')
         d = Polynomial('3x + 5')
         self.assertEqual(s.solve(), 'too many variables')
         self.assertEqual(t.solve(), 2)
-        self.assertEqual(u.solve(), 'I cannot solve yet...')
         self.assertEqual(z.solve(), 0)
         self.assertEqual(d.solve(), -5/3)
 
@@ -29,6 +27,12 @@ class TestFormulas(unittest.TestCase):
         self.assertEqual(set(r.solve()), {1, -1})
         self.assertEqual(set(s.solve()), {1, 2})
         self.assertEqual(t.solve(), (0, -1.6666666666666667))
+
+    def test_durand_kerner(self):
+        s = Polynomial('x^2-3x+2')
+        self.assertEqual(set(s.solve()), {1+0j, 2+0j})
+        f = Polynomial('x^3+10x^2+169x')
+        self.assertEqual(set(f.solve()), {-5-12j, -5+12j, 0j})
 
 
 if __name__ == '__main__':
