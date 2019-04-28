@@ -248,15 +248,19 @@ class Polynomial:
         res = res.replace('+ -', '- ')
         return res
 
-    def __call__(self, **kwargs):
+    def __call__(self, *args):
         """
         input is variables as key word arguments, e.g. "x = 2, y = 3"
         """
         res = 0
         for term in self.term_matrix[1:]:
             to_add = term[0]
+            if type(term[0]) == Rational:
+                to_add = term[0].value()
+            if type(term[0] == Integer):
+                to_add = term[0].value
             for i in range(1, len(term)):
-                to_add *= kwargs[self.term_matrix[0][i]] ** term[i]
+                to_add *= args[i-1] ** term[i]
             res += to_add
         return res
 

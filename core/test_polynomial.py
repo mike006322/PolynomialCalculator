@@ -180,6 +180,12 @@ class TestPolynomial(unittest.TestCase):
         g = Polynomial([['constant', 'x', 'y', 'z'], [1, 2, 0, 0], [1, 1, 1, 0], [1, 1, 0, 1], [1, 0, 2, 0], [1, 0, 1, 1], [1, 0, 0, 2], [1, 1, 0, 0], [1, 0, 1, 0], [1, 0, 0, 1], [1, 0, 0, 0]])
         self.assertEqual(f, g)
 
+    def test__call__(self):
+        f = Polynomial('xy+x^2+xz+y^2+yz+z^2+x+y+z+1')
+        self.assertEqual(f(1, 2, 3), 32)
+        g = Polynomial('2x^2+3y')
+        self.assertEqual(g(2, 3), 17)
+
 
 if __name__ == '__main__':
     unittest.main()
