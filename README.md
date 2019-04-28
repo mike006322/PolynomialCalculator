@@ -18,9 +18,8 @@
 - implement faster gcd algorithm
 - implement lookup tables for primitive field elements
 - implement 'factor' algorithm to factor over polynomials over finite fields
-- implement solution to third degree polynomials in one variable
-- implement solution to fourth degree polynomial in one variable
-- allow for coefficients to be over abstract fields
+- implement exact solution to third degree polynomials in one variable
+- implement exact solution to fourth degree polynomial in one variable
 - option to plot single-variable polynomials
 - create a GUI with Python
 
