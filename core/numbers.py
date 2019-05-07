@@ -78,6 +78,9 @@ class Integer:
     def __pow__(self, power, modulo=None):
         return Integer(self.value**(int(power)))
 
+    def __rpow__(self, other):
+        return other**self.value
+
     def __mod__(self, other):
         if type(other) == Integer:
             return Integer(self.value % other.value)
