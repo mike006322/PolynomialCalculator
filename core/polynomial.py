@@ -252,16 +252,14 @@ class Polynomial:
         """
         input is variables as key word arguments, e.g. "x = 2, y = 3"
         """
-        res = 0
-        for term in self.term_matrix[1:]:
-            to_add = term[0]
-            if type(term[0]) == Rational:
-                to_add = term[0].value()
-            if type(term[0] == Integer):
-                to_add = term[0].value
-            for i in range(1, len(term)):
-                to_add *= args[i-1] ** term[i]
-            res += to_add
+        res = self.copy()
+        for j, v in enumerate(args):
+            if type(v) == Integer or type(v) == Rational or type(v) == int or type(v) == float:
+                for i in range(1, len(res.term_matrix)):
+                    res.term_matrix[i][0] *= v**res.term_matrix[i][j+1]
+                    res.term_matrix[i][j+1] = 0
+        res.term_matrix = collect_like_terms(res.term_matrix)
+        res.term_matrix = order(res.term_matrix)
         return res
 
     def __add__(self, other):
