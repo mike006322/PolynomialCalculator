@@ -196,4 +196,4 @@ class Ideal:
             Ideal.find_solutions(groebner_basis, zeroes)
             return zeroes
         else:
-            print("finite solutions don't exit")
+            return "finite solutions don't exit"
