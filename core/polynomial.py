@@ -255,10 +255,11 @@ class Polynomial:
         if kwargs:
             res = self.copy()
             for v in kwargs:
-                j = res.term_matrix[0].index(v)
-                for i in range(1, len(res.term_matrix)):
-                    res.term_matrix[i][0] *= kwargs[v]**res.term_matrix[i][j]
-                    res.term_matrix[i][j] = 0
+                if v in res.term_matrix[0]:
+                    j = res.term_matrix[0].index(v)
+                    for i in range(1, len(res.term_matrix)):
+                        res.term_matrix[i][0] *= kwargs[v]**res.term_matrix[i][j]
+                        res.term_matrix[i][j] = 0
             res.term_matrix = collect_like_terms(res.term_matrix)
             res.term_matrix = order(res.term_matrix)
             return res
