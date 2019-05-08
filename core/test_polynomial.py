@@ -187,6 +187,10 @@ class TestPolynomial(unittest.TestCase):
         self.assertEqual(g(2, 3), 17)
         self.assertEqual(g(2, 'y'), Polynomial('8 + 3y'))
         self.assertEqual(g(x=2), Polynomial('8 + 3y'))
+        variables = {'x': 2, 'y': 1}
+        self.assertEqual(g(**variables), 11)
+        variables = {'x': 2}
+        self.assertEqual(g(**variables), Polynomial('8 + 3y'))
 
 
 if __name__ == '__main__':
