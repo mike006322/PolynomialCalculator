@@ -62,8 +62,16 @@ class Integer:
         else:
             return self.value + other
 
+    def __radd__(self, other):
+        if type(other) == int:
+            return Integer(other) + self
+
     def __sub__(self, other):
         return Integer(self.value - other.value)
+
+    def __rsub__(self, other):
+        if type(other) == int:
+            return Integer(other) - self
 
     def __neg__(self):
         return Integer(-self.value)
