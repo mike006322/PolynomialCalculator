@@ -135,36 +135,51 @@ class Ideal:
                 return False
         return True
 
-    @staticmethod
-    def find_solutions(groebner_basis, solution=None):
-        new_groebner_basis = []
-        for g in groebner_basis:
-            new_groebner_basis.append(g.copy())
-        if solution:
-            for g in new_groebner_basis:
-                g = g(solution)
-                if len(g.variables()) == 0:
-                    new_groebner_basis.remove(g)
-            if not new_groebner_basis:
-                yield solution
-            for g in new_groebner_basis:
-                if len(g.variables()) == 1:
-                    v = g.variables().pop()
-                    solutions = solve(g)
 
-                    for s in solutions:
-                        new_solution = dict(solution)
-                        new_solution[v] = s
-                        Ideal.find_solutions(new_groebner_basis, solution)
-        else:
-            print('happenning')
+    @staticmethod
+    def find_solutions(groebner_basis, zeroes, solution=None):
+
+        if solution:
+            new_groebner_basis = []
+            for g in groebner_basis:
+                h = g.copy()(**solution)
+                if type(h) == Polynomial:
+                    if len(h.variables()) != 0:
+                        new_groebner_basis.append(h)
+            if len(new_groebner_basis) == 0:
+                for v in solution:
+                    if type(solution[v]) == Integer or type(solution[v]) == Rational:
+                        solution[v] = float(solution[v])
+                zeroes.add(frozenset(sorted(solution.items())))
             for g in new_groebner_basis:
                 if len(g.variables()) == 1:
                     v = g.variables().pop()
                     solutions = solve(g)
-                    for s in solutions:
-                        solution = {v: s}
-                        Ideal.find_solutions(new_groebner_basis, solution)
+                    if type(solutions) == set or type(solutions) == tuple:
+                        for s in solutions:
+                            new_solution = dict(solution)
+                            new_solution[v] = s
+                            Ideal.find_solutions(new_groebner_basis, zeroes, new_solution)
+                    else:
+                        single_solution = solutions
+                        new_solution = dict(solution)
+                        new_solution[v] = single_solution
+                        # print(new_groebner_basis, zeroes, new_solution)
+                        Ideal.find_solutions(new_groebner_basis, zeroes, new_solution)
+
+        else:
+            for g in groebner_basis:
+                if len(g.variables()) == 1:
+                    v = g.variables().pop()
+                    solutions = solve(g)
+                    if type(solutions) == set or type(solutions) == tuple:
+                        for s in solutions:
+                            solution = {v: s}
+                            Ideal.find_solutions(groebner_basis, zeroes, solution)
+                    else:
+                        solution = {v: solutions}
+                        Ideal.find_solutions(groebner_basis, zeroes, solution)
+
 
     def solve_system(self):
         """
@@ -176,9 +191,9 @@ class Ideal:
             variables = variables.union(p.variables())
         variables = sorted(list(variables)) #lex ordering
         groebner_basis = self.groebner_basis()
-        res = {}
+        zeroes = set()
         if Ideal.solvability_criteria(groebner_basis, variables):
-            res = [*Ideal.find_solutions(groebner_basis)]
+            Ideal.find_solutions(groebner_basis, zeroes)
+            return zeroes
         else:
             print("finite solutions don't exit")
-        return res
