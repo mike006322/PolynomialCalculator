@@ -53,12 +53,14 @@ class Integer:
         return str(self.value)
 
     def __add__(self, other):
-        if type(other) == int:
-            return Integer(self.value*other)
-        elif type(other) == Rational:
-            return Rational(self)+other
-        else:
+        if type(other) == Integer:
             return Integer(self.value + other.value)
+        if type(other) == int:
+            return Integer(self.value + other)
+        elif type(other) == Rational:
+            return Rational(self) + other
+        else:
+            return self.value + other
 
     def __sub__(self, other):
         return Integer(self.value - other.value)
@@ -69,6 +71,8 @@ class Integer:
     def __mul__(self, other):
         if type(other) == int:
             return Integer(self.value*other)
+        if type(other) == complex or type(other) == float:
+            return self.value*other
         else:
             return Integer(self.value*other.value)
 
@@ -96,8 +100,13 @@ class Integer:
                 return self//other
             else:
                 return Rational(self, other)
+        if type(other) == Rational:
+            return Rational(self * other.denominator, other.numerator)
         else:
-            return self / Integer(other)
+            return self.value / other
+
+    def __rtruediv__(self, other):
+        return other / self.value
 
 
 class Rational:
@@ -181,8 +190,10 @@ class Rational:
     def __truediv__(self, other):
         if type(other) == Rational:
             return Rational(self.numerator*other.denominator, self.denominator*other.numerator)
+        if type(other) == Integer:
+            return Rational(self.numerator, self.denominator*other)
         else:
-            return self/Rational(other)
+            return self.value() / other
 
     def __add__(self, other):
         if type(other) == Rational:

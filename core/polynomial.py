@@ -262,16 +262,20 @@ class Polynomial:
                         res.term_matrix[i][j] = 0
             res.term_matrix = collect_like_terms(res.term_matrix)
             res.term_matrix = order(res.term_matrix)
+            if len(res.variables()) == 0:
+                return res.term_matrix[1][0]
             return res
         else:
             res = self.copy()
             for j, v in enumerate(args):
-                if type(v) == Integer or type(v) == Rational or type(v) == int or type(v) == float:
+                if type(v) == Integer or type(v) == Rational or type(v) == int or type(v) == float or type(v) == complex:
                     for i in range(1, len(res.term_matrix)):
                         res.term_matrix[i][0] *= v**res.term_matrix[i][j+1]
                         res.term_matrix[i][j+1] = 0
             res.term_matrix = collect_like_terms(res.term_matrix)
             res.term_matrix = order(res.term_matrix)
+            if len(res.variables()) == 0:
+                return res.term_matrix[1][0]
             return res
 
     def __add__(self, other):
