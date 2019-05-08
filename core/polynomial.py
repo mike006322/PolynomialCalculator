@@ -263,6 +263,8 @@ class Polynomial:
             res.term_matrix = collect_like_terms(res.term_matrix)
             res.term_matrix = order(res.term_matrix)
             if len(res.variables()) == 0:
+                if len(res.term_matrix) < 2:
+                    return 0
                 return res.term_matrix[1][0]
             return res
         else:
