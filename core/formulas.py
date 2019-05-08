@@ -24,7 +24,6 @@ def solve(polynomial):
 
 
 def quadratic_formula(polynomial):
-    print(polynomial)
     """
     input is single-variable polynomial of degree 2
     returns zeros
