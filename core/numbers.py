@@ -17,11 +17,18 @@ class Integer:
         return float(self.value)
 
     def __eq__(self, other):
-        if type(other) == Integer or type(other) == Rational:
+        if type(other) == Integer:
             if self.value == other.value:
                 return True
             else:
                 return False
+        elif type(other) == Rational:
+            if self.value == other.value():
+                return True
+            else:
+                return False
+        elif type(other) == int:
+            return self.value == other
         else:
             if int(self) == other:
                 return True
@@ -29,10 +36,7 @@ class Integer:
                 return False
 
     def __ne__(self, other):
-        if self == other:
-            return False
-        else:
-            return True
+        return not self.__eq__(other)
 
     def __lt__(self, other):
         return self.value < other.value
@@ -81,6 +85,8 @@ class Integer:
             return Integer(self.value*other)
         if type(other) == complex or type(other) == float:
             return self.value*other
+        if type(other) == Rational:
+            return Integer(self.value*other.value())
         else:
             return Integer(self.value*other.value)
 
@@ -96,8 +102,8 @@ class Integer:
     def __mod__(self, other):
         if type(other) == Integer:
             return Integer(self.value % other.value)
-        else:
-            return self % Integer(other)
+        elif type(other) == int:
+            return Integer(self.value % other)
 
     def __floordiv__(self, other):
         return Integer(self.value // other.value)
