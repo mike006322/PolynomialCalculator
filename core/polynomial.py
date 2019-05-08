@@ -248,19 +248,30 @@ class Polynomial:
         res = res.replace('+ -', '- ')
         return res
 
-    def __call__(self, *args):
+    def __call__(self, *args, **kwargs):
         """
         input is variables as key word arguments, e.g. "x = 2, y = 3"
         """
-        res = self.copy()
-        for j, v in enumerate(args):
-            if type(v) == Integer or type(v) == Rational or type(v) == int or type(v) == float:
+        if kwargs:
+            res = self.copy()
+            for v in kwargs:
+                j = res.term_matrix[0].index(v)
                 for i in range(1, len(res.term_matrix)):
-                    res.term_matrix[i][0] *= v**res.term_matrix[i][j+1]
-                    res.term_matrix[i][j+1] = 0
-        res.term_matrix = collect_like_terms(res.term_matrix)
-        res.term_matrix = order(res.term_matrix)
-        return res
+                    res.term_matrix[i][0] *= kwargs[v]**res.term_matrix[i][j]
+                    res.term_matrix[i][j] = 0
+            res.term_matrix = collect_like_terms(res.term_matrix)
+            res.term_matrix = order(res.term_matrix)
+            return res
+        else:
+            res = self.copy()
+            for j, v in enumerate(args):
+                if type(v) == Integer or type(v) == Rational or type(v) == int or type(v) == float:
+                    for i in range(1, len(res.term_matrix)):
+                        res.term_matrix[i][0] *= v**res.term_matrix[i][j+1]
+                        res.term_matrix[i][j+1] = 0
+            res.term_matrix = collect_like_terms(res.term_matrix)
+            res.term_matrix = order(res.term_matrix)
+            return res
 
     def __add__(self, other):
         if type(other) == Polynomial:
