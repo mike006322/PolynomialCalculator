@@ -55,6 +55,21 @@ class TestIdeal(unittest.TestCase):
         self.assertTrue(I == I)
         self.assertTrue(I == J)
 
+    def test_solvability_criteria(self):
+        f1 = Polynomial('x')
+        f2 = Polynomial('y')
+        self.assertTrue(Ideal.solvability_criteria((f1, f2), {'x', 'y'}))
+        f1 = Polynomial('xy')
+        f2 = Polynomial('y')
+        self.assertFalse(Ideal.solvability_criteria((f1, f2), {'x', 'y'}))
+
+    def test_solve_system(self):
+        f1 = Polynomial('x^2')
+        f2 = Polynomial('y')
+        f3 = Polynomial('z')
+        I = Ideal(f1, f2, f3)
+        print(I.solve_system())
+
 
 if __name__ == '__main__':
     unittest.main()

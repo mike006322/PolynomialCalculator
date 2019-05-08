@@ -32,6 +32,7 @@ class TestFormulas(unittest.TestCase):
         s = Polynomial('x^2-3x+2')
         self.assertEqual(set(s.solve()), {1+0j, 2+0j})
         f = Polynomial('x^3+10x^2+169x')
+        print(set(f.solve()))
         self.assertEqual(set(f.solve()), {-5-12j, -5+12j, 0j})
 
 

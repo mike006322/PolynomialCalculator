@@ -54,6 +54,7 @@ class TestInteger(unittest.TestCase):
         a = Integer(2)
         b = Integer(3)
         self.assertEqual(a**b, Integer(8))
+        self.assertEqual(2**b, Integer(8))
 
     def test__mod__(self):
         a = Integer(2)

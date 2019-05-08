@@ -106,3 +106,79 @@ class Ideal:
                 return True
         return False
 
+    # Solve multivariable polynomials via Groebner basis:
+    # 1. Apply up with criteria to tell whether there are finitely many solutions
+    #     Criteria: For I in k[x_1, x_2, ..., x_n], V(I) is a finite set if:
+    #     - Let G be a Groebner basis for I, then for each i, 1 <= i <= n,
+    #       there is some m_i >= 0 such that x_i^(m_i) = LM(g) for some g in G.
+    #       For example, Ideal I with groebner basis 3x^2+y+z^2, y^3+z, 4z has finite number of solutions.
+    #       To implement this we take the LM of every g in G and check if they are powers of x_i
+    #       and check that each x_i is accounted for.
+    #       If we use lex order then this guarantees that if there are finite solutions then
+    #       we will have an element of the GB that is all of one variable.
+    # 2. If so, calculate Groebner basis
+    # 3. Evaluate and extend solution
+
+    @staticmethod
+    def solvability_criteria(groebner_basis, variables):
+        """
+        returns boolean whether system has finite number of solutions
+        """
+        for variable in variables:
+            for g in groebner_basis:
+                # print(g.LM())
+                # print(g.LM().variables())
+                # print(set(variable))
+                if g.LM().variables() == set(variable):
+                    break
+            else:
+                return False
+        return True
+
+    @staticmethod
+    def find_solutions(groebner_basis, solution=None):
+        new_groebner_basis = []
+        for g in groebner_basis:
+            new_groebner_basis.append(g.copy())
+        if solution:
+            for g in new_groebner_basis:
+                g = g(solution)
+                if len(g.variables()) == 0:
+                    new_groebner_basis.remove(g)
+            if not new_groebner_basis:
+                yield solution
+            for g in new_groebner_basis:
+                if len(g.variables()) == 1:
+                    v = g.variables().pop()
+                    solutions = solve(g)
+
+                    for s in solutions:
+                        new_solution = dict(solution)
+                        new_solution[v] = s
+                        Ideal.find_solutions(new_groebner_basis, solution)
+        else:
+            print('happenning')
+            for g in new_groebner_basis:
+                if len(g.variables()) == 1:
+                    v = g.variables().pop()
+                    solutions = solve(g)
+                    for s in solutions:
+                        solution = {v: s}
+                        Ideal.find_solutions(new_groebner_basis, solution)
+
+    def solve_system(self):
+        """
+        If finite solutions exist, output solutions
+        Otherwise output "finite solutions don't exit"
+        """
+        variables = set()
+        for p in self.polynomials:
+            variables = variables.union(p.variables())
+        variables = sorted(list(variables)) #lex ordering
+        groebner_basis = self.groebner_basis()
+        res = {}
+        if Ideal.solvability_criteria(groebner_basis, variables):
+            res = [*Ideal.find_solutions(groebner_basis)]
+        else:
+            print("finite solutions don't exit")
+        return res

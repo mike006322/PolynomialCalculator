@@ -24,7 +24,25 @@ def order_lex(term_matrix):
         res.append(term)
     res = [res[0]] + sorted(res[1:], key=lambda x: x[1:], reverse=True)
     return res
-    
+
+# Monomial ordering specified by matrix u:
+# An n by m sized matrix, u, defines a monomial ordering on N^n by
+# for a, b in N^n, a >= b if u*(a-b) doesn't have a negative as it's highest non-zero term.
+# Matrix u must have rank >= n and cannot have both negatives and positives in the first non-zero row.
+# Example: lexicographical ordering for x, y, z:
+# [[1,0,0],[0,1,0],[0,0,1]]
+
+# def monomoial_geq(a, b, u):
+#     """
+#     input monomials a and b, matrix u which describes a monomial ordering
+#     returns boolean whether a >= b based on u
+#     """
+#     v = u(a-b)
+#
+# def order_specified(term_matrix, u):
+# # Sort: sort the terms based on the ordering specified by matrix u
+
+
 
 # ----- Graded Lexicographic Ordering -----
 
