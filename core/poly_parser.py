@@ -21,10 +21,15 @@ def find_vars(s):
         for t in range(len(term)):
             if term[t] in possible_variables:
                 if t < len(term) - 1:
-                    if term[t+1].isnumeric():
-                        variables.add(term[t]+term[t+1])
-                    else:
-                        variables.add(term[t])
+                    i = 1
+                    while term[t+i].isnumeric():
+                        i += 1
+                        if t+i > len(term) - 1:
+                            break
+                    v = term[t]
+                    for j in range(1, i):
+                        v += term[t+j]
+                    variables.add(v)
                 else:
                     variables.add(term[t])
     return variables
