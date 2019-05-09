@@ -198,6 +198,15 @@ class Ideal:
         zeroes = set()
         if Ideal.solvability_criteria(groebner_basis, variables):
             Ideal.find_solutions(groebner_basis, zeroes)
-            return zeroes
+            output_string = str(len(zeroes)) + " solutions: "
+            for zero in zeroes:
+                zero_list = list(zero)
+                output_string += '['
+                for var in sorted(zero_list):
+                    output_string += var[0] + ' = ' + str(var[1]) + ', '
+                output_string = output_string[:-2]
+                output_string += '], '
+            output_string = output_string[:-2]
+            return output_string
         else:
             return "finite solutions don't exit"
