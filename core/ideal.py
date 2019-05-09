@@ -49,7 +49,8 @@ class Ideal:
                         if term % q.LT() == 0:
                             extra.append(p)
         for p in extra:
-            res.remove(p)
+            if p in res:
+                res.remove(p)
         return res
 
     @staticmethod
@@ -63,7 +64,8 @@ class Ideal:
         for i in range(len(G)):
             res.remove(G[i])
             h = G[i] % res
-            res = [h] + res
+            if h != 0:
+                res = [h] + res
         return res
 
     def groebner_basis(self):
@@ -129,8 +131,10 @@ class Ideal:
                 # print(g.LM())
                 # print(g.LM().variables())
                 # print(set(variable))
-                if g.LM().variables() == set(variable):
-                    break
+                if len(g.LM().variables()) == 1:
+                    v = g.LM().variables().pop()
+                    if v == variable:
+                        break
             else:
                 return False
         return True
@@ -138,7 +142,6 @@ class Ideal:
 
     @staticmethod
     def find_solutions(groebner_basis, zeroes, solution=None):
-
         if solution:
             new_groebner_basis = []
             for g in groebner_basis:
@@ -155,7 +158,7 @@ class Ideal:
                 if len(g.variables()) == 1:
                     v = g.variables().pop()
                     solutions = solve(g)
-                    if type(solutions) == set or type(solutions) == tuple:
+                    if type(solutions) == set or type(solutions) == tuple or type(solutions) == list:
                         for s in solutions:
                             new_solution = dict(solution)
                             new_solution[v] = s
@@ -172,14 +175,13 @@ class Ideal:
                 if len(g.variables()) == 1:
                     v = g.variables().pop()
                     solutions = solve(g)
-                    if type(solutions) == set or type(solutions) == tuple:
+                    if type(solutions) == set or type(solutions) == tuple or type(solutions) == list:
                         for s in solutions:
                             solution = {v: s}
                             Ideal.find_solutions(groebner_basis, zeroes, solution)
                     else:
                         solution = {v: solutions}
                         Ideal.find_solutions(groebner_basis, zeroes, solution)
-
 
     def solve_system(self):
         """
@@ -190,7 +192,9 @@ class Ideal:
         for p in self.polynomials:
             variables = variables.union(p.variables())
         variables = sorted(list(variables)) #lex ordering
+        print(variables)
         groebner_basis = self.groebner_basis()
+        print(*groebner_basis)
         zeroes = set()
         if Ideal.solvability_criteria(groebner_basis, variables):
             Ideal.find_solutions(groebner_basis, zeroes)
