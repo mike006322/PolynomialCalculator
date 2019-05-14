@@ -181,7 +181,6 @@ class Ideal:
                     break
 
     def solve_system(self):
-        print(self)
         """
         If finite solutions exist, output solutions
         Otherwise output "finite solutions don't exit"
@@ -191,7 +190,6 @@ class Ideal:
             variables = variables.union(p.variables())
         variables = sorted(list(variables)) #lex ordering
         groebner_basis = self.groebner_basis()
-        print('did GB')
         zeroes = set()
         if not Ideal.solvability_criteria(groebner_basis, variables):
             return "finite solutions don't exit"
