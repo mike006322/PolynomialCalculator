@@ -68,7 +68,7 @@ class TestIdeal(unittest.TestCase):
         f2 = Polynomial('y')
         f3 = Polynomial('z')
         I = Ideal(f1, f2, f3)
-        # print(I.solve_system())
+        self.assertEqual(I.solve_system(), '1 solutions: \n[x = 0.0, y = 0, z = 0]')
         f1 = Polynomial('x+2')
         f2 = Polynomial('y')
         f3 = Polynomial('z')
@@ -94,8 +94,7 @@ class TestIdeal(unittest.TestCase):
         f2 = Polynomial('x2-2')
         f3 = Polynomial('x3-3')
         I = Ideal(f1*f2*f3, f1, f3, f2, f1*f2*f3*Polynomial('x1+8'), f1*f2*f3*Polynomial('x3+10'))
-        # print(f1*f2*f3)
-        # print(I.solve_system())
+        self.assertEqual(I.solve_system(), '1 solutions: \n[x1 = 1.0, x2 = 2.0, x3 = 3.0]')
         f1 = Polynomial('x1-1')
         f2 = Polynomial('x1-17')
         f3 = Polynomial('x1-13')
@@ -116,19 +115,20 @@ class TestIdeal(unittest.TestCase):
         g13 = Polynomial('x14-1')
         g14 = Polynomial('x15-1')
         g15 = Polynomial('x16-1')
-        # I = Ideal(f, g1, g2, g3)
+        I = Ideal(f, g1, g2, g3, g4, g5, g6)
+        # at Ideal(f, g1, g2, g3, g4, g5, g6), the algorithm begins to take a long time
+        # a way to speed it up might be to build in the consideration that adding Polynomial('xn-1') still is a GB
+        # then we wouldn't need to calculate GB again.
         # print(I.solve_system())
-
 
         f1 = Polynomial('x^3 - 1 -z')
         f2 = Polynomial('y^3 - 2')
         f3 = Polynomial('z^3 + 8')
 
         I = Ideal(f1, f2, f3, f1*f2*f3*Polynomial('xyz+y^12+z^13+8'), f1*f2*f3*Polynomial('z^12+y^40'))
-        print(f3.solve())
-        print(f1*f2*f3)
-        print(I.solve_system())
-
+        # print(f3.solve())
+        # print(f1*f2*f3)
+        # print(I.solve_system())
 
 
 if __name__ == '__main__':
