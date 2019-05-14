@@ -31,9 +31,9 @@ def quadratic_formula(polynomial):
     if len(polynomial.term_matrix) == 3:
         if polynomial.term_matrix[2][1] == 1:
             a, b = polynomial.term_matrix[1][0], polynomial.term_matrix[2][0]
-            return 0, float(-b/a)
+            return 0, -b/a
         a, c = polynomial.term_matrix[1][0], polynomial.term_matrix[2][0]
-        return float((-c/a)**.5), float(-(-c/a)**.5)
+        return (-c/a)**.5, -(-c/a)**.5
     if len(polynomial.term_matrix) == 2:
         a, b, c, = polynomial.term_matrix[1][0], 0, 0
     elif len(polynomial.term_matrix) == 3:
