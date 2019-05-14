@@ -1,5 +1,6 @@
 from polynomial import *
 from itertools import combinations
+from time import time
 
 
 class Ideal:
@@ -164,7 +165,7 @@ class Ideal:
                         new_solution = dict(solution)
                         new_solution[v] = single_solution
                         Ideal.find_solutions(new_groebner_basis, zeroes, new_solution)
-
+                    break
         else:
             for g in groebner_basis:
                 if len(g.variables()) == 1:
@@ -177,8 +178,10 @@ class Ideal:
                     else:
                         solution = {v: solutions}
                         Ideal.find_solutions(groebner_basis, zeroes, solution)
+                    break
 
     def solve_system(self):
+        print(self)
         """
         If finite solutions exist, output solutions
         Otherwise output "finite solutions don't exit"
@@ -188,6 +191,7 @@ class Ideal:
             variables = variables.union(p.variables())
         variables = sorted(list(variables)) #lex ordering
         groebner_basis = self.groebner_basis()
+        print('did GB')
         zeroes = set()
         if not Ideal.solvability_criteria(groebner_basis, variables):
             return "finite solutions don't exit"
