@@ -115,10 +115,34 @@ class TestIdeal(unittest.TestCase):
         g13 = Polynomial('x14-1')
         g14 = Polynomial('x15-1')
         g15 = Polynomial('x16-1')
-        I = Ideal(f, g1, g2, g3, g4, g5, g6)
-        # at Ideal(f, g1, g2, g3, g4, g5, g6), the algorithm begins to take a long time
-        # a way to speed it up might be to build in the consideration that adding Polynomial('xn-1') still is a GB
-        # then we wouldn't need to calculate GB again.
+        I = Ideal(f, g1, g2, g3, g4, g5, g6, g7, g8, g9, g10, g11, g12, g13, g14, g15)
+        # print(I.solve_system())
+
+        f = Polynomial('x1^3-2')
+        g1 = Polynomial('x2-1 - 2x1')
+        g2 = Polynomial('x3-1')
+        g3 = Polynomial('x4-1')
+        g4 = Polynomial('x5-1')
+        g5 = Polynomial('x6-1')
+        g6 = Polynomial('x7-1')
+        g7 = Polynomial('x8-1')
+        g8 = Polynomial('x9-1')
+        g9 = Polynomial('x10-1')
+        g10 = Polynomial('x11-1')
+        g11 = Polynomial('x12-1')
+        g12 = Polynomial('x13-1')
+        g13 = Polynomial('x14-1')
+        g14 = Polynomial('x15-1')
+        g15 = Polynomial('x16-1')
+        I = Ideal(f, g1)
+        # I = Ideal(f, g1, g2, g3, g4, g5, g6, g7, g8, g9, g10, g11, g12, g13, g14, g15)
+        # print(I.solve_system())
+
+        f = Polynomial('2y+1')
+        f = f/2
+        f = f**3
+        g1 = Polynomial('x^2 - 274877906944y^38 - 1')
+        I = Ideal(f, g1)
         # print(I.solve_system())
 
         f1 = Polynomial('x^3 - 1 -z')

@@ -39,6 +39,8 @@ class TestFormulas(unittest.TestCase):
         # The above two polynomials have solutions that are reflections over the axes
         # This causes Durand Kerner to swap the solutions with each iteration
         # print(f2.solve())
+        f = Polynomial('-x^3') # this fails
+        # print(f.solve())
 
 
 if __name__ == '__main__':
