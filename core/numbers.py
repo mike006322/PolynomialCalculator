@@ -71,7 +71,7 @@ class Integer:
             return Integer(other) + self
 
     def __sub__(self, other):
-        return Integer(self.value - other.value)
+        return self + -other
 
     def __rsub__(self, other):
         if type(other) == int:
@@ -91,10 +91,22 @@ class Integer:
             return Integer(self.value*other.value)
 
     def __rmul__(self, other):
-        return Integer(self)*Integer(other)
+        if type(other) == int:
+            return Integer(self.value*other)
+        if type(other) == complex or type(other) == float:
+            return self.value*other
+        if type(other) == Rational:
+            return Integer(self.value*other.value())
+        else:
+            return Integer(self.value*other.value)
 
     def __pow__(self, power, modulo=None):
-        return Integer(self.value**(int(power)))
+        if type(power) == Integer:
+            return Integer(self.value**int(power))
+        if type(self.value**power) == int:
+            return Integer(self.value**power)
+        else:
+            return self.value**power
 
     def __rpow__(self, other):
         return other**self.value
