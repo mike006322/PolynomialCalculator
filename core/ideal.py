@@ -128,9 +128,6 @@ class Ideal:
         """
         for variable in variables:
             for g in groebner_basis:
-                # print(g.LM())
-                # print(g.LM().variables())
-                # print(set(variable))
                 if len(g.LM().variables()) == 1:
                     v = g.LM().variables().pop()
                     if v == variable:
@@ -166,7 +163,6 @@ class Ideal:
                         single_solution = solutions
                         new_solution = dict(solution)
                         new_solution[v] = single_solution
-                        # print(new_groebner_basis, zeroes, new_solution)
                         Ideal.find_solutions(new_groebner_basis, zeroes, new_solution)
 
         else:
@@ -191,21 +187,18 @@ class Ideal:
         for p in self.polynomials:
             variables = variables.union(p.variables())
         variables = sorted(list(variables)) #lex ordering
-        print(variables)
         groebner_basis = self.groebner_basis()
-        print(*groebner_basis)
         zeroes = set()
-        if Ideal.solvability_criteria(groebner_basis, variables):
-            Ideal.find_solutions(groebner_basis, zeroes)
-            output_string = str(len(zeroes)) + " solutions: "
-            for zero in zeroes:
-                zero_list = list(zero)
-                output_string += '['
-                for var in sorted(zero_list):
-                    output_string += var[0] + ' = ' + str(var[1]) + ', '
-                output_string = output_string[:-2]
-                output_string += '], '
-            output_string = output_string[:-2]
-            return output_string
-        else:
+        if not Ideal.solvability_criteria(groebner_basis, variables):
             return "finite solutions don't exit"
+        Ideal.find_solutions(groebner_basis, zeroes)
+        output_string = str(len(zeroes)) + " solutions: "
+        for zero in zeroes:
+            zero_list = list(zero)
+            output_string += '['
+            for var in sorted(zero_list):
+                output_string += var[0] + ' = ' + str(var[1]) + ', '
+            output_string = output_string[:-2]
+            output_string += '], '
+        output_string = output_string[:-2]
+        return output_string
