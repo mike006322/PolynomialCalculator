@@ -192,13 +192,13 @@ class Ideal:
         if not Ideal.solvability_criteria(groebner_basis, variables):
             return "finite solutions don't exit"
         Ideal.find_solutions(groebner_basis, zeroes)
-        output_string = str(len(zeroes)) + " solutions: "
+        output_string = str(len(zeroes)) + " solutions: \n"
         for zero in zeroes:
             zero_list = list(zero)
             output_string += '['
             for var in sorted(zero_list):
                 output_string += var[0] + ' = ' + str(var[1]) + ', '
             output_string = output_string[:-2]
-            output_string += '], '
+            output_string += '],\n'
         output_string = output_string[:-2]
         return output_string
