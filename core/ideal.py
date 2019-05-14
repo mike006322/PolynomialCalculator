@@ -1,4 +1,4 @@
-from core.polynomial import *
+from polynomial import *
 from itertools import combinations
 
 
@@ -138,7 +138,6 @@ class Ideal:
             else:
                 return False
         return True
-
 
     @staticmethod
     def find_solutions(groebner_basis, zeroes, solution=None):

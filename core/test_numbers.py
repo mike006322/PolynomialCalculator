@@ -1,5 +1,5 @@
 import unittest
-from core.numbers import *
+from numbers import *
 
 
 class TestInteger(unittest.TestCase):
