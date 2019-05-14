@@ -211,7 +211,7 @@ class Rational:
         if type(other) == Rational:
             return Rational(self.numerator*other.numerator, self.denominator*other.denominator)
         else:
-            return self*Rational(other)
+            return self.value()*other
 
     def __truediv__(self, other):
         if type(other) == Rational:
