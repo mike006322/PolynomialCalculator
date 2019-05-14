@@ -53,7 +53,12 @@ def add_exp(k, s, term_matrix):
             var_len = len(var)
             if i < len(term) - var_len:
                 if term[i+var_len] == '^':
-                    term_matrix[j+1][k] = int(term[i+1+var_len])
+                    a = 0
+                    while term[i+1+a+var_len].isnumeric():
+                        a += 1
+                        if i+1+a+var_len > len(term) - 1:
+                            break
+                    term_matrix[j+1][k] = int(term[i+1+var_len: i+1+a+var_len])
                 else:
                     term_matrix[j+1][k] = 1
             else:

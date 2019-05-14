@@ -36,6 +36,8 @@ class TestParser(unittest.TestCase):
         self.assertEqual(parse_poly('x+1'), [['constant', 'x'], [1.0, 1], [1.0, 0]])
         self.assertEqual(parse_poly('x^2 + -1.0'), [['constant', 'x'], [1.0, 2], [-1.0, 0]])
         self.assertEqual(parse_poly(test2), [['constant', 'x'], [-1.0, 3], [1.0, 2]])
+        test3 = 'x^100'
+        self.assertEqual(parse_poly(test3), [['constant', 'x'], [1, 100]])
 
 
 if __name__ == '__main__':
