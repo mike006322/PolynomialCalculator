@@ -1,6 +1,6 @@
 import unittest
-from core.ideal import *
-from core.polynomial import Polynomial
+from ideal import *
+from polynomial import Polynomial
 
 
 class TestIdeal(unittest.TestCase):
@@ -116,7 +116,17 @@ class TestIdeal(unittest.TestCase):
         g13 = Polynomial('x14-1')
         g14 = Polynomial('x15-1')
         g15 = Polynomial('x16-1')
-        I = Ideal(f, g1, g2, g3, g4, g5, g6)
+        # I = Ideal(f, g1, g2, g3)
+        # print(I.solve_system())
+
+
+        f1 = Polynomial('x^3 - 1 -z')
+        f2 = Polynomial('y^3 - 2')
+        f3 = Polynomial('z^3 + 8')
+
+        I = Ideal(f1, f2, f3, f1*f2*f3*Polynomial('xyz+y^12+z^13+8'), f1*f2*f3*Polynomial('z^12+y^40'))
+        print(f3.solve())
+        print(f1*f2*f3)
         print(I.solve_system())
 
 
