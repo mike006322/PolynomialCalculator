@@ -34,6 +34,11 @@ class TestFormulas(unittest.TestCase):
         f = Polynomial('x^3+10x^2+169x')
         print(set(f.solve()))
         self.assertEqual(set(f.solve()), {-5-12j, -5+12j, 0j})
+        # f2 = Polynomial('2y^4 + 7y^2 + 3y + 2')
+        # f2 = Polynomial('2y^4')
+        # The above two polynomials have solutions that are reflections over the axes
+        # This causes Durand Kerner to swap the solutions with each iteration
+        # print(f2.solve())
 
 
 if __name__ == '__main__':
