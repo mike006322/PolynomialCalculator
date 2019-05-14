@@ -166,7 +166,7 @@ class Polynomial:
             res[0].append(variable)
         for coefficient in self.term_matrix[1]:
             res[1].append(coefficient)
-        Polynomial.clean(res)
+        res = Polynomial.clean(res)
         return Polynomial(res, self.field_characteristic)
 
     def LM(self):
