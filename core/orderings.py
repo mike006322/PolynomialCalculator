@@ -109,7 +109,7 @@ def reverse_lex(term_matrix):
         for j in range(len(var_order)):
             term.append(t[i][var_order[j]])
         res.append(term)
-    res = [res[0]] + sorted(res[1:], key=lambda x: x[-1])
+    res = [res[0]] + sorted(res[1:], key=lambda x: x[-1], reverse=True)
     return res
 
     

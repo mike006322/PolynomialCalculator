@@ -16,7 +16,7 @@ class TestOrderings(unittest.TestCase):
     def test_reverse_lex(self):
         # -5x^3 + 7x^2z^2 + 4xy^2z + 4z^2
         term_matrix = [['constant', 'x', 'y', 'z'], [-5, 3, 0, 0], [7, 2, 0, 2], [4, 1, 2, 1], [4, 0, 0, 2]]
-        res = [['constant', 'x', 'y', 'z'], [4, 0, 0, 2], [4, 1, 2, 1], [7, 2, 0, 2], [-5, 3, 0, 0]]
+        res = [['constant', 'x', 'y', 'z'], [7, 2, 0, 2], [4, 0, 0, 2], [4, 1, 2, 1], [-5, 3, 0, 0]]
         self.assertEqual(reverse_lex(term_matrix), res)
 
     def test_grev_lex(self):

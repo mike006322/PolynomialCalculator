@@ -62,11 +62,11 @@ I = Ideal(f1, f3, f2, f1*f2*f3*Polynomial('x1+8'), f1*f2*f3*Polynomial('x3+10'))
 # print(f1*f2*f3)
 # print(I.solve_system())
 
-f1 = Polynomial('x^3 - 1 - z')
-f2 = Polynomial('y^3 - 2')
-f3 = Polynomial('z^3 + 8')
+f1 = Polynomial('x^2 - 1 - z')
+f2 = Polynomial('y^2 - 2')
+f3 = Polynomial('z^5 + 8')
 
 I = Ideal(f1, f2, f3, f1*f2*f3*Polynomial('xyz+y^12+z^13+8'), f1*f2*f3*Polynomial('z^12+y^40'))
-# print(I.solve_system())
+print(I.solve_system())
 
 
