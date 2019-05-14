@@ -47,7 +47,7 @@ def quadratic_formula(polynomial):
     return float(ans1), float(ans2)
 
 
-def isclose(a, b, rel_tol=1e-09, abs_tol=0.00000001):
+def isclose(a, b, rel_tol=1e-09, abs_tol=0.0001):
     """
     returns boolean whether abs(a-b) is less than abs_total or rel_total*max(a, b)
     """
@@ -63,6 +63,7 @@ def Durand_Kerner(f):
     for i in range(f.degree()):
         roots.append((0.4 + 0.9j)**i)
     diff = 1
+    diff_temp = 0
 
     def iterate():
         nonlocal roots
@@ -74,20 +75,22 @@ def Durand_Kerner(f):
                     q *= roots[i] - root
             new_roots[i] = roots[i] - f(roots[i])/q
         nonlocal diff
+        nonlocal diff_temp
+        diff_temp = diff
         diff = 0
         for i in range(len(roots)):
             diff += abs(roots[i] - new_roots[i])
         roots = new_roots
 
-    while diff > .00000001:
+    while diff > .00000001 and not isclose(diff_temp, diff):
         iterate()
     for i in range(len(roots)):
-        if isclose(roots[i].real, int(roots[i].real)):
-            temp = int(roots[i].real)
+        if isclose(roots[i].real, round(roots[i].real)):
+            temp = round(roots[i].real)
             roots[i] -= roots[i].real
             roots[i] += temp
-        if isclose(roots[i].imag, int(roots[i].imag)):
-            temp = int(roots[i].imag)
+        if isclose(roots[i].imag, round(roots[i].imag)):
+            temp = round(roots[i].imag)
             roots[i] -= roots[i].imag*1j
             roots[i] += temp*1j
     return roots
