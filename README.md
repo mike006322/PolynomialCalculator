@@ -4,22 +4,21 @@
 
 ### Features
 
-- Polynomial addition, subtraction, multiplication, division, gcd
+- Polynomial operations: +, -, *, /, %, gcd
 - Supports polynomials over field of characteristic > 0
 - Supports multi-variable polynomials
-- Can solve degree 1 and 2 single-variable polynomials
+- Numerical solutions for single-variable polynomials
+- Numerical solutions for systems of polynomials
 - Support for constructing finite fields with polynomials
 - Can find Gröbner basis for polynomial Ideals
 
 <img src = "https://github.com/mike006322/PolynomialCalculator/blob/master/demo.png?raw=true">
 
 ### Near-term goals:
-- add support to the parser for rational coefficients
+- improve parser with operation tree
 - implement faster gcd algorithm
 - implement lookup tables for primitive field elements
 - implement 'factor' algorithm to factor over polynomials over finite fields
-- implement exact solution to third degree polynomials in one variable
-- implement exact solution to fourth degree polynomial in one variable
 - option to plot single-variable polynomials
 - create a GUI with Python
 
