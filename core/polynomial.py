@@ -70,11 +70,50 @@ class Polynomial:
             p = [variables, term]
             yield Polynomial(collect_like_terms(p))
 
-    def derivative(self, var):
+    def derivative(self, var=None):
         """
-        returns the derivative with respect to var
+        returns the (partial) derivative with respect to var
         """
-        raise NotImplemented
+        if not var:
+            var = self.term_matrix[0][1]
+        res = self.copy()
+        # get the index of the variable
+        variable_index = res.term_matrix[0].index(var)
+        # iterate through the terms
+        for i in range(1, len(res.term_matrix)):
+            # if variable power not zero, multiply the constant by the power, lower the power
+            if res.term_matrix[i][variable_index] != 0:
+                res.term_matrix[i][0] *= res.term_matrix[i][variable_index]
+                res.term_matrix[i][variable_index] -= 1
+            # else, set term equal to zero
+            else:
+                for j in range(len(res.term_matrix[i])):
+                    res.term_matrix[i][j] = 0
+        res.term_matrix = collect_like_terms(res.term_matrix)
+        return res
+
+    def grad(self):
+        """
+        returns gradient vector
+        """
+        res = []
+        for i in range(1, len(self.term_matrix[0])):
+            res.append(self.derivative(self.term_matrix[0][i]))
+        return res
+
+    def hessian(self):
+        """
+        returns Hessian matrix
+        """
+        number_of_variables = len(self.variables())
+        res = []
+        for i in range(number_of_variables):
+            res.append([])
+            for j in range(number_of_variables):
+                var1 = self.term_matrix[0][i+1]
+                var2 = self.term_matrix[0][j+1]
+                res[i].append(self.derivative(var1).derivative(var2))
+        return res
 
     def solve(self):
         """

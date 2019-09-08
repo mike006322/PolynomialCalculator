@@ -194,6 +194,25 @@ class TestPolynomial(unittest.TestCase):
         variables = {'x': 2, 'z': 4}
         self.assertEqual(g(**variables), Polynomial('8 + 3y'))
 
+    def test_derivative(self):
+        f = Polynomial('x^2')
+        self.assertEqual(f.derivative(), Polynomial('2x'))
+        f = Polynomial('x^2y + y^3 + xy^3')
+        self.assertEqual(f.derivative('x'), Polynomial('2xy + y^3'))
+        self.assertEqual(f.derivative('y'), Polynomial('x^2 + 3xy^2 + 3y^2'))
+
+    def test_gradient(self):
+        f = Polynomial('x^2y + y^3 + xy^3')
+        self.assertEqual(f.grad(), [Polynomial('2xy + y^3'), Polynomial('x^2 + 3xy^2 + 3y^2')])
+
+    def test_hessian(self):
+        f = Polynomial('x^2y + y^3 + xy^3')
+        h = f.hessian()
+        self.assertEqual(h[0][0], Polynomial('2y'))
+        self.assertEqual(h[0][1], Polynomial('2x + 3y^2'))
+        self.assertEqual(h[1][0], Polynomial('2x + 3y^2'))
+        self.assertEqual(h[1][1], Polynomial('6xy + 6y'))
+
 
 if __name__ == '__main__':
     unittest.main()
