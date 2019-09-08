@@ -566,3 +566,7 @@ def lcm(a, b):
     returns least common multiple of two polynomials
     """
     return a*b/gcd(a, b)
+
+
+if __name__ == '__main__':
+    pass

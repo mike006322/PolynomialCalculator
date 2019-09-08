@@ -69,4 +69,5 @@ f3 = Polynomial('z^5 + 8')
 I = Ideal(f1, f2, f3, f1*f2*f3*Polynomial('xyz+y^12+z^13+8'), f1*f2*f3*Polynomial('z^12+y^40'))
 print(I.solve_system())
 
-
+if __name__ == '__main__':
+    pass

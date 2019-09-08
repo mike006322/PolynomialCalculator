@@ -156,3 +156,6 @@ def grev_lex(term_matrix):
         if len(res[i]) > len(res[0]):
             res[i] = res[i][:-1]
     return res
+
+if __name__ == '__main__':
+    pass

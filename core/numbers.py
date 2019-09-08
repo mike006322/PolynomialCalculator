@@ -243,3 +243,7 @@ class Rational:
 
     def __pow__(self, power, modulo=None):
         return Rational(self.numerator**power, self.denominator**power)
+
+
+if __name__ == '__main__':
+    pass
