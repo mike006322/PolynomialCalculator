@@ -203,15 +203,19 @@ class TestPolynomial(unittest.TestCase):
 
     def test_gradient(self):
         f = Polynomial('x^2y + y^3 + xy^3')
-        self.assertEqual(f.grad, [Polynomial('2xy + y^3'), Polynomial('x^2 + 3xy^2 + 3y^2')])
+        self.assertEqual(f.grad(), [Polynomial('2xy + y^3'), Polynomial('x^2 + 3xy^2 + 3y^2')])
+        self.assertEqual(f.grad(x=1, y=2), [12, 25])
+        f = Polynomial('x^2')
+        self.assertEqual(f.grad(1), [2])
 
     def test_hessian(self):
         f = Polynomial('x^2y + y^3 + xy^3')
-        h = f.hessian
+        h = f.hessian()
         self.assertEqual(h[0][0], Polynomial('2y'))
         self.assertEqual(h[0][1], Polynomial('2x + 3y^2'))
         self.assertEqual(h[1][0], Polynomial('2x + 3y^2'))
         self.assertEqual(h[1][1], Polynomial('6xy + 6y'))
+        self.assertEqual(f.hessian(x=1, y=2), [[4, 14], [14, 24]])
 
 
 if __name__ == '__main__':

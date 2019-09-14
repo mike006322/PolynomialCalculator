@@ -92,29 +92,40 @@ class Polynomial:
         res.term_matrix = collect_like_terms(res.term_matrix)
         return res
 
-    @property
-    def grad(self):
+    def grad(self, *args, **kwargs):
         """
         returns gradient vector
         """
-        res = []
+        g = []
         for i in range(1, len(self.term_matrix[0])):
-            res.append(self.derivative(self.term_matrix[0][i]))
+            g.append(self.derivative(self.term_matrix[0][i]))
+        if not args and not kwargs:
+            return g
+        res = []
+        for partial_derivative in g:
+            res.append(partial_derivative(*args, **kwargs))
         return res
 
-    @property
-    def hessian(self):
+    def hessian(self, *args, **kwargs):
         """
         returns Hessian matrix
         """
         number_of_variables = len(self.variables())
-        res = []
+        h = []
         for i in range(number_of_variables):
-            res.append([])
+            h.append([])
             for j in range(number_of_variables):
                 var1 = self.term_matrix[0][i+1]
                 var2 = self.term_matrix[0][j+1]
-                res[i].append(self.derivative(var1).derivative(var2))
+                h[i].append(self.derivative(var1).derivative(var2))
+        if not args and not kwargs:
+            return h
+        res = []
+        for line in h:
+            row = []
+            for partial_derivative in line:
+                row.append(partial_derivative(*args, **kwargs))
+            res.append(row)
         return res
 
     def solve(self):
