@@ -114,15 +114,20 @@ class Polynomial:
         returns Hessian matrix
         """
         class Hessian(list):
+            self.variables_in_order = tuple()
+
             def __call__(self, *args, **kwargs):
+                # need to convert all to kwargs because derivatives can lose variables
+                kwargs.update(zip(self.variables_in_order, args))
                 res = []
                 for line in h:
                     row = []
                     for partial_derivative in line:
-                        row.append(partial_derivative(*args, **kwargs))
+                        row.append(partial_derivative(**kwargs))
                     res.append(row)
                 return res
         h = Hessian()
+        h.variables_in_order = tuple(self.term_matrix[0][1:])
         number_of_variables = len(self.variables())
         for i in range(number_of_variables):
             h.append([])
