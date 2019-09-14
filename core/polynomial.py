@@ -92,41 +92,46 @@ class Polynomial:
         res.term_matrix = collect_like_terms(res.term_matrix)
         return res
 
-    def grad(self, *args, **kwargs):
+    @property
+    def grad(self):
         """
         returns gradient vector
         """
-        g = []
+        class Gradient(list):
+            def __call__(self, *a, **k):
+                res = []
+                for partial_derivative in g:
+                    res.append(partial_derivative(*a, **k))
+                return res
+        g = Gradient()
         for i in range(1, len(self.term_matrix[0])):
             g.append(self.derivative(self.term_matrix[0][i]))
-        if not args and not kwargs:
-            return g
-        res = []
-        for partial_derivative in g:
-            res.append(partial_derivative(*args, **kwargs))
-        return res
+        return g
 
-    def hessian(self, *args, **kwargs):
+    @property
+    def hessian(self):
         """
         returns Hessian matrix
         """
+        class Hessian(list):
+            def __call__(self, *args, **kwargs):
+                res = []
+                for line in h:
+                    row = []
+                    for partial_derivative in line:
+                        row.append(partial_derivative(*args, **kwargs))
+                    res.append(row)
+                return res
+        h = Hessian()
         number_of_variables = len(self.variables())
-        h = []
         for i in range(number_of_variables):
             h.append([])
             for j in range(number_of_variables):
                 var1 = self.term_matrix[0][i+1]
                 var2 = self.term_matrix[0][j+1]
                 h[i].append(self.derivative(var1).derivative(var2))
-        if not args and not kwargs:
-            return h
-        res = []
-        for line in h:
-            row = []
-            for partial_derivative in line:
-                row.append(partial_derivative(*args, **kwargs))
-            res.append(row)
-        return res
+        return h
+
 
     def solve(self):
         """
