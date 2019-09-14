@@ -92,6 +92,7 @@ class Polynomial:
         res.term_matrix = collect_like_terms(res.term_matrix)
         return res
 
+    @property
     def grad(self):
         """
         returns gradient vector
@@ -101,6 +102,7 @@ class Polynomial:
             res.append(self.derivative(self.term_matrix[0][i]))
         return res
 
+    @property
     def hessian(self):
         """
         returns Hessian matrix
