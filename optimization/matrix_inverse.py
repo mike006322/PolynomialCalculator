@@ -12,8 +12,8 @@ def get_matrix_determinant(m):
         return m[0][0] * m[1][1] - m[0][1] * m[1][0]
 
     determinant = 0
-    for c in range(len(m)):
-        determinant += ((-1) ** c) * m[0][c] * get_matrix_determinant(get_matrix_minor(m, 0, c))
+    for j in range(len(m)):
+        determinant += ((-1)**j) * m[0][j] * get_matrix_determinant(get_matrix_minor(m, 0, j))
     return determinant
 
 
@@ -26,16 +26,16 @@ def get_matrix_inverse(m):
 
     # find matrix of cofactors
     cofactors = []
-    for r in range(len(m)):
-        cofactorRow = []
-        for c in range(len(m)):
-            minor = get_matrix_minor(m, r, c)
-            cofactorRow.append(((-1) ** (r + c)) * get_matrix_determinant(minor))
-        cofactors.append(cofactorRow)
+    for i in range(len(m)):
+        cofactor_row = []
+        for j in range(len(m)):
+            minor = get_matrix_minor(m, i, j)
+            cofactor_row.append(((-1)**(i + j)) * get_matrix_determinant(minor))
+        cofactors.append(cofactor_row)
     cofactors = transpose_matrix(cofactors)
-    for r in range(len(cofactors)):
-        for c in range(len(cofactors)):
-            cofactors[r][c] = cofactors[r][c] / determinant
+    for i in range(len(cofactors)):
+        for j in range(len(cofactors)):
+            cofactors[i][j] = cofactors[i][j] / determinant
     return cofactors
 
 
