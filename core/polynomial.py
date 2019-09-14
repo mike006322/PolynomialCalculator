@@ -132,7 +132,6 @@ class Polynomial:
                 h[i].append(self.derivative(var1).derivative(var2))
         return h
 
-
     def solve(self):
         """
         returns zeros of the polynomial if able
