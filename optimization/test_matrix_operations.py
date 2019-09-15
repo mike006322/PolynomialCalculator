@@ -1,20 +1,14 @@
 import unittest
-from backtracking_linesearch import *
+from matrix_operations import *
 
 
-class TestBackTrackingLineSearch(unittest.TestCase):
+class TestMatrixInverse(unittest.TestCase):
 
-    def test_euclidean_norm(self):
-        v = (1, 2)
-        u = (0, 1)
-        norm = euclidean_norm
-        self.assertEqual(norm(v), 5**.5)
-        self.assertEqual(euclidean_norm(u), 1)
-
-    def test_steepest_descent(self):
-        f = Polynomial('x1^2+2x1x2^2+x2^4')
-        x = (1, 1)
-        self.assertEqual(steepest_descent(f, x), [-0.4472135954999579, -0.8944271909999159])
+    def test_matrix_inverse(self):
+        m = get_matrix_inverse([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+        self.assertEqual(get_matrix_inverse([[1, 0, 0], [0, 1, 0], [0, 0, 1]]), m)
+        m = [[0.2, 0.2, 0.0], [-0.2, 0.3, 1.0], [0.2, -0.3, 0.0]]
+        self.assertEqual(get_matrix_inverse([[3, 0, 2], [2, 0, -2], [0, 1, 1]]), m)
 
     def test_vector_plus_vector(self):
         v1 = [2, 3]

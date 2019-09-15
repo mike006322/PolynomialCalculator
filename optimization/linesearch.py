@@ -1,5 +1,5 @@
 from core.polynomial import *
-from matrix_inverse import *
+from matrix_operations import *
 
 
 def euclidean_norm(vector):
@@ -35,7 +35,7 @@ def newtons_algorithm(f, x):
     return p
 
 
-def line_search_with_backtracking_and_steepest_descent(f, initial_point):
+def line_search_steepest_descent(f, initial_point):
     """
     input f: polynomial, p: descent direction, initial point
     minimizes the polynomial
@@ -50,11 +50,12 @@ def line_search_with_backtracking_and_steepest_descent(f, initial_point):
         # x = x + alpha*p
         x = vector_plus_vector(x, constant_times_vector(alpha, p))
         print('x_k = ', x)
+        print('f(*x) = ', f(*x))
         print('norm(f.grad(*x)) = ', norm(f.grad(*x)))
     return x
 
 
-def line_search_with_backtracking_and_newtons_algorithm(f, initial_point):
+def line_search_newtons_algorithm(f, initial_point):
     """
     input f: polynomial, p: descent direction, initial point
     minimizes the polynomial
@@ -69,18 +70,14 @@ def line_search_with_backtracking_and_newtons_algorithm(f, initial_point):
         # x = x + alpha*p
         x = vector_plus_vector(x, constant_times_vector(alpha, p))
         print('x_k = ', x)
+        print('f(*x) = ', f(*x))
         print('norm(f.grad(*x)) = ', norm(f.grad(*x)))
     return x
 
 
 def backtracking_algorithm(f, x_k, p):
     """
-    Backtracking Algorithm to find step lengths alpha:
-    1.) find a descent direction p_k (Newton's or Steepest descent)
-    2.) set alpha bar > 0, 0 < rho < 1, 0 < c < 1, alpha = alpha bar
-    3.) While f(x_k + alpha*p_k) > f(x_k) + c*alpha*p_k^T*gradf(x_k):
-          alpha = rho*alpha
-    4.) set alpha_k = alpha
+    Backtracking Algorithm to find step lengths alpha
     """
     alpha = 1
     rho = .5
@@ -92,39 +89,8 @@ def backtracking_algorithm(f, x_k, p):
     return alpha
 
 
-def vector_plus_vector(v_1, v_2):
-    res = []
-    for i, component in enumerate(v_1):
-        res.append(component + v_2[i])
-    return res
-
-
-def vector_times_vector(v_1, v_2):
-    res = 0
-    for i, component in enumerate(v_1):
-        res += component * v_2[i]
-    return res
-
-
-def constant_times_vector(constant, vector):
-    res = []
-    for component in vector:
-        res.append(constant*component)
-    return res
-
-
-def matrix_times_vector(matrix, vector):
-    res = []
-    for row in matrix:
-        dot_product = 0
-        for i, item in enumerate(row):
-            dot_product += item * vector[i]
-        res.append(dot_product)
-    return res
-
-
 if __name__ == '__main__':
     # rosenbrock_function = Polynomial('100(x2 − x1^2)^2 + (1-x_1)^2')
     rosenbrock_function = Polynomial('100x2^2 - 200x1^2x2 + 100x1^4 + 1-2x1 + x1^2')
-    # print(line_search_with_backtracking_and_newtons_algorithm(rosenbrock_function, (-1.2, 1)))
-    print(line_search_with_backtracking_and_steepest_descent(rosenbrock_function, (-1.2, 1)))
+    print(line_search_newtons_algorithm(rosenbrock_function, (-1.2, 1)))
+    # print(line_search_steepest_descent(rosenbrock_function, (-1.2, 1)))

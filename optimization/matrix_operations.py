@@ -39,5 +39,36 @@ def get_matrix_inverse(m):
     return cofactors
 
 
+def vector_plus_vector(v_1, v_2):
+    res = []
+    for i, component in enumerate(v_1):
+        res.append(component + v_2[i])
+    return res
+
+
+def vector_times_vector(v_1, v_2):
+    res = 0
+    for i, component in enumerate(v_1):
+        res += component * v_2[i]
+    return res
+
+
+def constant_times_vector(constant, vector):
+    res = []
+    for component in vector:
+        res.append(constant*component)
+    return res
+
+
+def matrix_times_vector(matrix, vector):
+    res = []
+    for row in matrix:
+        dot_product = 0
+        for i, item in enumerate(row):
+            dot_product += item * vector[i]
+        res.append(dot_product)
+    return res
+
+
 if __name__ == '__main__':
     pass
