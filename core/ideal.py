@@ -1,4 +1,6 @@
-from polynomial import *
+import sys
+sys.path.append(".")
+from PolynomialCalculator.core.polynomial import *
 from itertools import combinations
 from time import time
 
