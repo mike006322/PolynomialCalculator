@@ -1,5 +1,5 @@
 import unittest
-from matrix_operations import *
+from matrix.matrix_operations import *
 
 
 class TestMatrixInverse(unittest.TestCase):

@@ -1,9 +1,5 @@
-import sys
-sys.path.append(".")
-import PolynomialCalculator.core.polynomial
-
-from PolynomialCalculator.core.polynomial import *
-from matrix_operations import *
+from core.polynomial import *
+from matrix.matrix_operations import *
 
 
 def euclidean_norm(vector):

@@ -1,4 +1,4 @@
-from PolynomialCalculator.core.ideal import *
+from ideal import *
 
 # Polynomial multiplication
 f1 = Polynomial('3x^2 + 7x+13')

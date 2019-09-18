@@ -1,6 +1,4 @@
-import sys
-sys.path.append(".")
-from PolynomialCalculator.core.polynomial import *
+from polynomial import *
 from itertools import combinations
 from time import time
 
@@ -16,7 +14,7 @@ class Ideal:
         """
         g = self.groebner_basis()
         for poly in other.groebner_basis():
-            if poly not in g and (-1)*poly not in g:
+            if poly not in g and (-1) * poly not in g:
                 return False
         return True
 
@@ -35,7 +33,7 @@ class Ideal:
         S(f, g) = (x^gamma / LT(f)) * f - (x^gamma / LT(g)) * g
         x^gamma = least_common_multiple(leading_monomial(f), leading_monomial(g))
         """
-        return (lcm(f.LT(), g.LT())/f.LT())*f - (lcm(f.LT(), g.LT())/g.LT())*g
+        return (lcm(f.LT(), g.LT()) / f.LT()) * f - (lcm(f.LT(), g.LT()) / g.LT()) * g
 
     @staticmethod
     def minimize(G):
@@ -84,7 +82,7 @@ class Ideal:
         t = 0
         while B:
             (i, j) = B.pop()
-            if lcm(F[i].LT(), F[j].LT()) != F[i].LT()*F[j].LT() and not self.criterion(i, j, B):
+            if lcm(F[i].LT(), F[j].LT()) != F[i].LT() * F[j].LT() and not self.criterion(i, j, B):
                 S = Ideal.s_polynomial(F[i], F[j]) % G
                 if S != 0:
                     t += 1
@@ -190,7 +188,7 @@ class Ideal:
         variables = set()
         for p in self.polynomials:
             variables = variables.union(p.variables())
-        variables = sorted(list(variables)) #lex ordering
+        variables = sorted(list(variables))  # lex ordering
         groebner_basis = self.groebner_basis()
         zeroes = set()
         if not Ideal.solvability_criteria(groebner_basis, variables):

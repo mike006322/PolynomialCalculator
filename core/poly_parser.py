@@ -1,6 +1,4 @@
-import sys
-sys.path.append(".")
-from PolynomialCalculator.core.numbers import *
+from numbers import *
 
 """
 Input a string that represents a polynomial equal to 0
