@@ -39,6 +39,51 @@ class TestParser(unittest.TestCase):
         test3 = 'x^100'
         self.assertEqual(parse_poly(test3), [['constant', 'x'], [1, 100]])
 
+    def test_find_corresponding_right_parenthesis(self):
+        test = "()"
+        self.assertEqual(find_corresponding_right_parenthesis(test, 0), 1)
+        test = "(abc)"
+        self.assertEqual(find_corresponding_right_parenthesis(test, 0), 4)
+        test = "((abc))"
+        self.assertEqual(find_corresponding_right_parenthesis(test, 0), 6)
+        self.assertEqual(find_corresponding_right_parenthesis(test, 1), 5)
+        test = "((abc)"
+        self.assertRaises(InputError, find_corresponding_right_parenthesis, test, 0)
+
+    def test_parse_function(self):
+        f = 'x+2'
+        res = [('x', 'variable'), ('+', 'operation'), ('2', 'number')]
+        self.assertEqual(parse_function(f), res)
+        f = 'x^3+2'
+        res = [('x', 'variable'), ('^', 'operation'), ('3', 'number'), ('+', 'operation'), ('2', 'number')]
+        self.assertEqual(parse_function(f), res)
+        f = 'x**3+2'
+        res = [('x', 'variable'), ('**', 'operation'), ('3', 'number'), ('+', 'operation'), ('2', 'number')]
+        self.assertEqual(parse_function(f), res)
+        f = 'x**(3*15)+2'
+        res = [('x', 'variable'), ('**', 'operation'), [('3', 'number'), ('*', 'operation'), ('5', 'number')], ('+', 'operation'), ('2', 'number')]
+        self.assertEqual(parse_function(f), res)
+
+    def test_order_prefix(self):
+        f = 'x**2'
+        res = [('**', 'operation'), ('x', 'variable'), ('2', 'number')]
+        self.assertEqual(order_prefix(parse_function(f)), res)
+        f = '2x**2'
+        res = [('*', 'operation'), ('2', 'number'), ('**', 'operation'), ('x', 'variable'), ('2', 'number')]
+        self.assertEqual(order_prefix(parse_function(f)), res)
+        f = '(4-x)*(5+y)'
+        res = [('*', 'operation'), ('-', 'operation'), ('4', 'number'), ('x', 'variable'), ('+', 'operation'), ('5', 'number'), ('y', 'variable')]
+        self.assertEqual(order_prefix(parse_function(f)), res)
+
+    def test_construct_expression_tree(self):
+        f = '(4-x)*(5+y)'
+        t = construct_expression_tree(order_prefix(parse_function(f)))
+        self.assertEqual(t.left.value, '-')
+        self.assertEqual(t.left.left.value, '4')
+        self.assertEqual(t.left.right.value, 'x')
+        self.assertEqual(t.right.left.value, '5')
+        self.assertEqual(t.right.right.value, 'y')
+
 
 if __name__ == '__main__':
     unittest.main()

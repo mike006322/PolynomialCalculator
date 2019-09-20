@@ -1,16 +1,10 @@
+from poly_parser import *
 from poly_parser import parse_poly as parse
 from orderings import order_lex as order
 from orderings import graded_lex as graded_order
 from collect_like_terms import collect_like_terms
 from formulas import *
 from numbers import Integer, Rational
-
-
-class InputError(Exception):
-
-    def __init__(self):
-        print("Polynomial input needs to be similar to following example: 'x^2+2xy^3+4'")
-        print("Alternatively, try a term matrix in form [['constant, 'x', 'y'], [1.0, 2, 0], [2.0, 1, 3], [4.0, 0, 0]]")
 
 
 class NonFactor(Exception):
