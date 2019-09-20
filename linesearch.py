@@ -3,10 +3,7 @@ from matrix.matrix_operations import *
 
 
 def euclidean_norm(vector):
-    res = 0
-    for component in vector:
-        res += component**2
-    return res**.5
+    return (sum([component**2 for component in vector]))**.5
 
 
 def steepest_descent(f, x):
