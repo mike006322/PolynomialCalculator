@@ -41,14 +41,11 @@ def line_search_steepest_descent(f, initial_point):
     """
     x = initial_point
     norm = euclidean_norm
-    iterations = 0
     while abs(f(*x)) > 10**(-8) and norm(f.grad(*x)) > 10**(-8):
         p = steepest_descent(f, x)
         alpha = backtracking_algorithm(f, x, p)
         # x = x + alpha*p
         x = vector_plus_vector(x, constant_times_vector(alpha, p))
-        iterations += 1
-        print('iteration number: ', iterations)
         print('x_k = ', x)
         print('f(*x) = ', f(*x))
         print('norm(f.grad(*x)) = ', norm(f.grad(*x)))
@@ -64,14 +61,11 @@ def line_search_newtons_algorithm(f, initial_point):
     """
     x = initial_point
     norm = euclidean_norm
-    iterations = 0
     while abs(f(*x)) > 10**(-8) and norm(f.grad(*x)) > 10**(-8):
         p = newtons_algorithm(f, x)
         alpha = backtracking_algorithm(f, x, p)
         # x = x + alpha*p
         x = vector_plus_vector(x, constant_times_vector(alpha, p))
-        iterations += 1
-        print(iterations)
         print('x_k = ', x)
         print('f(*x) = ', f(*x))
         print('norm(f.grad(*x)) = ', norm(f.grad(*x)))
@@ -92,8 +86,10 @@ def backtracking_algorithm(f, x_k, p):
     return alpha
     
 
-# TODO: Steepest descent + Wolfe conditions will give globally convergent method
-# Also true for Newton's method if Hessian is positive definite and condition number is uniformly bounded
+# TODO: Modified Newton conditions
+# Algorithm to check if matrix is positive definite
+# Matrix class - maybe with cython optimization
+# Lengraneg Interpolation
 
 # Wolfe conditions is inherent in backtracking line search
 
