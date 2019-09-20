@@ -62,6 +62,7 @@ def line_search_newtons_algorithm(f, initial_point):
     return a local minimum
     x_(k+1) = x_k + alpha_k*p_k
     """
+    iterations = 0
     x = initial_point
     norm = euclidean_norm
     while abs(f(*x)) > 10**(-8) and norm(f.grad(*x)) > 10**(-8):
@@ -70,8 +71,10 @@ def line_search_newtons_algorithm(f, initial_point):
         # x = x + alpha*p
         x = vector_plus_vector(x, constant_times_vector(alpha, p))
         print('x_k = ', x)
+        iterations += 1
         print('f(*x) = ', f(*x))
         print('norm(f.grad(*x)) = ', norm(f.grad(*x)))
+        print('iterations =', iterations)
     return x
 
 
@@ -89,8 +92,10 @@ def backtracking_algorithm(f, x_k, p):
     return alpha
     
 
-# TODO: Steepest descent + Wolfe conditions will give globally convergent method
-# Also true for Newton's method if Hessian is positive definite and condition number is uniformly bounded
+# TODO: Modified Newton conditions
+# Algorithm to check if matrix is positive definite
+# Matrix class - maybe with cython optimization
+# Lengraneg Interpolation
 
 # Wolfe conditions is inherent in backtracking line search
 
@@ -108,8 +113,6 @@ def backtracking_algorithm(f, x_k, p):
 
 if __name__ == '__main__':
     # rosenbrock_function = Polynomial('100(x2 − x1^2)^2 + (1-x_1)^2')
-    # rosenbrock_function = Polynomial('100x2^2 - 200x1^2x2 + 100x1^4 + 1-2x1 + x1^2')
-    # print(line_search_newtons_algorithm(rosenbrock_function, (-1.2, 1)))
+    rosenbrock_function = Polynomial('100x2^2 - 200x1^2x2 + 100x1^4 + 1-2x1 + x1^2')
+    print(len(line_search_newtons_algorithm(rosenbrock_function, (-1.2, 1))))
     # print(line_search_steepest_descent(rosenbrock_function, (-1.2, 1)))
-    M = [[1, 1], [1, 2]]
-    print(matrix_times_vector(M, [Polynomial('x1'), Polynomial('x2')]))

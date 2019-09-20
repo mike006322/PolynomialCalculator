@@ -1,4 +1,4 @@
-from numbers import *
+from core.numbers import *
 
 """
 Input a string that represents a polynomial equal to 0
