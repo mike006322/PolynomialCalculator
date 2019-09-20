@@ -41,11 +41,14 @@ def line_search_steepest_descent(f, initial_point):
     """
     x = initial_point
     norm = euclidean_norm
+    iterations = 0
     while abs(f(*x)) > 10**(-8) and norm(f.grad(*x)) > 10**(-8):
         p = steepest_descent(f, x)
         alpha = backtracking_algorithm(f, x, p)
         # x = x + alpha*p
         x = vector_plus_vector(x, constant_times_vector(alpha, p))
+        iterations += 1
+        print('iteration number: ', iterations)
         print('x_k = ', x)
         print('f(*x) = ', f(*x))
         print('norm(f.grad(*x)) = ', norm(f.grad(*x)))
@@ -61,11 +64,14 @@ def line_search_newtons_algorithm(f, initial_point):
     """
     x = initial_point
     norm = euclidean_norm
+    iterations = 0
     while abs(f(*x)) > 10**(-8) and norm(f.grad(*x)) > 10**(-8):
         p = newtons_algorithm(f, x)
         alpha = backtracking_algorithm(f, x, p)
         # x = x + alpha*p
         x = vector_plus_vector(x, constant_times_vector(alpha, p))
+        iterations += 1
+        print(iterations)
         print('x_k = ', x)
         print('f(*x) = ', f(*x))
         print('norm(f.grad(*x)) = ', norm(f.grad(*x)))
@@ -105,8 +111,6 @@ def backtracking_algorithm(f, x_k, p):
 
 if __name__ == '__main__':
     # rosenbrock_function = Polynomial('100(x2 − x1^2)^2 + (1-x_1)^2')
-    # rosenbrock_function = Polynomial('100x2^2 - 200x1^2x2 + 100x1^4 + 1-2x1 + x1^2')
-    # print(line_search_newtons_algorithm(rosenbrock_function, (-1.2, 1)))
+    rosenbrock_function = Polynomial('100x2^2 - 200x1^2x2 + 100x1^4 + 1-2x1 + x1^2')
+    print(line_search_newtons_algorithm(rosenbrock_function, (-1.2, 1)))
     # print(line_search_steepest_descent(rosenbrock_function, (-1.2, 1)))
-    M = [[1, 1], [1, 2]]
-    print(matrix_times_vector(M, [Polynomial('x1'), Polynomial('x2')]))
