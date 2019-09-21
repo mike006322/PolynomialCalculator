@@ -1,5 +1,3 @@
-from core.numbers import *
-
 """
 Input a string that represents a polynomial equal to 0
 Output coded polynomial as [[" ", variable1, variable2...], [coefficient, exponent1, exponent2...],...]
@@ -12,7 +10,6 @@ coefficient, exponent1     , exponent2
   .
   .
 """
-
 
 """
 Expression Tree
@@ -52,7 +49,7 @@ def find_corresponding_right_parenthesis(s, i):
     returns index of corresponding right parenthesis
     """
     nesting_level = 0
-    for j, char in enumerate(s[i+1:]):
+    for j, char in enumerate(s[i + 1:]):
         if char == '(':
             nesting_level += 1
         if char == ')':
@@ -76,37 +73,84 @@ def parse_function(function_string):
     while i < len(function_string):
         if function_string[i] == '(':
             j = find_corresponding_right_parenthesis(function_string, i)
-            res.append(parse_function(function_string[i+1:j]))
+            res.append(parse_function(function_string[i + 1:j]))
             i = j + 1
         elif function_string[i] in single_char_operations:
-            res.append((function_string[i], 'operation'))
+            if function_string[i] == '^':
+                res.append(('**', 'operation'))
+            else:
+                res.append((function_string[i], 'operation'))
             i += 1
         elif function_string[i] == '*':
-            if function_string[i+1] == '*':
+            if function_string[i + 1] == '*':
                 res.append(('**', 'operation'))
                 i += 2
             else:
                 res.append(('*', 'operation'))
                 i += 1
-        elif function_string[i:i+1].isalpha():
+        elif function_string[i:i + 1].isalpha():
             index_size = 0
             if i + 1 + index_size < len(function_string):
                 while function_string[i + 1 + index_size].isnumeric():
                     index_size += 1
                     if i + 1 + index_size == len(function_string):
                         break
-            res.append((function_string[i+index_size], 'variable'))
+            res.append((function_string[i + index_size], 'variable'))
             i += 1 + index_size
-        elif function_string[i:i+1].isnumeric():
+        elif function_string[i:i + 1].isnumeric():
             index_size = 0
             if i + 1 + index_size < len(function_string):
                 while function_string[i: i + 2 + index_size].isnumeric():
                     index_size += 1
                     if i + 1 + index_size == len(function_string):
                         break
-            res.append((function_string[i+index_size], 'number'))
-            i += 1 + index_size
+            if i + 1 + index_size < len(function_string):
+                if function_string[i + index_size + 1] == '.':
+                    left_of_decimal = index_size
+                    right_of_decimal = 0
+                    if i + 2 + index_size < len(function_string):
+                        while function_string[
+                              i + left_of_decimal + 2: i + left_of_decimal + 3 + right_of_decimal].isnumeric():
+                            right_of_decimal += 1
+                            if i + 1 + left_of_decimal + right_of_decimal == len(function_string):
+                                break
+                    res.append((function_string[i: i + left_of_decimal + 1 + right_of_decimal], 'number'))
+                    i += 2 + left_of_decimal + right_of_decimal
+                else:
+                    res.append((function_string[i + index_size], 'number'))
+                    i += 1 + index_size
+            else:
+                res.append((function_string[i + index_size], 'number'))
+                i += 1 + index_size
+        else:
+            raise InputError
     return res
+
+
+def handle_negative_inputs(token_list):
+    dont_print_next = False
+    token_list_handling_negatives = []
+    for i, char in enumerate(token_list):
+        if type(char) == list:
+            token_list_handling_negatives.append(handle_negative_inputs(char))
+            dont_print_next = True
+        if char[0] == '-':
+            if i == 0:
+                # turn -2 into 0-2
+                token_list_handling_negatives.append(('0', 'number'))
+                token_list_handling_negatives.append(('-', 'operation'))
+            else:
+                if token_list[i - 1][0] in '(+-*/**^':
+                    token_list_handling_negatives.append([('0', 'number'), ('-', 'operation'), token_list[i + 1]])
+                    dont_print_next = True
+                else:
+                    token_list_handling_negatives.append(('-', 'operation'))
+        else:
+            if dont_print_next:
+                dont_print_next = False
+            else:
+                token_list_handling_negatives.append(char)
+    return token_list_handling_negatives
 
 
 def order_prefix(token_list):
@@ -114,7 +158,13 @@ def order_prefix(token_list):
     puts the operations in prefix order
     2+4*3 -> +2*4,3
     """
+    token_list = handle_negative_inputs(token_list)
+    token_list = add_missing_multiply(token_list)
+    # print('add missing *: ', token_list)
+    group_operations(token_list)
+    # print('group operations: ', token_list)
     order_parenthesis(token_list)
+    # print('ordered parenthesis: ', token_list)
     res = []
     unpack_token_list(token_list, res)
     return res
@@ -136,27 +186,77 @@ def swap_positions(l, index_1, index_2):
     return l
 
 
+def add_missing_multiply(token_list):
+    """
+    pre-processing step, if there is any variable adjacent to a number, add a '*'
+    """
+    for i in range(len(token_list)):
+        if type(token_list[i]) == list:
+            token_list[i] = add_missing_multiply(token_list[i])
+    res = []
+    for i in range(len(token_list) - 1):
+        if token_list[i][1] != 'operation' and token_list[i + 1][1] != 'operation':
+            res.append(token_list[i])
+            res.append(('*', 'operation'))
+        else:
+            res.append(token_list[i])
+    res.append(token_list[-1])
+    return res
+
+
+def group_operations(token_list):
+    """
+    puts operations into their own parenthesis groups
+    """
+    # iterate through the operations in reverse order, given "operand, operator, operand", swap first two elements
+    res = []
+    # parenthesis
+    for i in range(len(token_list)):
+        if type(token_list[i]) == list:
+            res.append(group_operations(token_list[i]))
+    # exponentiation
+    while ('**', 'operation') in token_list:
+        for i in range(len(token_list) - 1):
+            if token_list[i][0] == '**':
+                token_list[i - 1] = [token_list[i - 1], token_list[i], token_list[i + 1]]
+                del token_list[i + 1]
+                del token_list[i]
+                break
+    # mult and division
+    while ('*', 'operation') in token_list or ('/', 'operation') in token_list:
+        for i in range(len(token_list) - 1):
+            if token_list[i][0] == '*' or token_list[i][0] == '/':
+                token_list[i - 1] = [token_list[i - 1], token_list[i], token_list[i + 1]]
+                del token_list[i + 1]
+                del token_list[i]
+                break
+    # subtraction and addition
+    while ('+', 'operation') in token_list or ('-', 'operation') in token_list:
+        for i in range(len(token_list) - 1):
+            if token_list[i][0] == '+' or token_list[i][0] == '-':
+                token_list[i - 1] = [token_list[i - 1], token_list[i], token_list[i + 1]]
+                del token_list[i + 1]
+                del token_list[i]
+                break
+
+
 def order_parenthesis(token_list):
     """
     place parenthesis by going in PEMDAS order
     """
-    # pre-processing step, if there is any variable adjacent to a number, add a '*'
-    for i in range(len(token_list)-1):
-        if token_list[i][1] != 'operation' and token_list[i+1][1] != 'operation':
-            token_list.insert(i+1, ('*', 'operation'))
     # iterate through the operations in reverse order, given "operand, operator, operand", swap first two elements
     # subtraction and addition
-    for i in range(len(token_list)-1):
+    for i in range(len(token_list) - 1):
         if token_list[i][0] == '+' or token_list[i][0] == '-':
-            swap_positions(token_list, i, i-1)
+            swap_positions(token_list, i, i - 1)
     # mult and division
-    for i in range(len(token_list)-1):
+    for i in range(len(token_list) - 1):
         if token_list[i][0] == '*' or token_list[i][0] == '/':
-            swap_positions(token_list, i, i-1)
+            swap_positions(token_list, i, i - 1)
     # exponentiation
-    for i in range(len(token_list)-1):
+    for i in range(len(token_list) - 1):
         if token_list[i][0] == '**':
-            swap_positions(token_list, i, i-1)
+            swap_positions(token_list, i, i - 1)
     # parenthesis
     for i in range(len(token_list)):
         if type(token_list[i]) == list:
@@ -168,6 +268,29 @@ class ExpressionTree:
         self.value = value
         self.left = None
         self.right = None
+
+    def DFSUtil(self, v, visited):
+        # Mark the current node as visited
+        # and print it
+        visited.add(v)
+        print(v.value, end=' ')
+        # Recur for both children vertices
+        for side in (v.left, v.right):
+            if side and side not in visited:
+                self.DFSUtil(side, visited)
+
+    # The function to do DFS traversal. It uses
+    # recursive DFSUtil()
+    def DFS(self):
+        """
+        Searches the tree and depth first and prints
+        used for debugging
+        """
+        # Mark all the vertices as not visited
+        visited = set()
+        # Call the recursive helper function
+        # to print DFS traversal
+        self.DFSUtil(self, visited)
 
 
 def construct_expression_tree(prefix_ordered_items):
@@ -183,125 +306,50 @@ def construct_expression_tree(prefix_ordered_items):
     stack = [root]
     for i in range(1, len(prefix_ordered_items)):
         t = stack[-1]
+        # root.DFS()
+        # print()
         t_1 = ExpressionTree(prefix_ordered_items[i][0])
         if prefix_ordered_items[i][1] == 'operation':
             if not t.left:
                 t.left = t_1
                 stack.append(t_1)
             else:
+                j = 2
+                while t.right:
+                    t = stack[-j]
+                    j += 1
                 t.right = t_1
                 stack.append(t_1)
         else:
             if not t.left:
                 t.left = t_1
             else:
-                if not t.right:
-                    t.right = t_1
-                    stack.pop()
+                j = 2
+                while t.right:
+                    t = stack[-j]
+                    j += 1
+                t.right = t_1
+                stack.pop()
+
     return root
 
 
-def find_vars(s):
-    variables = set()
-    possible_variables = {'x', 'y', 'z', 't', 'u', 'v', 'r'}
-    for term in s:
-        for t in range(len(term)):
-            if term[t] in possible_variables:
-                if t < len(term) - 1:
-                    i = 1
-                    while term[t+i].isnumeric():
-                        i += 1
-                        if t+i > len(term) - 1:
-                            break
-                    v = term[t]
-                    for j in range(1, i):
-                        v += term[t+j]
-                    variables.add(v)
-                else:
-                    variables.add(term[t])
-    return variables
-
-
-def add_var(var, s, term_matrix):
-    # if var is present, adds var to the list of variables
-    for term in s:
-        if var in term:
-            if var not in term_matrix[0]:
-                term_matrix[0].append(var)
-
-
-def add_exp(k, s, term_matrix):
-    # replaces 0 in kth entry of term in term_matrix with exponent
-    var = term_matrix[0][k]
-    for j in range(len(s)):
-        term = s[j]
-        if var in term:
-            i = term.index(var)
-            var_len = len(var)
-            if i < len(term) - var_len:
-                if term[i+var_len] == '^':
-                    a = 0
-                    while term[i+1+a+var_len].isnumeric():
-                        a += 1
-                        if i+1+a+var_len > len(term) - 1:
-                            break
-                    term_matrix[j+1][k] = int(term[i+1+var_len: i+1+a+var_len])
-                else:
-                    term_matrix[j+1][k] = 1
-            else:
-                term_matrix[j+1][k] = 1
-
-
-def add_coeff(s, term_matrix):
-    for j in range(len(s)):
-        t = s[j]
-        coeff = ''
-        if t[0] == '-':
-            coeff += '-'
-            t = t[1:]
-            i = 0
-            while t[i].isnumeric():
-                coeff += t[i]
-                i += 1
-                if i == len(s[j]) - 1: # minus one because we removed the '-'
-                    break
-        elif t[0].isnumeric == 'False':
-            coeff = '1'
-        else:
-            i = 0
-            while t[i].isnumeric():
-                coeff += t[i]
-                i += 1
-                if i == len(s[j]):
-                    break
-        if coeff == '-' or coeff == '':
-            coeff += '1'
-        term_matrix[j+1][0] = Integer(coeff)
-
-
-def parse_poly(s_input):
-    s = s_input.replace(" ", "").replace("-", "+-").replace("*", "").replace("++", "+").lower().split("+")
-    while '' in s:
-        s.remove('')
-    term_matrix = [['constant']]
-    num_terms = len(s)
-    for _ in range(num_terms):
-        term_matrix.append([])
-    num_var = 0
-    variables = find_vars(s)
-    for v in variables:
-        add_var(v, s, term_matrix)
-        num_var += 1
-    for i in range(1, len(term_matrix)):
-        term_matrix[i].append('coeff')
-    add_coeff(s, term_matrix)
-    for i in range(1, len(term_matrix)):
-        for _ in range(num_var):
-            term_matrix[i].append(0)
-    for i in range(1, num_var+1):
-        add_exp(i, s, term_matrix)
-
-    return term_matrix
+def decide_operation(left, right, operation):
+    """
+    input operations is as string representing a built-in operation
+    """
+    if operation == '+':
+        return left + right
+    if operation == '-':
+        return left - right
+    if operation == '*':
+        return left * right
+    if operation == '/':
+        return left / right
+    if operation == '**':
+        return left ** right
+    if operation == '^':
+        return left ** right
 
 
 if __name__ == "__main__":

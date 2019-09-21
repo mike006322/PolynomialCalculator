@@ -1,9 +1,9 @@
-from core.poly_parser import parse_poly as parse
+from core.poly_parser import *
 from core.orderings import order_lex as order
 from core.orderings import graded_lex as graded_order
 from core.collect_like_terms import collect_like_terms
 from core.formulas import *
-from core.numbers import Integer, Rational
+from core.numbers import *
 
 
 class NonFactor(Exception):
@@ -28,13 +28,63 @@ class Polynomial:
             self.term_matrix = poly
             self.field_characteristic = char
         elif type(poly) == str:
-            self.term_matrix = parse(poly)
-            self.term_matrix = collect_like_terms(self.term_matrix)
-            self.term_matrix = order(self.term_matrix)
+            poly = construct_expression_tree(order_prefix(parse_function(poly)))
+            self.term_matrix = Polynomial.make_polynomial_from_tree(poly).term_matrix
             self.field_characteristic = char
         else:
             raise InputError
         self.term_matrix = self.mod_char(self.term_matrix)
+
+    @staticmethod
+    def make_polynomial_from_tree(t):
+        """
+        depth first search through the tree
+        """
+
+        def make_polynomial_from_string(s):
+            if s.isnumeric() or '.' in s:
+                return Polynomial(make_number(s))
+            else:
+                return Polynomial([['constant', s], [1, 1]])
+
+        operation_stack = [ExpressionTree('start')]
+        while True:
+            if t.left:
+                operation_stack.append(t)
+                t = t.left
+            else:
+                if operation_stack[-1].right == t:
+                    # collapse
+                    t = operation_stack.pop()
+                    if type(t.right.value) == str:
+                        right = make_polynomial_from_string(t.right.value)
+                    else:
+                        right = t.right.value
+                    if type(t.left.value) == str:
+                        left = make_polynomial_from_string(t.left.value)
+                    else:
+                        left = t.left.value
+                    if operation_stack[-1].left == t:
+                        t = ExpressionTree(decide_operation(left, right, t.value))
+                        operation_stack[-1].left = t
+                    if operation_stack[-1].right == t:
+                        t = ExpressionTree(decide_operation(left, right, t.value))
+                        operation_stack[-1].right = t
+                    if operation_stack[-1].value == 'start':
+                        return ExpressionTree(decide_operation(left, right, t.value)).value
+                else:
+                    # t.value = Polynomial(value)
+                    if operation_stack[-1].value == 'start':
+                        if type(t.value) == str:
+                            if t.value.isnumeric():
+                                res = Polynomial(make_number(t.value))
+                            else:
+                                res = Polynomial([['constant', t.value], [1, 1]])
+                        else:
+                            res = Polynomial(t.value)
+                        return res
+                    t = operation_stack[-1]
+                    t = t.right
 
     def copy(self):
         return Polynomial([t[:] for t in self.term_matrix], self.field_characteristic)
@@ -389,6 +439,15 @@ class Polynomial:
         return Polynomial(res, self.field_characteristic)
 
     __rmul__ = __mul__
+
+    def __gt__(self, other):
+        if type(self) == Polynomial and type(other) == int:
+            if self.degree() == 0:
+                if self == 0:
+                    return 0 > other
+                else:
+                    return self.term_matrix[1][0] > other
+        # TODO: compare polynomials, define less than, other compare operators
 
     def __pow__(self, other):
         """

@@ -15,7 +15,6 @@
 <img src = "https://github.com/mike006322/PolynomialCalculator/blob/master/demo.png?raw=true">
 
 ### Near-term goals:
-- improve parser with operation tree
 - implement faster gcd algorithm
 - implement lookup tables for primitive field elements
 - implement 'factor' algorithm to factor over polynomials over finite fields

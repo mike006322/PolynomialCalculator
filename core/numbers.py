@@ -1,6 +1,21 @@
 # This module defines number classes so that numbers can be manipulated and presented symbolically
 
 
+def make_number(number):
+    """
+    input string
+    output integer or rational based on what the string represents
+    """
+    number = float(number)
+    if round(number) == number:
+        return Integer(number)
+    multiplier = 1
+    while number - int(number) > 0:
+        number *= 10
+        multiplier *= 10
+    return Rational(number, multiplier)
+
+
 class Integer:
     """
     Integer class represents members of ring of integers, Z
@@ -39,16 +54,28 @@ class Integer:
         return not self.__eq__(other)
 
     def __lt__(self, other):
-        return self.value < other.value
+        if type(other) == Integer:
+            return self.value < other.value
+        if type(other) == int:
+            return self.value < other
 
     def __le__(self, other):
-        return self.value <= other.value
+        if type(other) == Integer:
+            return self.value <= other.value
+        if type(other) == int:
+            return self.value <= other
 
     def __gt__(self, other):
-        return self.value > other.value
+        if type(other) == Integer:
+            return self.value > other.value
+        if type(other) == int:
+            return self.value > other
 
     def __ge__(self, other):
-        return self.value >= other.value
+        if type(other) == Integer:
+            return self.value >= other.value
+        if type(other) == int:
+            return self.value >= other
 
     def __str__(self):
         return str(self.value)

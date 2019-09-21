@@ -123,5 +123,13 @@ class TestRational(unittest.TestCase):
         self.assertEqual(Rational(3, 2)**2, Rational(9, 4))
 
 
+class TestMakeNumber(unittest.TestCase):
+
+    def test_make_number(self):
+        self.assertEqual(make_number('2'), Integer(2))
+        self.assertEqual(make_number('2.5'), Rational(5, 2))
+        self.assertEqual(make_number('1.5'), Rational(3, 2))
+
+
 if __name__ == '__main__':
     unittest.main()

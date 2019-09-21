@@ -14,7 +14,7 @@ class TestPolynomial(unittest.TestCase):
         self.assertEqual(Polynomial.clean([['constant', 'x', 'y'], [3.0, 2, 0], [1.0, 1, 0], [5.0, 0, 0]]), [['constant', 'x'], [3.0, 2], [1.0, 1], [5.0, 0]])
 
     def test___str__(self):
-        self.assertEqual(Polynomial('-x^2 -1'), '-x^2 - 1.0')
+        self.assertEqual(Polynomial('-x^2 -1'), '-x^2 - 1')
 
     def test_equals(self):
         a = Polynomial(0)
@@ -142,7 +142,7 @@ class TestPolynomial(unittest.TestCase):
         s = Polynomial('x^2y + xy^2 + y^2')
         t = Polynomial('xy - 1')
         e = Polynomial('y^2 - 1')
-        res1 = 'x^2y + xy^2 + y^2 = (x + y)*(xy - 1) + (1)*(y^2 - 1) + (remainder:) x + y + 1'
+        res1 = 'x^2y + xy^2 + y^2 = (x + y)*(xy - 1) + (1.0)*(y^2 - 1) + (remainder:) x + y + 1.0'
         res2 = 'x^2y + xy^2 + y^2 = (xy + y^2)*(x) + (y)*(y) + (remainder:) 0'
         self.assertEqual(res1, division_string(s, t, e))
         self.assertEqual(res2, division_string(s, Polynomial('x'), Polynomial('y')))
