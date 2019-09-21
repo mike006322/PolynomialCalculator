@@ -100,7 +100,7 @@ def parse_function(function_string):
                     index_size += 1
                     if i + 1 + index_size == len(function_string):
                         break
-            res.append(function_string[i + index_size])
+            res.append(function_string[i:i + 1 + index_size])
             i += 1 + index_size
         elif function_string[i:i + 1].isnumeric():
             index_size = 0
@@ -122,12 +122,13 @@ def parse_function(function_string):
                     res.append(function_string[i: i + left_of_decimal + 1 + right_of_decimal])
                     i += 2 + left_of_decimal + right_of_decimal
                 else:
-                    res.append(function_string[i + index_size])
+                    res.append(function_string[i: i + 1 + index_size])
                     i += 1 + index_size
             else:
-                res.append(function_string[i + index_size])
+                res.append(function_string[i: i + 1 + index_size])
                 i += 1 + index_size
         else:
+            print("can't parse ", function_string[i])
             raise InputError
     return res
 

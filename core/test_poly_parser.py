@@ -37,7 +37,7 @@ class TestParser(unittest.TestCase):
         res = ['x', '**', '3', '+', '2']
         self.assertEqual(parse_function(f), res)
         f = 'x**(3*15)+2'
-        res = ['x', '**', ['3', '*', '5'], '+', '2']
+        res = ['x', '**', ['3', '*', '15'], '+', '2']
         self.assertEqual(parse_function(f), res)
         f = '3*(2x)'
         res = ['3', '*', ['2', 'x']]
@@ -57,6 +57,9 @@ class TestParser(unittest.TestCase):
         f = '@'
         with self.assertRaises(InputError):
             parse_function(f)
+        f = '100(x2-x1^2)^2 + (1-x1)^2'
+        res = ['100', ['x2', '-', 'x1', '**', '2'], '**', '2', '+', ['1', '-', 'x1'], '**', '2']
+        self.assertEqual(parse_function(f), res)
 
     def test_order_prefix(self):
         f = 'x**2'
