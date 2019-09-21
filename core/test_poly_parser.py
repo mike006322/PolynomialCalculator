@@ -17,42 +17,42 @@ class TestParser(unittest.TestCase):
 
     def test_hand_negative_inputs(self):
         f = '-x'
-        res = [('0', 'number'), ('-', 'operation'), ('x', 'variable')]
+        res = ['0', '-', 'x']
         self.assertEqual(handle_negative_inputs(parse_function(f)), res)
         f = '2-x'
-        res = [('2', 'number'), ('-', 'operation'), ('x', 'variable')]
+        res = ['2', '-', 'x']
         self.assertEqual(handle_negative_inputs(parse_function(f)), res)
         f = '2^(-x)'
-        res = [('2', 'number'), ('**', 'operation'), [('0', 'number'), ('-', 'operation'), ('x', 'variable')]]
+        res = ['2', '**', ['0', '-', 'x']]
         self.assertEqual(handle_negative_inputs(parse_function(f)), res)
 
     def test_parse_function(self):
         f = 'x+2'
-        res = [('x', 'variable'), ('+', 'operation'), ('2', 'number')]
+        res = ['x', '+', '2']
         self.assertEqual(parse_function(f), res)
         f = 'x^3+2'
-        res = [('x', 'variable'), ('**', 'operation'), ('3', 'number'), ('+', 'operation'), ('2', 'number')]
+        res = ['x', '**', '3', '+', '2']
         self.assertEqual(parse_function(f), res)
         f = 'x**3+2'
-        res = [('x', 'variable'), ('**', 'operation'), ('3', 'number'), ('+', 'operation'), ('2', 'number')]
+        res = ['x', '**', '3', '+', '2']
         self.assertEqual(parse_function(f), res)
         f = 'x**(3*15)+2'
-        res = [('x', 'variable'), ('**', 'operation'), [('3', 'number'), ('*', 'operation'), ('5', 'number')], ('+', 'operation'), ('2', 'number')]
+        res = ['x', '**', ['3', '*', '5'], '+', '2']
         self.assertEqual(parse_function(f), res)
         f = '3*(2x)'
-        res = [('3', 'number'), ('*', 'operation'), [('2', 'number'), ('x', 'variable')]]
+        res = ['3', '*', ['2', 'x']]
         self.assertEqual(parse_function(f), res)
         f = '2xy + y^3'
-        res = [('2', 'number'), ('x', 'variable'), ('y', 'variable'), ('+', 'operation'), ('y', 'variable'), ('**', 'operation'), ('3', 'number')]
+        res = ['2', 'x', 'y', '+', 'y', '**', '3']
         self.assertEqual(parse_function(f), res)
         f = '8 + x + x^2'
-        res = [('8', 'number'), ('+', 'operation'), ('x', 'variable'), ('+', 'operation'), ('x', 'variable'), ('**', 'operation'), ('2', 'number')]
+        res = ['8', '+', 'x', '+', 'x', '**', '2']
         self.assertEqual(parse_function(f), res)
         f = '8 + x + y + y^3 + x^2'
-        res = [('8', 'number'), ('+', 'operation'), ('x', 'variable'), ('+', 'operation'), ('y', 'variable'), ('+', 'operation'), ('y', 'variable'), ('**', 'operation'), ('3', 'number'), ('+', 'operation'), ('x', 'variable'), ('**', 'operation'), ('2', 'number')]
+        res = ['8', '+', 'x', '+', 'y', '+', 'y', '**', '3', '+', 'x', '**', '2']
         self.assertEqual(parse_function(f), res)
         f = '-x**2 - 123.045'
-        res = [('-', 'operation'), ('x', 'variable'), ('**', 'operation'), ('2', 'number'), ('-', 'operation'), ('123.045', 'number')]
+        res = ['-', 'x', '**', '2', '-', '123.045']
         self.assertEqual(parse_function(f), res)
         f = '@'
         with self.assertRaises(InputError):
@@ -60,37 +60,37 @@ class TestParser(unittest.TestCase):
 
     def test_order_prefix(self):
         f = 'x**2'
-        res = [('**', 'operation'), ('x', 'variable'), ('2', 'number')]
+        res = ['**', 'x', '2']
         self.assertEqual(order_prefix(parse_function(f)), res)
         f = '2x**2'
-        res = [('*', 'operation'), ('2', 'number'), ('**', 'operation'), ('x', 'variable'), ('2', 'number')]
+        res = ['*', '2', '**', 'x', '2']
         self.assertEqual(order_prefix(parse_function(f)), res)
         f = '(4-x)*(5+y)'
-        res = [('*', 'operation'), ('-', 'operation'), ('4', 'number'), ('x', 'variable'), ('+', 'operation'), ('5', 'number'), ('y', 'variable')]
+        res = ['*', '-', '4', 'x', '+', '5', 'y']
         self.assertEqual(order_prefix(parse_function(f)), res)
         f = '3x+4'
-        res = [('+', 'operation'), ('*', 'operation'), ('3', 'number'), ('x', 'variable'), ('4', 'number')]
+        res = ['+', '*', '3', 'x', '4']
         self.assertEqual(order_prefix(parse_function(f)), res)
         f = '3x+4+5+6+7+8'
-        res = [('+', 'operation'), ('+', 'operation'), ('+', 'operation'), ('+', 'operation'), ('+', 'operation'), ('*', 'operation'), ('3', 'number'), ('x', 'variable'), ('4', 'number'), ('5', 'number'), ('6', 'number'), ('7', 'number'), ('8', 'number')]
+        res = ['+', '+', '+', '+', '+', '*', '3', 'x', '4', '5', '6', '7', '8']
         self.assertEqual(order_prefix(parse_function(f)), res)
         f = '3x+4y'
-        res = [('+', 'operation'), ('*', 'operation'), ('3', 'number'), ('x', 'variable'), ('*', 'operation'), ('4', 'number'), ('y', 'variable')]
+        res = ['+', '*', '3', 'x', '*', '4', 'y']
         self.assertEqual(order_prefix(parse_function(f)), res)
         f = '3*(2x)'
-        res = [('*', 'operation'), ('3', 'number'), ('*', 'operation'), ('2', 'number'), ('x', 'variable')]
+        res = ['*', '3', '*', '2', 'x']
         self.assertEqual(order_prefix(parse_function(f)), res)
         f = 'x^2'
-        res = [('**', 'operation'), ('x', 'variable'), ('2', 'number')]
+        res = ['**', 'x', '2']
         self.assertEqual(order_prefix(parse_function(f)), res)
         f = '8 + x + x^2'
-        res = [('+', 'operation'), ('+', 'operation'), ('8', 'number'), ('x', 'variable'), ('**', 'operation'), ('x', 'variable'), ('2', 'number')]
+        res = ['+', '+', '8', 'x', '**', 'x', '2']
         self.assertEqual(order_prefix(parse_function(f)), res)
         f = '8 + x + y + y^3 + x^2'
-        res = [('+', 'operation'), ('+', 'operation'), ('+', 'operation'), ('+', 'operation'), ('8', 'number'), ('x', 'variable'), ('y', 'variable'), ('**', 'operation'), ('y', 'variable'), ('3', 'number'), ('**', 'operation'), ('x', 'variable'), ('2', 'number')]
+        res = ['+', '+', '+', '+', '8', 'x', 'y', '**', 'y', '3', '**', 'x', '2']
         self.assertEqual(order_prefix(parse_function(f)), res)
         f = '5x^2y + xy^2 + y^2'
-        res = [('+', 'operation'), ('+', 'operation'), ('*', 'operation'), ('*', 'operation'), ('5', 'number'), ('**', 'operation'), ('x', 'variable'), ('2', 'number'), ('y', 'variable'), ('*', 'operation'), ('x', 'variable'), ('**', 'operation'), ('y', 'variable'), ('2', 'number'), ('**', 'operation'), ('y', 'variable'), ('2', 'number')]
+        res = ['+', '+', '*', '*', '5', '**', 'x', '2', 'y', '*', 'x', '**', 'y', '2', '**', 'y', '2']
         self.assertEqual(order_prefix(parse_function(f)), res)
 
     def test_construct_expression_tree(self):

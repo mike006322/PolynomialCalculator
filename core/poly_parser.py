@@ -28,11 +28,16 @@ e.g. ((2+x)*y)**5+13
 /   \  
 2   x  
 
+An operation, number or variable is called a "token"
+To make the tree: 
+First, change the token order from in-fix to prefix, i.e. "2,+,3" = "+,2,3".
+Then traverse the tokens, make each a node in the tree.
+Nodes are operands or operators.
+Add new nodes to the left of the previous nodes until you get to an operand
+Then fill in the right hand side of the parent, backtracking if needed.
+
+
 To make a polynomial do a depth first traversal of the tree.
-
-To make the tree: make a list of the operations from first executed to last, PEMDAS,
-then make tree with this list in reverse order.
-
 """
 
 
@@ -77,16 +82,16 @@ def parse_function(function_string):
             i = j + 1
         elif function_string[i] in single_char_operations:
             if function_string[i] == '^':
-                res.append(('**', 'operation'))
+                res.append('**')
             else:
-                res.append((function_string[i], 'operation'))
+                res.append(function_string[i])
             i += 1
         elif function_string[i] == '*':
             if function_string[i + 1] == '*':
-                res.append(('**', 'operation'))
+                res.append('**')
                 i += 2
             else:
-                res.append(('*', 'operation'))
+                res.append('*')
                 i += 1
         elif function_string[i:i + 1].isalpha():
             index_size = 0
@@ -95,7 +100,7 @@ def parse_function(function_string):
                     index_size += 1
                     if i + 1 + index_size == len(function_string):
                         break
-            res.append((function_string[i + index_size], 'variable'))
+            res.append(function_string[i + index_size])
             i += 1 + index_size
         elif function_string[i:i + 1].isnumeric():
             index_size = 0
@@ -114,13 +119,13 @@ def parse_function(function_string):
                             right_of_decimal += 1
                             if i + 1 + left_of_decimal + right_of_decimal == len(function_string):
                                 break
-                    res.append((function_string[i: i + left_of_decimal + 1 + right_of_decimal], 'number'))
+                    res.append(function_string[i: i + left_of_decimal + 1 + right_of_decimal])
                     i += 2 + left_of_decimal + right_of_decimal
                 else:
-                    res.append((function_string[i + index_size], 'number'))
+                    res.append(function_string[i + index_size])
                     i += 1 + index_size
             else:
-                res.append((function_string[i + index_size], 'number'))
+                res.append(function_string[i + index_size])
                 i += 1 + index_size
         else:
             raise InputError
@@ -134,17 +139,17 @@ def handle_negative_inputs(token_list):
         if type(char) == list:
             token_list_handling_negatives.append(handle_negative_inputs(char))
             dont_print_next = True
-        if char[0] == '-':
+        if char == '-':
             if i == 0:
                 # turn -2 into 0-2
-                token_list_handling_negatives.append(('0', 'number'))
-                token_list_handling_negatives.append(('-', 'operation'))
+                token_list_handling_negatives.append('0')
+                token_list_handling_negatives.append('-')
             else:
-                if token_list[i - 1][0] in '(+-*/**^':
-                    token_list_handling_negatives.append([('0', 'number'), ('-', 'operation'), token_list[i + 1]])
+                if token_list[i - 1] in '(+-*/**^':
+                    token_list_handling_negatives.append(['0', '-', token_list[i + 1]])
                     dont_print_next = True
                 else:
-                    token_list_handling_negatives.append(('-', 'operation'))
+                    token_list_handling_negatives.append('-')
         else:
             if dont_print_next:
                 dont_print_next = False
@@ -195,9 +200,11 @@ def add_missing_multiply(token_list):
             token_list[i] = add_missing_multiply(token_list[i])
     res = []
     for i in range(len(token_list) - 1):
-        if token_list[i][1] != 'operation' and token_list[i + 1][1] != 'operation':
+        if token_list[i] != '+' and token_list[i] != '-' and token_list[i] != '*' \
+                and token_list[i] != '**' and token_list[i+1] != '+' and token_list[i+1] != '-' \
+                and token_list[i+1] != '*' and token_list[i+1] != '**':
             res.append(token_list[i])
-            res.append(('*', 'operation'))
+            res.append('*')
         else:
             res.append(token_list[i])
     res.append(token_list[-1])
@@ -215,25 +222,25 @@ def group_operations(token_list):
         if type(token_list[i]) == list:
             res.append(group_operations(token_list[i]))
     # exponentiation
-    while ('**', 'operation') in token_list:
+    while '**' in token_list:
         for i in range(len(token_list) - 1):
-            if token_list[i][0] == '**':
+            if token_list[i] == '**':
                 token_list[i - 1] = [token_list[i - 1], token_list[i], token_list[i + 1]]
                 del token_list[i + 1]
                 del token_list[i]
                 break
     # mult and division
-    while ('*', 'operation') in token_list or ('/', 'operation') in token_list:
+    while '*' in token_list or '/' in token_list:
         for i in range(len(token_list) - 1):
-            if token_list[i][0] == '*' or token_list[i][0] == '/':
+            if token_list[i] == '*' or token_list[i][0] == '/':
                 token_list[i - 1] = [token_list[i - 1], token_list[i], token_list[i + 1]]
                 del token_list[i + 1]
                 del token_list[i]
                 break
     # subtraction and addition
-    while ('+', 'operation') in token_list or ('-', 'operation') in token_list:
+    while '+' in token_list or '-' in token_list:
         for i in range(len(token_list) - 1):
-            if token_list[i][0] == '+' or token_list[i][0] == '-':
+            if token_list[i] == '+' or token_list[i][0] == '-':
                 token_list[i - 1] = [token_list[i - 1], token_list[i], token_list[i + 1]]
                 del token_list[i + 1]
                 del token_list[i]
@@ -247,15 +254,15 @@ def order_parenthesis(token_list):
     # iterate through the operations in reverse order, given "operand, operator, operand", swap first two elements
     # subtraction and addition
     for i in range(len(token_list) - 1):
-        if token_list[i][0] == '+' or token_list[i][0] == '-':
+        if token_list[i] == '+' or token_list[i] == '-':
             swap_positions(token_list, i, i - 1)
     # mult and division
     for i in range(len(token_list) - 1):
-        if token_list[i][0] == '*' or token_list[i][0] == '/':
+        if token_list[i] == '*' or token_list[i] == '/':
             swap_positions(token_list, i, i - 1)
     # exponentiation
     for i in range(len(token_list) - 1):
-        if token_list[i][0] == '**':
+        if token_list[i] == '**':
             swap_positions(token_list, i, i - 1)
     # parenthesis
     for i in range(len(token_list)):
@@ -302,14 +309,14 @@ def construct_expression_tree(prefix_ordered_items):
     3. fill in the right hand side
     4. back to one
     """
-    root = ExpressionTree(prefix_ordered_items[0][0])
+    root = ExpressionTree(prefix_ordered_items[0])
     stack = [root]
     for i in range(1, len(prefix_ordered_items)):
         t = stack[-1]
         # root.DFS()
         # print()
-        t_1 = ExpressionTree(prefix_ordered_items[i][0])
-        if prefix_ordered_items[i][1] == 'operation':
+        t_1 = ExpressionTree(prefix_ordered_items[i])
+        if prefix_ordered_items[i] in '+-**/':
             if not t.left:
                 t.left = t_1
                 stack.append(t_1)
