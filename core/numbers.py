@@ -119,8 +119,10 @@ class Integer:
             return self.value*other
         if type(other) == Rational:
             return Integer(self.value*other.value())
-        else:
+        if type(other) == Integer:
             return Integer(self.value*other.value)
+        else:
+            return self.value*other
 
     def __rmul__(self, other):
         if type(other) == int:
