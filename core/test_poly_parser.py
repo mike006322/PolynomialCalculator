@@ -60,6 +60,9 @@ class TestParser(unittest.TestCase):
         f = '100(x2-x1^2)^2 + (1-x1)^2'
         res = ['100', ['x2', '-', 'x1', '**', '2'], '**', '2', '+', ['1', '-', 'x1'], '**', '2']
         self.assertEqual(parse_function(f), res)
+        f = '2a'
+        res = ['2', 'a']
+        self.assertEqual(parse_function(f), res)
 
     def test_order_prefix(self):
         f = 'x**2'
