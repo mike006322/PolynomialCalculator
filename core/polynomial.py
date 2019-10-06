@@ -356,6 +356,8 @@ class Polynomial:
         """
         input is variables as key word arguments, e.g. "x = 2, y = 3"
         """
+        if self.degree() == 0:
+            return self
         if kwargs:
             res = self.copy()
             for v in kwargs:
@@ -373,11 +375,22 @@ class Polynomial:
             return res
         else:
             res = self.copy()
-            for j, v in enumerate(args):
+            for variable_number, v in enumerate(args):
                 if type(v) == Integer or type(v) == Rational or type(v) == int or type(v) == float or type(v) == complex:
                     for i in range(1, len(res.term_matrix)):
-                        res.term_matrix[i][0] *= v**res.term_matrix[i][j+1]
-                        res.term_matrix[i][j+1] = 0
+                        res.term_matrix[i][0] *= v**res.term_matrix[i][variable_number+1]
+                        res.term_matrix[i][variable_number+1] = 0
+                elif type(v) == Polynomial:
+                    new_res = 0
+                    for i in range(1, len(res.term_matrix)):
+                        new_term = res.term_matrix[i][0]
+                        for j in range(1, len(res.term_matrix[i])):
+                            if j == variable_number + 1:
+                                new_term *= v**res.term_matrix[i][j]
+                            else:
+                                new_term *= Polynomial(res.term_matrix[0][j])**res.term_matrix[i][j]
+                        new_res += new_term
+                    res = new_res
             res.term_matrix = collect_like_terms(res.term_matrix)
             res.term_matrix = order(res.term_matrix)
             if len(res.variables()) == 0:
@@ -388,8 +401,15 @@ class Polynomial:
 
     def __add__(self, other):
         if type(other) == Polynomial:
-            var_set = set(self.term_matrix[0]).union(set(other.term_matrix[0]))
-            res = [sorted(list(var_set))]
+            if len(self.term_matrix[0]) > 1 and len(other.term_matrix[0]) > 1:
+                var_set = set(self.term_matrix[0][1:]).union(set(other.term_matrix[0][1:]))
+                res = [[self.term_matrix[0][0]] + sorted(list(var_set))]
+            elif len(self.term_matrix[0]) > 1 and len(other.term_matrix[0]) < 2:
+                res = [self.term_matrix[0]]
+            elif len(other.term_matrix[0]) > 1 and len(self.term_matrix[0]) < 2:
+                res = [other.term_matrix[0]]
+            else:
+                res = [self.term_matrix[0]]
             # first add variables to both, then order both, then combine both
             self_copy, other_copy = Polynomial.combine_variables(self, other)
             if len(self.term_matrix) != 1:

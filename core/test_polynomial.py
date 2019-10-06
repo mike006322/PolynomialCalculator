@@ -193,6 +193,12 @@ class TestPolynomial(unittest.TestCase):
         self.assertEqual(g(**variables), Polynomial('8 + 3y'))
         variables = {'x': 2, 'z': 4}
         self.assertEqual(g(**variables), Polynomial('8 + 3y'))
+        f = Polynomial('x^2')
+        res = Polynomial('a^2')
+        self.assertEqual(f(Polynomial('a')), res)
+        f = Polynomial('x^2y')
+        res = Polynomial('a^2y')
+        self.assertEqual(f(Polynomial('a'), Polynomial('y')), res)
 
     def test_derivative(self):
         f = Polynomial('x^2')
