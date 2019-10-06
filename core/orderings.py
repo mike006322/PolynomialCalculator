@@ -10,7 +10,10 @@ def order_lex(term_matrix):
     """
     orders lexicographically
     """
-    t = term_matrix
+    # take off constant so it doesn't get sorted with variables
+    if len(term_matrix[0]) < 2:
+        return term_matrix
+    t = [term[1:] for term in term_matrix]
     # first move around variables within terms
     # then move terms around
     var_order = list(zip(t[0], list(range(len(t[0])))))
@@ -22,6 +25,9 @@ def order_lex(term_matrix):
         for j in range(len(var_order)):
             term.append(t[i][var_order[j]])
         res.append(term)
+    # put constant back on
+    for i in range(len(res)):
+        res[i].insert(0, term_matrix[i][0])
     res = [res[0]] + sorted(res[1:], key=lambda x: x[1:], reverse=True)
     return res
 
