@@ -122,8 +122,8 @@ class TestPolynomial(unittest.TestCase):
         self.assertEqual(Polynomial('8 + x + y + y^3x^3 + x^2').degree(), 6)
 
     def test_variables(self):
-        self.assertEqual(Polynomial('2x^3+x+8').variables, {'x'})
-        self.assertEqual(Polynomial('2x^3+xy+8').variables, {'x', 'y'})
+        self.assertEqual(Polynomial('2x^3+x+8').variables, ['x'])
+        self.assertEqual(Polynomial('2x^3+xy+8').variables, ['x', 'y'])
 
     def test_number_of_variables(self):
         self.assertEqual(Polynomial('2x^3+x+8').number_of_variables, 1)
@@ -222,6 +222,7 @@ class TestPolynomial(unittest.TestCase):
         self.assertEqual(h[1][0], Polynomial('2x + 3y^2'))
         self.assertEqual(h[1][1], Polynomial('6xy + 6y'))
         self.assertEqual(f.hessian(x=1, y=2), [[4, 14], [14, 24]])
+        print('x' + Polynomial('x')+'x')
 
 
 if __name__ == '__main__':

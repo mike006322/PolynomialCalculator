@@ -203,7 +203,7 @@ class Polynomial:
         """
         returns the variables of the polynomial as a set
         """
-        res = set(self.term_matrix[0])
+        res = [variable for variable in self.term_matrix[0]]
         res.remove('constant')
         return res
 
@@ -539,6 +539,11 @@ class Polynomial:
         else:
             return self == Polynomial(other, self.field_characteristic)
 
+    def __float__(self):
+        if len(self.variables) > 1:
+            return "Cannot convert Polynomial with variables to float"
+        return float(self.term_matrix[1][0])
+
 
 def divides(a, b):
     """
@@ -625,12 +630,12 @@ def gcd(a, b):
     """
     a = a.copy()
     b = b.copy()
-    if len(a.variables.union(b.variables)) <= 1:
+    if len(set(a.variables).union(set(b.variables))) <= 1:
         return gcd_singlevariate(a, b)
     if len(a.term_matrix) > 2 or len(b.term_matrix) > 2:
         raise NotImplemented
     res = gcd_singlevariate(Polynomial(a.term_matrix[1][0]), Polynomial(b.term_matrix[1][0]))
-    for variable in a.variables.union(b.variables):
+    for variable in set(a.variables).union(set(b.variables)):
         isolated_a = a.isolate(variable)
         isolated_b = b.isolate(variable)
         if len(isolated_a.term_matrix[1]) > 1 and len(isolated_b.term_matrix[1]) > 1:
