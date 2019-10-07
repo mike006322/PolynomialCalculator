@@ -171,7 +171,7 @@ class Polynomial:
                 return res
         h = Hessian()
         h.variables_in_order = tuple(self.term_matrix[0][1:])
-        number_of_variables = len(self.variables())
+        number_of_variables = len(self.variables)
         for i in range(number_of_variables):
             h.append([])
             for j in range(number_of_variables):
@@ -198,6 +198,7 @@ class Polynomial:
             t.term_matrix = graded_order(t.term_matrix)
             return sum(t.term_matrix[1][1:])
 
+    @property
     def variables(self):
         """
         returns the variables of the polynomial as a set
@@ -206,11 +207,12 @@ class Polynomial:
         res.remove('constant')
         return res
 
+    @property
     def number_of_variables(self):
         """
         returns the number of variables in the polynomial
         """
-        return len(self.variables())
+        return len(self.variables)
 
     @staticmethod
     def clean(term_matrix):
@@ -295,11 +297,11 @@ class Polynomial:
         returns a polynomial of one variable with polynomial constant terms
         """
         poly = self.copy()
-        if variable in poly.variables():
+        if variable in poly.variables:
             i = poly.term_matrix[0].index(variable)
         else:
             return self
-        if i != len(poly.variables()):
+        if i != len(poly.variables):
             remaining_vars = poly.term_matrix[0][:i] + poly.term_matrix[0][i+1:]
         else:
             remaining_vars = poly.term_matrix[0][:i]
@@ -368,7 +370,7 @@ class Polynomial:
                         res.term_matrix[i][j] = 0
             res.term_matrix = collect_like_terms(res.term_matrix)
             res.term_matrix = order(res.term_matrix)
-            if len(res.variables()) == 0:
+            if len(res.variables) == 0:
                 if len(res.term_matrix) < 2:
                     return 0
                 return res.term_matrix[1][0]
@@ -393,7 +395,7 @@ class Polynomial:
                     res = new_res
             res.term_matrix = collect_like_terms(res.term_matrix)
             res.term_matrix = order(res.term_matrix)
-            if len(res.variables()) == 0:
+            if len(res.variables) == 0:
                 if res == 0:
                     return 0
                 return res.term_matrix[1][0]
@@ -623,16 +625,16 @@ def gcd(a, b):
     """
     a = a.copy()
     b = b.copy()
-    if len(a.variables().union(b.variables())) <= 1:
+    if len(a.variables.union(b.variables)) <= 1:
         return gcd_singlevariate(a, b)
     if len(a.term_matrix) > 2 or len(b.term_matrix) > 2:
         raise NotImplemented
     res = gcd_singlevariate(Polynomial(a.term_matrix[1][0]), Polynomial(b.term_matrix[1][0]))
-    for variable in a.variables().union(b.variables()):
+    for variable in a.variables.union(b.variables):
         isolated_a = a.isolate(variable)
         isolated_b = b.isolate(variable)
         if len(isolated_a.term_matrix[1]) > 1 and len(isolated_b.term_matrix[1]) > 1:
-            if variable in isolated_a.variables() and variable in isolated_b.variables():
+            if variable in isolated_a.variables and variable in isolated_b.variables:
                 res *= Polynomial(variable)**min(isolated_a.term_matrix[1][1], isolated_b.term_matrix[1][1])
     return res
 

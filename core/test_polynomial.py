@@ -122,12 +122,12 @@ class TestPolynomial(unittest.TestCase):
         self.assertEqual(Polynomial('8 + x + y + y^3x^3 + x^2').degree(), 6)
 
     def test_variables(self):
-        self.assertEqual(Polynomial('2x^3+x+8').variables(), {'x'})
-        self.assertEqual(Polynomial('2x^3+xy+8').variables(), {'x', 'y'})
+        self.assertEqual(Polynomial('2x^3+x+8').variables, {'x'})
+        self.assertEqual(Polynomial('2x^3+xy+8').variables, {'x', 'y'})
 
     def test_number_of_variables(self):
-        self.assertEqual(Polynomial('2x^3+x+8').number_of_variables(), 1)
-        self.assertEqual(Polynomial('2x^3+xy+8').number_of_variables(), 2)
+        self.assertEqual(Polynomial('2x^3+x+8').number_of_variables, 1)
+        self.assertEqual(Polynomial('2x^3+xy+8').number_of_variables, 2)
 
     def test_division_algorithm(self):
         s = Polynomial('x^2y + xy^2 + y^2')
