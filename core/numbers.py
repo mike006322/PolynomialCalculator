@@ -109,6 +109,11 @@ class Integer:
     def __rsub__(self, other):
         return -self + other
 
+    def __abs__(self):
+        if self.value < 0:
+            return Integer(-self)
+        return self
+
     def __neg__(self):
         return Integer(-self.value)
 

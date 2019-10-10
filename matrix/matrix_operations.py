@@ -40,10 +40,10 @@ def get_matrix_inverse(m):
 
 
 def vector_plus_vector(v_1, v_2):
-    res = []
-    for i, component in enumerate(v_1):
-        res.append(component + v_2[i])
-    return res
+    if type(v_1) == tuple:
+        return tuple(map(sum, zip(v_1, v_2)))
+    if type(v_1) == list:
+        return list(map(sum, zip(v_1, v_2)))
 
 
 def vector_times_vector(v_1, v_2):
