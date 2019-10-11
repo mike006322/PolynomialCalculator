@@ -139,18 +139,34 @@ def interpolate(phi, alpha_left, alpha_right):
     [alpha_(k-1), alpha_k] = [alpha_left, alpha_right]
     alpha is either such that H_3'(alpha) = 0, or and endpoint H_3(alpha_(k-1)) or H_3(alpha_k)
     """
+    phi_prime = phi.derivative()
+    def H_3(a):
+        return (1 + (a - alpha_left)/(alpha_right - alpha_left))*((a - alpha_right)/(alpha_right - alpha_left))**2*phi(alpha_left) +\
+        (1 + 2*(alpha_right - a)/(alpha_right - alpha_left))*((a - alpha_left)/(alpha_right-alpha_left))**2*phi(alpha_right) +\
+        (a - alpha_left)*((alpha_right - a)/(alpha_right - alpha_left))**2*phi_prime(alpha_left) +\
+        (a - alpha_right)*((a - alpha_left)/(alpha_right - alpha_left))**2*phi_prime(alpha_right)
     e_1 = .1
     e_2 = .5
     if abs(alpha_left - alpha_right) < e_1 or alpha_right < e_2:
         alpha_right = alpha_left/2
     alpha = alpha_left
-    phi_prime = phi.derivative()
     d_1 = phi_prime(alpha_left) + phi_prime(alpha_right) - 3 * (phi(alpha_left) - phi(alpha_right)) / (
             alpha_left - alpha_right)
     d_2 = sign(alpha_right - alpha_left) * (max(d_1 ** 2 - phi_prime(alpha_left) * phi_prime(alpha_right), 0)) ** .5
     denominator = phi_prime(alpha_right) - phi_prime(alpha_left) + 2 * d_2
-    return alpha_right - (alpha_right - alpha_left) * (phi_prime(alpha_right) + d_2 - d_1) / denominator
-
+    interior_point = alpha_right - (alpha_right - alpha_left) * (phi_prime(alpha_right) + d_2 - d_1) / denominator
+    print(H_3(interior_point))
+    if H_3(interior_point) < H_3(alpha_left):
+        if H_3(interior_point) < H_3(alpha_right):
+            return interior_point
+        else: 
+            return alpha_right
+    else:
+        if H_3(alpha_left) < H_3(alpha_right):
+            return alpha_left
+        else:
+            return alpha_right
+    
 
 def sign(number):
     if number >= 0:
@@ -179,7 +195,7 @@ def main():
     # iterations = line_search(f, (1, 1), steepest_descent)
 
     rosenbrock_function = Polynomial('100(x2-x1^2)^2 + (1-x1)^2')
-    iterations = line_search(rosenbrock_function, (-1, 1.2), newtons_algorithm)
+    iterations = line_search(rosenbrock_function, (1.2, 1.2), newtons_algorithm)
     # iterations = line_search(rosenbrock_function, (1.2, 1.2), steepest_descent)
     print_results(iterations)
 
