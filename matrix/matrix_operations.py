@@ -70,5 +70,15 @@ def matrix_times_vector(matrix, vector):
     return res
 
 
+def vector_times_matrix(vector, matrix):
+    res = []
+    for column_number in range(len(matrix[0])):
+        dot_product = 0
+        for row_number in range(len(matrix)):
+            dot_product += matrix[row_number][column_number] * vector[row_number]
+        res.append(dot_product)
+    return res
+
+
 if __name__ == '__main__':
     pass

@@ -29,6 +29,11 @@ class TestMatrixInverse(unittest.TestCase):
         v = [2, 3]
         self.assertEqual(matrix_times_vector(m, v), [8, 21])
 
+    def test_vector_times_matrix(self):
+        m = [[1, 2], [3, 5]]
+        v = [2, 3]
+        self.assertEqual(vector_times_matrix(v, m), [11, 19])
+
 
 if __name__ == '__main__':
     unittest.main()
