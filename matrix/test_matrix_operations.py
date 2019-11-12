@@ -34,6 +34,33 @@ class TestMatrixInverse(unittest.TestCase):
         v = [2, 3]
         self.assertEqual(vector_times_matrix(v, m), [11, 19])
 
+    def test_get_nullspace_numpy(self):
+        m = np.array([[-3, 6, -1, 1, -7], [1, -2, 2, 3, -1], [2, -4, 5, 8, -4]])
+        N = get_nullspace_numpy(m)
+        self.assertEqual(N.tolist(), np.array([[2, 1, -3], [1, 0, 0], [0, -2, 2], [0, 1, 0], [0, 0, 1]]).tolist())
+        test_vec = np.array([[1, 2, 3]]).transpose()
+        self.assertEqual((m @ (N @ test_vec)).tolist(), [[0], [0], [0]])
+
+    def test_get_left_nullspace_numpy(self):
+        m = np.array([[-3, 6, -1, 1, -7], [1, -2, 2, 3, -1], [2, -4, 5, 8, -4]])
+        left_nullspace = get_left_nullspace_numpy(m)
+        self.assertEqual(left_nullspace.tolist(), [[-1, -13, 5]])
+
+    def test_matrix_times_matrix(self):
+        x = [[12, 7, 3],
+             [4, 5, 6],
+             [7, 8, 9]]
+        y = [[5, 8, 1, 2],
+             [6, 7, 3, 0],
+             [4, 5, 9, 1]]
+        self.assertEqual(matrix_times_matrix(x, y), [[114, 160, 60, 27], [74, 97, 73, 14], [119, 157, 112, 23]])
+
+    def test_column_sub_matrix(self):
+        m = [[12, 7, 3],
+             [4, 5, 6],
+             [7, 8, 9]]
+        self.assertEqual(column_sub_matrix(m, 2), [[12, 7], [4, 5], [7, 8]])
+
 
 if __name__ == '__main__':
     unittest.main()
