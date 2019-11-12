@@ -38,7 +38,7 @@ def make_steepest_descent_direction(f, x):
     f_grad = f.grad(*x)
     numerator = vector_times_vector(constant_times_vector(-1, f_grad), f_grad)
     denominator = vector_times_vector(vector_times_matrix(f_grad, b), f_grad)
-    p = constant_times_vector(numerator/denominator, f_grad)
+    p = constant_times_vector(numerator / denominator, f_grad)
     return tuple(map(float, p))
 
 
@@ -61,11 +61,12 @@ def trust_region_subproblem(f, x, delta):
         return vector_plus_vector(x, step)
     p_u = make_steepest_descent_direction(f, x)
     if norm(p_u) > delta:
-        step = constant_times_vector(delta/norm(p_u), p_u)
+        step = constant_times_vector(delta / norm(p_u), p_u)
         # print('4. step = ', step)
         return vector_plus_vector(x, step)
     p_fs_minus_p_u = vector_plus_vector(p_fs, constant_times_vector(-1, p_u))
-    quadratic_equation = norm_squared(vector_plus_vector(p_u, constant_times_vector(Polynomial('t'), p_fs_minus_p_u))) - delta**2
+    quadratic_equation = norm_squared(
+        vector_plus_vector(p_u, constant_times_vector(Polynomial('t'), p_fs_minus_p_u))) - delta ** 2
     t_minus_one = max(quadratic_equation.solve())
     step = vector_plus_vector(p_u, constant_times_vector(t_minus_one, p_fs_minus_p_u))
     # print('5. step = ', step)
@@ -79,15 +80,17 @@ def euclidean_norm(vector):
 def norm_squared(vector):
     res = 0
     for component in vector:
-        res += component**2
+        res += component ** 2
     return res
 
 
 def main():
     p = ('p1', 'p2')
     f = Polynomial('10(x2-x1^2)^2+(1-x1)^2')
-    x = (0, .5)
+    x = (0, -1)
     delta = 2
+    print(make_quadratic_model(f, x, p))
+
     # print(trust_region_subproblem(f, x, delta))
 
     def polynomial_to_numpy(polynomial, *variables):
@@ -101,7 +104,7 @@ def main():
         for term in polynomial.term_matrix[1:]:
             product = term[0]
             for i, variable in enumerate(variables):
-                product *= variable**term[i+1]
+                product *= variable ** term[i + 1]
             z += product
         return z
 
@@ -125,7 +128,7 @@ def main():
     ax.set_title('Quadratic Model Contour Lines')
     plot_points = [x]
     for i in range(1, 15):
-        new_delta = delta/i
+        new_delta = delta / i
         plot_points.append(trust_region_subproblem(f, x, new_delta))
     for point in plot_points:
         print(point)
