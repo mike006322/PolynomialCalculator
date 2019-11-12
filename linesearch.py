@@ -1,5 +1,5 @@
 from core.polynomial import *
-from matrix.matrix_operations import *
+from core.matrix import *
 
 
 def euclidean_norm(vector):

@@ -3,7 +3,7 @@
 # B_k = f.hessian(x_k)
 
 from core.polynomial import *
-from matrix.matrix_operations import *
+from core.matrix import *
 
 
 def make_quadratic_model(f, x, p):

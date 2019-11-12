@@ -1,4 +1,4 @@
-import numpy as np
+# import numpy as np
 from math import gcd
 
 
@@ -11,7 +11,7 @@ def get_matrix_minor(m, i, j):
 
 
 def get_matrix_determinant(m):
-    # base case for 2x2 matrix
+    # base case for 2x2 matrix_folder
     if len(m) == 2:
         return m[0][0] * m[1][1] - m[0][1] * m[1][0]
 
@@ -23,12 +23,12 @@ def get_matrix_determinant(m):
 
 def get_matrix_inverse(m):
     determinant = get_matrix_determinant(m)
-    # special case for 2x2 matrix:
+    # special case for 2x2 matrix_folder:
     if len(m) == 2:
         return [[m[1][1] / determinant, -1 * m[0][1] / determinant],
                 [-1 * m[1][0] / determinant, m[0][0] / determinant]]
 
-    # find matrix of cofactors
+    # find matrix_folder of cofactors
     cofactors = []
     for i in range(len(m)):
         cofactor_row = []
@@ -99,7 +99,7 @@ def vector_times_matrix(vector, matrix):
 
 def get_nullspace(matrix):
     """
-    returns the right nullspace of matrix, a.k.a. kernel
+    returns the right nullspace of matrix_folder, a.k.a. kernel
     The left nullspace is simply the nullspace of the transpose of the input
     """
     # get ref
@@ -149,60 +149,60 @@ def get_nullspace(matrix):
     return transpose_matrix(nullspace_vectors)
 
 
-def get_nullspace_numpy(matrix):
-    """
-    returns the right nullspace of matrix, a.k.a. kernel
-    The left nullspace is simply the nullspace of the transpose of the input
-    This function has numpy dependency.
-    """
-    # get ref
-    m = get_integer_ref_numpy(matrix)
-    # number of paramaters is number of variables that are not on the diagonal, i.e. columns - rows (if full rank)
-    # if everything to the left is zeros then that variable is not a paramater
-    # make the equations
-    diagonal_indices = set()
-    running_lcm = 1
-    rank = 0
-    for j in range(len(m[0])):
-        for i in reversed(range(rank, len(m))):
-            if m[i][j] != 0:
-                diagonal_indices.add(j)
-                rank += 1
-                running_lcm = lcm(running_lcm, m[i][j])
-                break
-    m = m[[i for i, x in enumerate(m) if x.any()]]  # remove zero lines
-    for row in m:
-        for j in range(len(row)):
-            if row[j] != 0:
-                first_non_zero = row[j]
-                break
-        row *= running_lcm // first_non_zero
-    # build the paramater vector
-    # go through columns, if they are in the diagonal indices, they are not a parameter
-    nullspace_vectors = []
-    for r in range(len(m[0]) - rank):
-        nullspace_vectors.append([])
-    rank = 0
-    for j in range(len(m[0])):
-        if j not in diagonal_indices:
-            for i in range(len(m)):
-                nullspace_vectors[j - rank].append(-m[i][j])
-        else:
-            rank += 1
-    vector_number = 0
-    for j in range(len(m[0])):
-        if j not in diagonal_indices:
-            for i, vector in enumerate(nullspace_vectors):
-                if i == vector_number:
-                    vector.insert(j, running_lcm)
-                else:
-                    vector.insert(j, 0)
-            vector_number += 1
-    return np.array(nullspace_vectors).transpose()
+# def get_nullspace_numpy(matrix):
+#     """
+#     returns the right nullspace of matrix_folder, a.k.a. kernel
+#     The left nullspace is simply the nullspace of the transpose of the input
+#     This function has numpy dependency.
+#     """
+#     # get ref
+#     m = get_integer_ref_numpy(matrix)
+#     # number of paramaters is number of variables that are not on the diagonal, i.e. columns - rows (if full rank)
+#     # if everything to the left is zeros then that variable is not a paramater
+#     # make the equations
+#     diagonal_indices = set()
+#     running_lcm = 1
+#     rank = 0
+#     for j in range(len(m[0])):
+#         for i in reversed(range(rank, len(m))):
+#             if m[i][j] != 0:
+#                 diagonal_indices.add(j)
+#                 rank += 1
+#                 running_lcm = lcm(running_lcm, m[i][j])
+#                 break
+#     m = m[[i for i, x in enumerate(m) if x.any()]]  # remove zero lines
+#     for row in m:
+#         for j in range(len(row)):
+#             if row[j] != 0:
+#                 first_non_zero = row[j]
+#                 break
+#         row *= running_lcm // first_non_zero
+#     # build the paramater vector
+#     # go through columns, if they are in the diagonal indices, they are not a parameter
+#     nullspace_vectors = []
+#     for r in range(len(m[0]) - rank):
+#         nullspace_vectors.append([])
+#     rank = 0
+#     for j in range(len(m[0])):
+#         if j not in diagonal_indices:
+#             for i in range(len(m)):
+#                 nullspace_vectors[j - rank].append(-m[i][j])
+#         else:
+#             rank += 1
+#     vector_number = 0
+#     for j in range(len(m[0])):
+#         if j not in diagonal_indices:
+#             for i, vector in enumerate(nullspace_vectors):
+#                 if i == vector_number:
+#                     vector.insert(j, running_lcm)
+#                 else:
+#                     vector.insert(j, 0)
+#             vector_number += 1
+#     return np.array(nullspace_vectors).transpose()
 
 
-def get_left_nullspace_numpy(m):
-    return get_nullspace_numpy(m.transpose()).transpose()
+# def get_left_nullspace_numpy(m):
+#     return get_nullspace_numpy(m.transpose()).transpose()
 
 
 def get_left_nullspace(m):
@@ -265,32 +265,32 @@ def get_integer_ref(matrix):
     return list(reversed(m))
 
 
-def get_integer_ref_numpy(matrix):
-    m = matrix.copy()
-    number_of_rows = len(m)
-    number_of_columns = len(m[0])
-    # make the variables on the diagonal all the same number
-    for i in range(number_of_rows):
-        if i < number_of_columns:
-            if m[i][i] == 0:
-                # search for row with non-zero entry in that column and add it to that row
-                for j in range(i, number_of_rows):
-                    if m[j][i] != 0:
-                        m[i] += m[j]
-                if m[i][i] == 0:
-                    continue
-            for j in range(number_of_rows):
-                if j == i:
-                    continue
-                if m[j][i] != 0:
-                    m[j] *= lcm(m[i][i], m[j][i]) // m[j][i]
-                    m[j] -= m[i] * lcm(m[i][i], m[j][i]) // m[i][i]
-    # divide by gcd and omit double rows
-    for row in m:
-        if any(row):
-            row //= list_gcd(row)
-    m = m[np.lexsort(np.rot90(abs(m)))][::-1]  # lex sort
-    return m
+# def get_integer_ref_numpy(matrix):
+#     m = matrix.copy()
+#     number_of_rows = len(m)
+#     number_of_columns = len(m[0])
+#     # make the variables on the diagonal all the same number
+#     for i in range(number_of_rows):
+#         if i < number_of_columns:
+#             if m[i][i] == 0:
+#                 # search for row with non-zero entry in that column and add it to that row
+#                 for j in range(i, number_of_rows):
+#                     if m[j][i] != 0:
+#                         m[i] += m[j]
+#                 if m[i][i] == 0:
+#                     continue
+#             for j in range(number_of_rows):
+#                 if j == i:
+#                     continue
+#                 if m[j][i] != 0:
+#                     m[j] *= lcm(m[i][i], m[j][i]) // m[j][i]
+#                     m[j] -= m[i] * lcm(m[i][i], m[j][i]) // m[i][i]
+#     # divide by gcd and omit double rows
+#     for row in m:
+#         if any(row):
+#             row //= list_gcd(row)
+#     m = m[np.lexsort(np.rot90(abs(m)))][::-1]  # lex sort
+#     return m
 
 
 def column_sub_matrix(m, stop, start=0):
@@ -299,7 +299,7 @@ def column_sub_matrix(m, stop, start=0):
 
 def print_matrix(matrix):
     """
-    prints a python list in matrix formatting
+    prints a python list in matrix_folder formatting
     """
     s = [[str(int(e)) for e in row] for row in matrix]
     lens = [max(map(len, col)) for col in zip(*s)]
@@ -308,12 +308,12 @@ def print_matrix(matrix):
     print('\n'.join(table), '\n')
 
 
-def test_get_integer_ref_numpy():
-    m = np.array([[-3, 6, -1, 1, -7], [1, -2, 2, 3, -1], [2, -4, 5, 8, -4]])
-    assert get_integer_ref_numpy(m).tolist() == [[1, -2, 0, -1, 3], [0, 0, 1, 2, -2], [0, 0, 0, 0, 0]]
-    m = m.transpose()
-    int_ref = get_integer_ref_numpy(m)
-    assert int_ref.tolist() == [[-5, 0, -1], [0, 5, 13], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
+# def test_get_integer_ref_numpy():
+#     m = np.array([[-3, 6, -1, 1, -7], [1, -2, 2, 3, -1], [2, -4, 5, 8, -4]])
+#     assert get_integer_ref_numpy(m).tolist() == [[1, -2, 0, -1, 3], [0, 0, 1, 2, -2], [0, 0, 0, 0, 0]]
+#     m = m.transpose()
+#     int_ref = get_integer_ref_numpy(m)
+#     assert int_ref.tolist() == [[-5, 0, -1], [0, 5, 13], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
 
 
 def test_get_integer_ref():
