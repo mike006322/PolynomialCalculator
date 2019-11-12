@@ -129,8 +129,8 @@ class Ideal:
         """
         for variable in variables:
             for g in groebner_basis:
-                if len(g.LM().variables()) == 1:
-                    v = g.LM().variables().pop()
+                if len(g.LM().variables) == 1:
+                    v = g.LM().variables.pop()
                     if v == variable:
                         break
             else:
@@ -144,7 +144,7 @@ class Ideal:
             for g in groebner_basis:
                 h = g.copy()(**solution)
                 if type(h) == Polynomial:
-                    if len(h.variables()) != 0:
+                    if len(h.variables) != 0:
                         new_groebner_basis.append(h)
             if len(new_groebner_basis) == 0:
                 for v in solution:
@@ -152,8 +152,8 @@ class Ideal:
                         solution[v] = float(solution[v])
                 zeroes.add(frozenset(sorted(solution.items())))
             for g in new_groebner_basis:
-                if len(g.variables()) == 1:
-                    v = g.variables().pop()
+                if len(g.variables) == 1:
+                    v = g.variables.pop()
                     solutions = solve(g)
                     if type(solutions) == set or type(solutions) == tuple or type(solutions) == list:
                         for s in solutions:
@@ -168,8 +168,8 @@ class Ideal:
                     break
         else:
             for g in groebner_basis:
-                if len(g.variables()) == 1:
-                    v = g.variables().pop()
+                if len(g.variables) == 1:
+                    v = g.variables.pop()
                     solutions = solve(g)
                     if type(solutions) == set or type(solutions) == tuple or type(solutions) == list:
                         for s in solutions:
@@ -187,7 +187,7 @@ class Ideal:
         """
         variables = set()
         for p in self.polynomials:
-            variables = variables.union(p.variables())
+            variables = variables.union(p.variables)
         variables = sorted(list(variables))  # lex ordering
         groebner_basis = self.groebner_basis()
         zeroes = set()
