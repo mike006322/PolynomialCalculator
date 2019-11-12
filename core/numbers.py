@@ -119,36 +119,36 @@ class Integer:
 
     def __mul__(self, other):
         if type(other) == int:
-            return Integer(self.value*other)
+            return Integer(self.value * other)
         if type(other) == complex or type(other) == float:
-            return self.value*other
+            return self.value * other
         if type(other) == Rational:
-            return Integer(self.value*other.value())
+            return Integer(self.value * other.value())
         if type(other) == Integer:
-            return Integer(self.value*other.value)
+            return Integer(self.value * other.value)
         else:
-            return self.value*other
+            return self.value * other
 
     def __rmul__(self, other):
         if type(other) == int:
-            return Integer(self.value*other)
+            return Integer(self.value * other)
         if type(other) == complex or type(other) == float:
-            return self.value*other
+            return self.value * other
         if type(other) == Rational:
-            return Integer(self.value*other.value())
+            return Integer(self.value * other.value())
         else:
-            return Integer(self.value*other.value)
+            return Integer(self.value * other.value)
 
     def __pow__(self, power, modulo=None):
         if type(power) == Integer:
-            return Integer(self.value**int(power))
-        if type(self.value**power) == int:
-            return Integer(self.value**power)
+            return Integer(self.value ** int(power))
+        if type(self.value ** power) == int:
+            return Integer(self.value ** power)
         else:
-            return self.value**power
+            return self.value ** power
 
     def __rpow__(self, other):
-        return other**self.value
+        return other ** self.value
 
     def __mod__(self, other):
         if type(other) == Integer:
@@ -162,7 +162,7 @@ class Integer:
     def __truediv__(self, other):
         if type(other) == Integer:
             if self.value % other.value == 0:
-                return self//other
+                return self // other
             else:
                 return Rational(self, other)
         if type(other) == Rational:
@@ -178,6 +178,7 @@ class Rational:
     """
     Rational class represents members of field of rational numbers, Q
     """
+    __slots__ = ('numerator', 'denominator')
 
     def __init__(self, a, b=None):
         if type(a) == str:
@@ -248,35 +249,37 @@ class Rational:
 
     def __mul__(self, other):
         if type(other) == Rational:
-            return Rational(self.numerator*other.numerator, self.denominator*other.denominator)
+            return Rational(self.numerator * other.numerator, self.denominator * other.denominator)
         else:
-            return self.value()*other
+            return self.value() * other
 
     def __truediv__(self, other):
         if type(other) == Rational:
-            return Rational(self.numerator*other.denominator, self.denominator*other.numerator)
+            return Rational(self.numerator * other.denominator, self.denominator * other.numerator)
         if type(other) == Integer:
-            return Rational(self.numerator, self.denominator*other)
+            return Rational(self.numerator, self.denominator * other)
         else:
             return self.value() / other
 
     def __add__(self, other):
         if type(other) == Rational:
-            return Rational(self.numerator*other.denominator + other.numerator*self.denominator, self.denominator*other.denominator)
+            return Rational(self.numerator * other.denominator + other.numerator * self.denominator,
+                            self.denominator * other.denominator)
         else:
-            return self+Rational(other)
+            return self + Rational(other)
 
     def __sub__(self, other):
         if type(other) == Rational:
-            return Rational(self.numerator*other.denominator - other.numerator*self.denominator, self.denominator*other.denominator)
+            return Rational(self.numerator * other.denominator - other.numerator * self.denominator,
+                            self.denominator * other.denominator)
         else:
-            return self-Rational(other)
+            return self - Rational(other)
 
     def __neg__(self):
         return Rational(-self.numerator, self.denominator)
 
     def __pow__(self, power, modulo=None):
-        return Rational(self.numerator**power, self.denominator**power)
+        return Rational(self.numerator ** power, self.denominator ** power)
 
 
 if __name__ == '__main__':
