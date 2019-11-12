@@ -2,6 +2,37 @@
 from math import gcd
 
 
+class Matrix:
+    __slots__ = ('_values',)
+
+    def __init__(self, values):
+        self._values = values
+
+    def __add__(self, other):
+        pass
+
+    def __sub__(self, other):
+        pass
+
+    def __mul__(self, other):
+        if type(other) == Matrix:
+            return matrix_times_matrix(self._values, other.values)
+        else:
+            return matrix_times_matrix(self._values, other)
+
+    def transpose(self):
+        return transpose_matrix(self._values)
+
+    def determinant(self):
+        return get_matrix_determinant(self._values)
+
+    def inverse(self):
+        return get_matrix_inverse(self._values)
+
+    def null_space(self):
+        return get_nullspace(self._values)
+
+
 def transpose_matrix(m):
     return list(map(list, zip(*m)))
 
@@ -11,7 +42,7 @@ def get_matrix_minor(m, i, j):
 
 
 def get_matrix_determinant(m):
-    # base case for 2x2 matrix_folder
+    # base case for 2x2 matrix
     if len(m) == 2:
         return m[0][0] * m[1][1] - m[0][1] * m[1][0]
 
@@ -23,12 +54,12 @@ def get_matrix_determinant(m):
 
 def get_matrix_inverse(m):
     determinant = get_matrix_determinant(m)
-    # special case for 2x2 matrix_folder:
+    # special case for 2x2 matrix:
     if len(m) == 2:
         return [[m[1][1] / determinant, -1 * m[0][1] / determinant],
                 [-1 * m[1][0] / determinant, m[0][0] / determinant]]
 
-    # find matrix_folder of cofactors
+    # find matrix of cofactors
     cofactors = []
     for i in range(len(m)):
         cofactor_row = []
@@ -87,6 +118,11 @@ def matrix_times_matrix(x, y):
     return res
 
 
+def matrix_plus_matrix(x, y):
+    pass
+    # TODO M + M, M - M, scalar times Matrix, write tests for class
+
+
 def vector_times_matrix(vector, matrix):
     res = []
     for column_number in range(len(matrix[0])):
@@ -99,7 +135,7 @@ def vector_times_matrix(vector, matrix):
 
 def get_nullspace(matrix):
     """
-    returns the right nullspace of matrix_folder, a.k.a. kernel
+    returns the right nullspace of matrix, a.k.a. kernel
     The left nullspace is simply the nullspace of the transpose of the input
     """
     # get ref
@@ -151,7 +187,7 @@ def get_nullspace(matrix):
 
 # def get_nullspace_numpy(matrix):
 #     """
-#     returns the right nullspace of matrix_folder, a.k.a. kernel
+#     returns the right nullspace of matrix, a.k.a. kernel
 #     The left nullspace is simply the nullspace of the transpose of the input
 #     This function has numpy dependency.
 #     """
@@ -299,7 +335,7 @@ def column_sub_matrix(m, stop, start=0):
 
 def print_matrix(matrix):
     """
-    prints a python list in matrix_folder formatting
+    prints a python list in matrix formatting
     """
     s = [[str(int(e)) for e in row] for row in matrix]
     lens = [max(map(len, col)) for col in zip(*s)]
