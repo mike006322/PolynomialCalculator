@@ -140,12 +140,14 @@ class Polynomial:
         """
         returns gradient vector
         """
+
         class Gradient(list):
             def __call__(self, *a, **k):
                 res = []
                 for partial_derivative in g:
                     res.append(partial_derivative(*a, **k))
                 return res
+
         g = Gradient()
         for i in range(1, len(self.term_matrix[0])):
             g.append(self.derivative(self.term_matrix[0][i]))
@@ -156,6 +158,7 @@ class Polynomial:
         """
         returns Hessian matrix
         """
+
         class Hessian(list):
             self.variables_in_order = tuple()
 
@@ -169,14 +172,15 @@ class Polynomial:
                         row.append(partial_derivative(**kwargs))
                     res.append(row)
                 return res
+
         h = Hessian()
         h.variables_in_order = tuple(self.term_matrix[0][1:])
         number_of_variables = len(self.variables)
         for i in range(number_of_variables):
             h.append([])
             for j in range(number_of_variables):
-                var1 = self.term_matrix[0][i+1]
-                var2 = self.term_matrix[0][j+1]
+                var1 = self.term_matrix[0][i + 1]
+                var2 = self.term_matrix[0][j + 1]
                 h[i].append(self.derivative(var1).derivative(var2))
         return h
 
@@ -229,8 +233,8 @@ class Polynomial:
                     if term[i] != 0:
                         all_zero = False
                 if all_zero:
-                    if i < len(res[0])-1:
-                        res = [x[0:i] + x[i+1:] for x in res]
+                    if i < len(res[0]) - 1:
+                        res = [x[0:i] + x[i + 1:] for x in res]
                     else:
                         res = [x[0:i] for x in res]
                     break
@@ -302,7 +306,7 @@ class Polynomial:
         else:
             return self
         if i != len(poly.variables):
-            remaining_vars = poly.term_matrix[0][:i] + poly.term_matrix[0][i+1:]
+            remaining_vars = poly.term_matrix[0][:i] + poly.term_matrix[0][i + 1:]
         else:
             remaining_vars = poly.term_matrix[0][:i]
         res = Polynomial([['constant', variable]], poly.field_characteristic)
@@ -366,7 +370,7 @@ class Polynomial:
                 if v in res.term_matrix[0]:
                     j = res.term_matrix[0].index(v)
                     for i in range(1, len(res.term_matrix)):
-                        res.term_matrix[i][0] *= kwargs[v]**res.term_matrix[i][j]
+                        res.term_matrix[i][0] *= kwargs[v] ** res.term_matrix[i][j]
                         res.term_matrix[i][j] = 0
             res.term_matrix = collect_like_terms(res.term_matrix)
             res.term_matrix = order(res.term_matrix)
@@ -378,19 +382,20 @@ class Polynomial:
         else:
             res = self.copy()
             for variable_number, v in enumerate(args):
-                if type(v) == Integer or type(v) == Rational or type(v) == int or type(v) == float or type(v) == complex:
+                if type(v) == Integer or type(v) == Rational or type(v) == int or type(v) == float or type(
+                        v) == complex:
                     for i in range(1, len(res.term_matrix)):
-                        res.term_matrix[i][0] *= v**res.term_matrix[i][variable_number+1]
-                        res.term_matrix[i][variable_number+1] = 0
+                        res.term_matrix[i][0] *= v ** res.term_matrix[i][variable_number + 1]
+                        res.term_matrix[i][variable_number + 1] = 0
                 elif type(v) == Polynomial:
                     new_res = 0
                     for i in range(1, len(res.term_matrix)):
                         new_term = res.term_matrix[i][0]
                         for j in range(1, len(res.term_matrix[i])):
                             if j == variable_number + 1:
-                                new_term *= v**res.term_matrix[i][j]
+                                new_term *= v ** res.term_matrix[i][j]
                             else:
-                                new_term *= Polynomial(res.term_matrix[0][j])**res.term_matrix[i][j]
+                                new_term *= Polynomial(res.term_matrix[0][j]) ** res.term_matrix[i][j]
                         new_res += new_term
                     res = new_res
             res.term_matrix = collect_like_terms(res.term_matrix)
@@ -449,7 +454,7 @@ class Polynomial:
             for term in self_copy.term_matrix[1:]:
                 for other_term in other_copy.term_matrix[1:]:
                     product = list()
-                    product.append(term[0]*other_term[0])
+                    product.append(term[0] * other_term[0])
                     for i in range(1, len(term)):
                         product.append(term[i] + other_term[i])
                     res.append(product)
@@ -616,6 +621,7 @@ def division_string(p, *others):
     res += ' + (remainder:) ' + str(r)
     return res
 
+
 # self.assertEqual(gcd(Polynomial('x^3y^2'), Polynomial('x^4y')), Polynomial('x^3y'))
 
 
@@ -640,7 +646,7 @@ def gcd(a, b):
         isolated_b = b.isolate(variable)
         if len(isolated_a.term_matrix[1]) > 1 and len(isolated_b.term_matrix[1]) > 1:
             if variable in isolated_a.variables and variable in isolated_b.variables:
-                res *= Polynomial(variable)**min(isolated_a.term_matrix[1][1], isolated_b.term_matrix[1][1])
+                res *= Polynomial(variable) ** min(isolated_a.term_matrix[1][1], isolated_b.term_matrix[1][1])
     return res
 
 
@@ -666,7 +672,7 @@ def lcm(a, b):
     """
     returns least common multiple of two polynomials
     """
-    return a*b/gcd(a, b)
+    return a * b / gcd(a, b)
 
 
 if __name__ == '__main__':
