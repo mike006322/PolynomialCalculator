@@ -19,6 +19,9 @@ class Matrix:
     def __sub__(self, other):
         return self + -1 * other
 
+    def __neg__(self):
+        return -1 * self
+
     def __mul__(self, other):
         if type(other) == Matrix:
             return Matrix(matrix_times_matrix(self._values, other._values))
@@ -26,6 +29,9 @@ class Matrix:
             return Matrix(matrix_times_matrix(self._values, other))
         if type(other) in {int, float, Integer, Rational}:
             return Matrix(scalar_multiplication(other, self._values))
+
+    def __rmul__(self, other):
+        return self * other
 
     def __eq__(self, other):
         if type(other) == Matrix:
