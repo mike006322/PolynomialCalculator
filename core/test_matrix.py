@@ -61,6 +61,53 @@ class TestMatrixInverse(unittest.TestCase):
              [7, 8, 9]]
         self.assertEqual(column_sub_matrix(m, 2), [[12, 7], [4, 5], [7, 8]])
 
+    def test_get_integer_ref(self):
+        m = [[-3, 6, -1, 1, -7], [1, -2, 2, 3, -1], [2, -4, 5, 8, -4]]
+        # assert get_integer_ref(m) == [[1, -2, 0, -1, 3], [0, 0, 1, 2, -2], [0, 0, 0, 0, 0]]
+        self.assertEqual(get_integer_ref(m), [[1, -2, 0, -1, 3], [0, 0, 1, 2, -2], [0, 0, 0, 0, 0]])
+        m = transpose_matrix(m)
+        int_ref = get_integer_ref(m)
+        self.assertEqual(int_ref, [[-5, 0, -1], [0, 5, 13], [0, 0, 0], [0, 0, 0], [0, 0, 0]])
+
+    def test_get_nullspace(self):
+        m = [[-3, 6, -1, 1, -7], [1, -2, 2, 3, -1], [2, -4, 5, 8, -4]]
+        N = get_nullspace(m)
+        self.assertEqual(N, [[2, 1, -3], [1, 0, 0], [0, -2, 2], [0, 1, 0], [0, 0, 1]])
+        test_vec = transpose_matrix([[1, 2, 3]])
+        self.assertEqual(matrix_times_matrix(m, matrix_times_matrix(N, test_vec)), [[0], [0], [0]])
+        m = [[4, 4, 4, 4, 4, 124, 0, 0, 0, 0, 0, 0, 0],
+             [4, 12, 36, 108, 324, 0, 124, 0, 0, 0, 0, 0, 0],
+             [4, 36, 324, 2916, 26244, 0, 0, 124, 0, 0, 0, 0, 0],
+             [62, 0, 0, 0, 0, 0, 0, 0, 124, 0, 0, 0, 0],
+             [0, 62, 0, 0, 0, 0, 0, 0, 0, 124, 0, 0, 0],
+             [0, 0, 62, 0, 0, 0, 0, 0, 0, 0, 124, 0, 0],
+             [0, 0, 0, 62, 0, 0, 0, 0, 0, 0, 0, 124, 0],
+             [31, 31, 31, 31, 31, 0, 0, 0, 0, 0, 0, 0, 124]]
+        N = get_nullspace(m)
+        res = [[-62, 0, 0, 0, 62, 0, -160, -13120, 31, 0, 0, 0, 0], [0, -62, 0, 0, 62, 0, -156, -13104, 0, 31, 0, 0, 0],
+               [0, 0, -62, 0, 62, 0, -144, -12960, 0, 0, 31, 0, 0], [0, 0, 0, -62, 62, 0, -108, -11664, 0, 0, 0, 31, 0],
+               [0, 0, 0, 0, -124, 4, 324, 26244, 0, 0, 0, 0, 31]]
+        self.assertEqual(transpose_matrix(N), res)
+
+    def test_scalar_multiplication(self):
+        M = Matrix([[-3, 6, -1, 1, -7], [1, -2, 2, 3, -1], [2, -4, 5, 8, -4]])
+        res = Matrix([[-6, 12, -2, 2, -14], [2, -4, 4, 6, -2], [4, -8, 10, 16, -8]])
+        self.assertEqual(M * 2, res)
+
+    def test_multiplication(self):
+        m1 = Matrix([[1, 0], [0, 1]])
+        m2 = Matrix([[2, 3], [4, 5]])
+        self.assertEqual(m1 * m2, m2)
+
+    def test_shape(self):
+        m = Matrix([[1, 0], [0, 1]])
+        self.assertEqual(m.shape, (2, 2))
+
+    def test___add__(self):
+        m = Matrix([[1, 0], [0, 1]])
+        res = Matrix([[2, 0], [0, 2]])
+        self.assertEqual(m + m, res)
+
 
 if __name__ == '__main__':
     unittest.main()

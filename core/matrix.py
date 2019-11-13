@@ -1,5 +1,6 @@
 # import numpy as np
 from math import gcd
+from numbers import *
 
 
 class Matrix:
@@ -9,16 +10,41 @@ class Matrix:
         self._values = values
 
     def __add__(self, other):
-        pass
+        if type(other) == Matrix:
+            assert self.shape == other.shape
+            return Matrix(matrix_plus_matrix(self._values, other._values))
+        if type(other) == list:
+            return Matrix(matrix_plus_matrix(self._values, other))
 
     def __sub__(self, other):
-        pass
+        return self + -1 * other
 
     def __mul__(self, other):
         if type(other) == Matrix:
-            return matrix_times_matrix(self._values, other.values)
+            return Matrix(matrix_times_matrix(self._values, other._values))
+        if type(other) == list:
+            return Matrix(matrix_times_matrix(self._values, other))
+        if type(other) in {int, float, Integer, Rational}:
+            return Matrix(scalar_multiplication(other, self._values))
+
+    def __eq__(self, other):
+        if type(other) == Matrix:
+            if self._values == other._values:
+                return True
+            else:
+                return False
         else:
-            return matrix_times_matrix(self._values, other)
+            return False
+
+    def __str__(self):
+        return matrix_to_string(self._values)
+
+    def __repr__(self):
+        return matrix_to_string(self._values)
+
+    @property
+    def shape(self):
+        return len(self._values), len(self._values[0])
 
     def transpose(self):
         return transpose_matrix(self._values)
@@ -95,6 +121,15 @@ def constant_times_vector(constant, vector):
     return res
 
 
+def scalar_multiplication(constant, matrix):
+    res = []
+    for i, row in enumerate(matrix):
+        res.append([])
+        for component in row:
+            res[i].append(constant * component)
+    return res
+
+
 def matrix_times_vector(matrix, vector):
     res = []
     for row in matrix:
@@ -119,8 +154,12 @@ def matrix_times_matrix(x, y):
 
 
 def matrix_plus_matrix(x, y):
-    pass
-    # TODO M + M, M - M, scalar times Matrix, write tests for class
+    res = []
+    for i in range(len(x)):
+        res.append([])
+        for j in range(len(x[0])):
+            res[i].append(x[i][j] + y[i][j])
+    return res
 
 
 def vector_times_matrix(vector, matrix):
@@ -333,7 +372,7 @@ def column_sub_matrix(m, stop, start=0):
     return [x[start: stop] for x in m]
 
 
-def print_matrix(matrix):
+def matrix_to_string(matrix):
     """
     prints a python list in matrix formatting
     """
@@ -341,7 +380,7 @@ def print_matrix(matrix):
     lens = [max(map(len, col)) for col in zip(*s)]
     fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
     table = [fmt.format(*row) for row in s]
-    print('\n'.join(table), '\n')
+    return '\n'.join(table) + '\n'
 
 
 # def test_get_integer_ref_numpy():
@@ -350,36 +389,6 @@ def print_matrix(matrix):
 #     m = m.transpose()
 #     int_ref = get_integer_ref_numpy(m)
 #     assert int_ref.tolist() == [[-5, 0, -1], [0, 5, 13], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
-
-
-def test_get_integer_ref():
-    m = [[-3, 6, -1, 1, -7], [1, -2, 2, 3, -1], [2, -4, 5, 8, -4]]
-    # assert get_integer_ref(m) == [[1, -2, 0, -1, 3], [0, 0, 1, 2, -2], [0, 0, 0, 0, 0]]
-    assert get_integer_ref(m) == [[1, -2, 0, -1, 3], [0, 0, 1, 2, -2], [0, 0, 0, 0, 0]]
-    m = transpose_matrix(m)
-    int_ref = get_integer_ref(m)
-    assert int_ref == [[-5, 0, -1], [0, 5, 13], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
-
-
-def test_get_nullspace():
-    m = [[-3, 6, -1, 1, -7], [1, -2, 2, 3, -1], [2, -4, 5, 8, -4]]
-    N = get_nullspace(m)
-    assert N == [[2, 1, -3], [1, 0, 0], [0, -2, 2], [0, 1, 0], [0, 0, 1]]
-    test_vec = transpose_matrix([[1, 2, 3]])
-    assert matrix_times_matrix(m, matrix_times_matrix(N, test_vec)) == [[0], [0], [0]]
-    m = [[4, 4, 4, 4, 4, 124, 0, 0, 0, 0, 0, 0, 0],
-         [4, 12, 36, 108, 324, 0, 124, 0, 0, 0, 0, 0, 0],
-         [4, 36, 324, 2916, 26244, 0, 0, 124, 0, 0, 0, 0, 0],
-         [62, 0, 0, 0, 0, 0, 0, 0, 124, 0, 0, 0, 0],
-         [0, 62, 0, 0, 0, 0, 0, 0, 0, 124, 0, 0, 0],
-         [0, 0, 62, 0, 0, 0, 0, 0, 0, 0, 124, 0, 0],
-         [0, 0, 0, 62, 0, 0, 0, 0, 0, 0, 0, 124, 0],
-         [31, 31, 31, 31, 31, 0, 0, 0, 0, 0, 0, 0, 124]]
-    N = get_nullspace(m)
-    res = [[-62, 0, 0, 0, 62, 0, -160, -13120, 31, 0, 0, 0, 0], [0, -62, 0, 0, 62, 0, -156, -13104, 0, 31, 0, 0, 0],
-           [0, 0, -62, 0, 62, 0, -144, -12960, 0, 0, 31, 0, 0], [0, 0, 0, -62, 62, 0, -108, -11664, 0, 0, 0, 31, 0],
-           [0, 0, 0, 0, -124, 4, 324, 26244, 0, 0, 0, 0, 31]]
-    assert transpose_matrix(N) == res
 
 
 if __name__ == '__main__':
