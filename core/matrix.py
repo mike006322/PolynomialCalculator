@@ -53,16 +53,16 @@ class Matrix:
         return len(self._values), len(self._values[0])
 
     def transpose(self):
-        return transpose_matrix(self._values)
+        return Matrix(transpose_matrix(self._values))
 
     def determinant(self):
         return get_matrix_determinant(self._values)
 
     def inverse(self):
-        return get_matrix_inverse(self._values)
+        return Matrix(get_matrix_inverse(self._values))
 
     def null_space(self):
-        return get_nullspace(self._values)
+        return Matrix(get_nullspace(self._values))
 
 
 def transpose_matrix(m):
