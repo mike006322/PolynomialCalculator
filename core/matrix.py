@@ -55,6 +55,9 @@ class Matrix:
     def __repr__(self):
         return matrix_to_string(self._values)
 
+    def __len__(self):
+        return len(self._values)
+
     @property
     def shape(self):
         return len(self._values), len(self._values[0])
@@ -70,6 +73,38 @@ class Matrix:
 
     def null_space(self):
         return Matrix(get_nullspace(self._values))
+
+    @staticmethod
+    def zeroes(dimension):
+        res = []
+        if type(dimension) == tuple:
+            n = dimension[0]
+            m = dimension[1]
+            for i in range(n):
+                res.append([])
+                for j in range(m):
+                    res[i].append(0)
+        if type(dimension) == int:
+            res.append([])
+            for i in range(dimension):
+                res[0].append(0)
+        return Matrix(res)
+
+    @staticmethod
+    def ones(dimension):
+        res = []
+        if type(dimension) == tuple:
+            n = dimension[0]
+            m = dimension[1]
+            for i in range(n):
+                res.append([])
+                for j in range(m):
+                    res[i].append(1)
+        if type(dimension) == int:
+            res.append([])
+            for i in range(dimension):
+                res[0].append(1)
+        return Matrix(res)
 
 
 def transpose_matrix(m):

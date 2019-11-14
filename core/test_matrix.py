@@ -108,6 +108,14 @@ class TestMatrixInverse(unittest.TestCase):
         res = Matrix([[2, 0], [0, 2]])
         self.assertEqual(m + m, res)
 
+    def test_zeroes(self):
+        m = Matrix.zeroes(5)
+        res = Matrix([[0, 0, 0, 0, 0]])
+        self.assertEqual(m, res)
+        m = Matrix.zeroes((3, 3))
+        res = Matrix([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
+        self.assertEqual(m, res)
+
 
 if __name__ == '__main__':
     unittest.main()
