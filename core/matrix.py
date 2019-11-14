@@ -140,7 +140,6 @@ def scalar_multiplication(constant, matrix):
         res.append([])
         for component in row:
             res[i].append(constant * component)
-    print('scalar multiplcation: ', res)
     return res
 
 
