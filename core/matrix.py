@@ -1,6 +1,6 @@
 # import numpy as np
 from math import gcd
-from numbers import *
+from core.numbers import *
 
 
 class Matrix:
@@ -8,6 +8,13 @@ class Matrix:
 
     def __init__(self, values):
         self._values = values
+
+    def __getitem__(self, index):
+        return self._values[index]
+
+    def __float__(self):
+        assert self.shape == (1, 1)
+        return float(self._values[0][0])
 
     def __add__(self, other):
         if type(other) == Matrix:
@@ -133,6 +140,7 @@ def scalar_multiplication(constant, matrix):
         res.append([])
         for component in row:
             res[i].append(constant * component)
+    print('scalar multiplcation: ', res)
     return res
 
 
@@ -382,7 +390,7 @@ def matrix_to_string(matrix):
     """
     prints a python list in matrix formatting
     """
-    s = [[str(int(e)) for e in row] for row in matrix]
+    s = [[str(e) for e in row] for row in matrix]
     lens = [max(map(len, col)) for col in zip(*s)]
     fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
     table = [fmt.format(*row) for row in s]
