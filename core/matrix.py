@@ -3,25 +3,18 @@ from math import gcd
 from core.polycalc_numbers import *
 
 
-class Matrix:
-    __slots__ = ('_values',)
-
-    def __init__(self, values):
-        self._values = values
-
-    def __getitem__(self, index):
-        return self._values[index]
+class Matrix(list):
 
     def __float__(self):
         assert self.shape == (1, 1)
-        return float(self._values[0][0])
+        return float(self[0][0])
 
     def __add__(self, other):
         if type(other) == Matrix:
             assert self.shape == other.shape
-            return Matrix(matrix_plus_matrix(self._values, other._values))
+            return Matrix(matrix_plus_matrix(self, other))
         if type(other) == list:
-            return Matrix(matrix_plus_matrix(self._values, other))
+            return Matrix(matrix_plus_matrix(self, other))
 
     def __sub__(self, other):
         return self + -1 * other
@@ -31,48 +24,36 @@ class Matrix:
 
     def __mul__(self, other):
         if type(other) == Matrix:
-            return Matrix(matrix_times_matrix(self._values, other._values))
+            return Matrix(matrix_times_matrix(self, other))
         if type(other) == list:
-            return Matrix(matrix_times_matrix(self._values, other))
+            return Matrix(matrix_times_matrix(self, other))
         if type(other) in {int, float, Integer, Rational}:
-            return Matrix(scalar_multiplication(other, self._values))
+            return Matrix(scalar_multiplication(other, self))
 
     def __rmul__(self, other):
         return self * other
 
-    def __eq__(self, other):
-        if type(other) == Matrix:
-            if self._values == other._values:
-                return True
-            else:
-                return False
-        else:
-            return False
-
     def __str__(self):
-        return matrix_to_string(self._values)
+        return matrix_to_string(self)
 
     def __repr__(self):
-        return matrix_to_string(self._values)
-
-    def __len__(self):
-        return len(self._values)
+        return matrix_to_string(self)
 
     @property
     def shape(self):
-        return len(self._values), len(self._values[0])
+        return len(self), len(self[0])
 
     def transpose(self):
-        return Matrix(transpose_matrix(self._values))
+        return Matrix(transpose_matrix(self))
 
     def determinant(self):
-        return get_matrix_determinant(self._values)
+        return get_matrix_determinant(self)
 
     def inverse(self):
-        return Matrix(get_matrix_inverse(self._values))
+        return Matrix(get_matrix_inverse(self))
 
     def null_space(self):
-        return Matrix(get_nullspace(self._values))
+        return Matrix(get_nullspace(self))
 
     @staticmethod
     def zeroes(dimension):
