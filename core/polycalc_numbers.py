@@ -1,5 +1,7 @@
 # This module defines number classes so that numbers can be manipulated and presented symbolically
 
+from core.vector import Vector
+
 
 def make_number(number):
     """
@@ -126,6 +128,8 @@ class Integer:
             return Integer(self.value * other.value())
         if type(other) == Integer:
             return Integer(self.value * other.value)
+        if type(other) == Vector:
+            return Vector.__mul__(other, self)
         else:
             return self.value * other
 
@@ -181,7 +185,15 @@ class Rational:
     __slots__ = ('numerator', 'denominator')
 
     def __init__(self, a, b=None):
-        if type(a) == str:
+        if type(a) == Rational:
+            if not b:
+                self.numerator = a.numerator
+                self.denominator = a.denominator
+            else:
+                temp = Rational(a, b)
+                self.numerator = temp.numerator
+                self.denominator = temp.denominator
+        elif type(a) == str:
             if '/' in a:
                 self.numerator = Integer(int(a[:a.find('/')]))
                 self.denominator = Integer(int(a[a.find('/') + 1:]))
@@ -250,8 +262,13 @@ class Rational:
     def __mul__(self, other):
         if type(other) == Rational:
             return Rational(self.numerator * other.numerator, self.denominator * other.denominator)
+        if type(other) == Vector:
+            return Vector.__mul__(other, self)
         else:
             return self.value() * other
+
+    def __rmul__(self, other):
+        return self * other
 
     def __truediv__(self, other):
         if type(other) == Rational:
@@ -267,6 +284,9 @@ class Rational:
                             self.denominator * other.denominator)
         else:
             return self + Rational(other)
+
+    def __radd__(self, other):
+        return self + Rational(other)
 
     def __sub__(self, other):
         if type(other) == Rational:
