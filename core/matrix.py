@@ -1,6 +1,6 @@
 # import numpy as np
 from math import gcd
-from core.numbers import *
+from core.polycalc_numbers import *
 
 
 class Matrix:
