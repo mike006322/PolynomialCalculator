@@ -1,6 +1,6 @@
-from core.vector import Vector
-from core.polycalc_numbers import Rational
-from typing import List, Sequence
+# LLL basis reduction
+# Solves shortest vector problem by returning a basis such that the first vector is closest vector to the origin
+
 from core.matrix import *
 
 
@@ -26,7 +26,7 @@ def reduction(basis, delta):
             orthogonal = gram_schmidt(basis)
             k = max(k - 1, 1)
 
-    return [list(map(Rational, b)) for b in basis]
+    return basis
 
 
 if __name__ == '__main__':
