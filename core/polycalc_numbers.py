@@ -58,7 +58,7 @@ class Integer:
     def __lt__(self, other):
         if type(other) == Integer:
             return self.value < other.value
-        if type(other) == int:
+        if type(other) in {int, float}:
             return self.value < other
 
     def __le__(self, other):
@@ -70,7 +70,7 @@ class Integer:
     def __gt__(self, other):
         if type(other) == Integer:
             return self.value > other.value
-        if type(other) == int:
+        if type(other) in {int, float}:
             return self.value > other
 
     def __ge__(self, other):
@@ -193,6 +193,10 @@ class Rational:
                 temp = Rational(a, b)
                 self.numerator = temp.numerator
                 self.denominator = temp.denominator
+        elif type(a) == float:
+            integer_ratio = a.as_integer_ratio()
+            self.numerator = Integer(integer_ratio[0])
+            self.denominator = Integer(integer_ratio[1])
         elif type(a) == str:
             if '/' in a:
                 self.numerator = Integer(int(a[:a.find('/')]))
@@ -230,6 +234,12 @@ class Rational:
     def value(self):
         return self.numerator.value / self.denominator.value
 
+    def __abs__(self):
+        if self.numerator < 0:
+            return -self
+        else:
+            return self
+
     def __float__(self):
         return self.numerator.value / self.denominator.value
 
@@ -254,10 +264,12 @@ class Rational:
                 return False
 
     def __str__(self):
+        if self.denominator == 1:
+            return str(self.numerator)
         return str(self.numerator) + '/' + str(self.denominator)
 
     def __repr__(self):
-        return str(self.numerator) + '/' + str(self.denominator)
+        return str(self)
 
     def __mul__(self, other):
         if type(other) == Rational:
@@ -295,11 +307,39 @@ class Rational:
         else:
             return self - Rational(other)
 
+    def __rsub__(self, other):
+        return -(self - other)
+
     def __neg__(self):
         return Rational(-self.numerator, self.denominator)
 
     def __pow__(self, power, modulo=None):
         return Rational(self.numerator ** power, self.denominator ** power)
+
+    def __gt__(self, other):
+        if type(other) == Rational:
+            return self.numerator * other.denominator > other.numerator * self.denominator
+        if type(other) in {int, float}:
+            return self.numerator > other * self.denominator
+
+    def __lt__(self, other):
+        if type(other) == Rational:
+            return self.numerator * other.denominator < other.numerator * self.denominator
+        if type(other) in {int, float}:
+            return self.numerator < other * self.denominator
+
+    def __ge__(self, other):
+        return self == other or self > other
+
+    def __le__(self, other):
+        return self == other or self < other
+
+    def __round__(self):
+        part_less_than_one = (self.numerator % self.denominator) / self.denominator
+        if part_less_than_one <= 0.5:
+            return Integer(self.numerator//self.denominator)
+        else:
+            return Integer(self.numerator//self.denominator) + 1
 
 
 if __name__ == '__main__':

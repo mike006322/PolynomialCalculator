@@ -1,5 +1,5 @@
 import unittest
-from numbers import *
+from core.polycalc_numbers import *
 
 
 class TestInteger(unittest.TestCase):
@@ -78,6 +78,7 @@ class TestRational(unittest.TestCase):
         self.assertEqual(q.denominator, 4)
         self.assertEqual(Rational(2), Rational(2, 1))
         self.assertEqual(Rational('1/4'), Rational(1, 4))
+        self.assertEqual(Rational(.75), Rational(3, 4))
 
     def test__str__(self):
         q = Rational(1, 4)
