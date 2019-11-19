@@ -3,7 +3,7 @@ from core.orderings import order_lex as order
 from core.orderings import graded_lex as graded_order
 from core.collect_like_terms import collect_like_terms
 from core.formulas import *
-from core.numbers import *
+from core.polycalc_numbers import *
 
 
 class NonFactor(Exception):
