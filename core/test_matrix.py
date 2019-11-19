@@ -2,7 +2,7 @@ import unittest
 from core.matrix import *
 
 
-class TestMatrixInverse(unittest.TestCase):
+class TestMatrix(unittest.TestCase):
 
     def test_matrix_inverse(self):
         m = get_matrix_inverse([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
