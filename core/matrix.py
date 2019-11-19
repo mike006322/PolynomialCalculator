@@ -55,6 +55,9 @@ class Matrix(list):
     def null_space(self):
         return Matrix(get_nullspace(self))
 
+    def gram_schmidt(self):
+        return Matrix(gram_schmidt(self))
+
     @staticmethod
     def zeroes(dimension):
         res = []
@@ -418,6 +421,16 @@ def matrix_to_string(matrix):
 #     m = m.transpose()
 #     int_ref = get_integer_ref_numpy(m)
 #     assert int_ref.tolist() == [[-5, 0, -1], [0, 5, 13], [0, 0, 0], [0, 0, 0], [0, 0, 0]]
+
+def gram_schmidt(m):
+    res = []
+    for row in m:
+        ui = Vector(row)
+        for uj in res:
+            ui = ui - uj.proj(row)
+        if any(ui):
+            res.append(ui)
+    return res
 
 
 if __name__ == '__main__':

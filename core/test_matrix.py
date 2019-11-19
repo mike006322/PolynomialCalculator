@@ -116,6 +116,18 @@ class TestMatrixInverse(unittest.TestCase):
         res = Matrix([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
         self.assertEqual(m, res)
 
+    def test_gram_schmidt(self):
+        m = gram_schmidt([[3, 1], [2, 2]])
+        res = [[3, 1], [-2 / 5, 6 / 5]]
+        for i in range(len(m)):
+            for j in range(len(m[0])):
+                self.assertAlmostEqual(m[i][j], res[i][j])
+        m = gram_schmidt([[4, 1, 2], [4, 7, 2], [3, 1, 7]])
+        res = [[4, 1, 2], [-8 / 7, 40 / 7, -4 / 7], [-11 / 5, 0, 22 / 5]]
+        for i in range(len(m)):
+            for j in range(len(m[0])):
+                self.assertAlmostEqual(m[i][j], res[i][j])
+
 
 if __name__ == '__main__':
     unittest.main()
