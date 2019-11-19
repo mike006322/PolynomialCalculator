@@ -239,7 +239,7 @@ class Rational:
         return self.numerator.value / self.denominator.value
 
     def __int__(self):
-        return self.numerator // self.denominator
+        return int(self.numerator / self.denominator)
 
     def __eq__(self, other):
         if type(other) == Rational:
@@ -284,6 +284,10 @@ class Rational:
             return Rational(self.numerator, self.denominator * other)
         else:
             return self.value() / other
+
+    def __floordiv__(self, other):
+        c = self / other
+        return c.numerator // c.denominator
 
     def __add__(self, other):
         if type(other) == Rational:

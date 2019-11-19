@@ -125,13 +125,10 @@ class TestRational(unittest.TestCase):
     def test__pow__(self):
         self.assertEqual(Rational(3, 2)**2, Rational(9, 4))
 
-
-class TestMakeNumber(unittest.TestCase):
-
-    def test_make_number(self):
-        self.assertEqual(make_number('2'), Integer(2))
-        self.assertEqual(make_number('2.5'), Rational(5, 2))
-        self.assertEqual(make_number('1.5'), Rational(3, 2))
+    def test___floordiv__(self):
+        a = Rational(1, 2)
+        b = Rational(3, 8)
+        self.assertEqual(a//b, 1)
 
 
 if __name__ == '__main__':
