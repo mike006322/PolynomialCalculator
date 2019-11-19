@@ -111,6 +111,13 @@ class Matrix(list):
                 res[0].append(1)
         return Matrix(res)
 
+    @staticmethod
+    def identity(n):
+        res = Matrix.zeroes((n, n))
+        for i in range(n):
+            res[i][i] = 1
+        return res
+
 
 def transpose_matrix(m):
     return list(map(list, zip(*m)))

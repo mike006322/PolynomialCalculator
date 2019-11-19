@@ -116,6 +116,10 @@ class TestMatrix(unittest.TestCase):
         res = Matrix([[0, 0, 0], [0, 0, 0], [0, 0, 0]])
         self.assertEqual(m, res)
 
+    def test_identity(self):
+        res = Matrix([[1, 0], [0, 1]])
+        print(Matrix.identity(2))
+
     def test_gram_schmidt(self):
         m = gram_schmidt([[3, 1], [2, 2]])
         res = [[3, 1], [-2 / 5, 6 / 5]]
