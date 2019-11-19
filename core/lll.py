@@ -4,7 +4,7 @@
 from core.matrix import *
 
 
-def reduction(basis, delta):
+def lll_reduction(basis, delta):
     n = len(basis)
     basis = list(map(Vector, basis))
     orthogonal = gram_schmidt(basis)
