@@ -113,6 +113,7 @@ class TestRational(unittest.TestCase):
         q = Rational(1, 4)
         p = Rational(3, 5)
         self.assertEqual(p/q, Rational(12, 5))
+        self.assertEqual(q / 4.0, Rational(1, 16))
 
     def test__add__(self):
         self.assertEqual(Rational(1, 2) + Rational(3, 4), Rational(5, 4))
@@ -129,6 +130,11 @@ class TestRational(unittest.TestCase):
         a = Rational(1, 2)
         b = Rational(3, 8)
         self.assertEqual(a//b, 1)
+
+    def test__mod__(self):
+        a = Rational(36)
+        b = Rational(5)
+        self.assertEqual(a % b, 1)
 
 
 if __name__ == '__main__':

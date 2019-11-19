@@ -107,8 +107,10 @@ class Integer:
     def __mul__(self, other):
         if type(other) == int:
             return Integer(self.value * other)
-        if type(other) == complex or type(other) == float:
+        if type(other) == complex:
             return self.value * other
+        if type(other) == float:
+            return self * Rational(other)
         if type(other) == Rational:
             return Integer(self.value * other.value())
         if type(other) == Integer:
@@ -119,14 +121,7 @@ class Integer:
             return self.value * other
 
     def __rmul__(self, other):
-        if type(other) == int:
-            return Integer(self.value * other)
-        if type(other) == complex or type(other) == float:
-            return self.value * other
-        if type(other) == Rational:
-            return Integer(self.value * other.value())
-        else:
-            return Integer(self.value * other.value)
+        return self * other
 
     def __pow__(self, power, modulo=None):
         if type(power) == Integer:
@@ -178,6 +173,7 @@ class Rational:
                 temp = Rational(a, b)
                 self.numerator = temp.numerator
                 self.denominator = temp.denominator
+                Rational.normalize(self)
         elif type(a) == float:
             integer_ratio = a.as_integer_ratio()
             if not b:
@@ -192,17 +188,19 @@ class Rational:
                 elif type(b) in {int, Integer}:
                     self.numerator = Integer(integer_ratio_a[0] * b)
                     self.denominator = Integer(integer_ratio_a[1])
+                Rational.normalize(self)
         elif type(a) == str:
             if '/' in a:
                 self.numerator = Integer(int(a[:a.find('/')]))
                 self.denominator = Integer(int(a[a.find('/') + 1:]))
+                Rational.normalize(self)
         else:
             self.numerator = Integer(a)
             if not b:
                 self.denominator = Integer(1)
             else:
                 self.denominator = Integer(b)
-        Rational.normalize(self)
+            Rational.normalize(self)
 
     @staticmethod
     def gcd(a, b):
@@ -259,7 +257,7 @@ class Rational:
                 return False
 
     def __str__(self):
-        if self.denominator == 1:
+        if self.denominator == 1 or self.numerator == 0:
             return str(self.numerator)
         return str(self.numerator) + '/' + str(self.denominator)
 
@@ -269,6 +267,8 @@ class Rational:
     def __mul__(self, other):
         if type(other) == Rational:
             return Rational(self.numerator * other.numerator, self.denominator * other.denominator)
+        if type(other) == int:
+            return Rational(self.numerator * other, self.denominator)
         if type(other) == Vector:
             return Vector.__mul__(other, self)
         else:
@@ -282,12 +282,20 @@ class Rational:
             return Rational(self.numerator * other.denominator, self.denominator * other.numerator)
         if type(other) == Integer:
             return Rational(self.numerator, self.denominator * other)
+        if type(other) == float:
+            return self / Rational(*other.as_integer_ratio())
         else:
             return self.value() / other
 
+    def __rtruediv__(self, other):
+        return Rational(other) / self
+
     def __floordiv__(self, other):
         c = self / other
-        return c.numerator // c.denominator
+        return Rational(c.numerator // c.denominator)
+
+    def __rfloordiv__(self, other):
+        return Rational(other) // self
 
     def __add__(self, other):
         if type(other) == Rational:
@@ -336,9 +344,16 @@ class Rational:
     def __round__(self):
         part_less_than_one = (self.numerator % self.denominator) / self.denominator
         if part_less_than_one <= 0.5:
-            return Integer(self.numerator//self.denominator)
+            return Integer(self.numerator // self.denominator)
         else:
-            return Integer(self.numerator//self.denominator) + 1
+            return Integer(self.numerator // self.denominator) + 1
+
+    def __mod__(self, other):
+        t = self // other
+        return self - t * other
+
+    def __rmod__(self, other):
+        return Rational(other) % self
 
 
 if __name__ == '__main__':
