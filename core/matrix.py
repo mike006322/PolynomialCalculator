@@ -39,6 +39,27 @@ class Matrix(list):
     def __repr__(self):
         return matrix_to_string(self)
 
+    def concatenate(self, other, axis=None):
+        """
+        axis = 0: vertical concatenation (default)
+        axis = 1: horizontal concatenation
+        """
+        if other == [] or other == [[]]:
+            return self
+        res = self.copy()
+        if not axis:
+            axis = 0
+        if axis == 0:
+            assert self.shape[1] == len(other[0])
+            for row in other:
+                res.append(row)
+        if axis == 1:
+            assert self.shape[0] == len(other)
+            for j in range(len(other[0])):
+                for i in range(len(res)):
+                    res[i].append(other[i][j])
+        return Matrix(res)
+
     @property
     def shape(self):
         return len(self), len(self[0])

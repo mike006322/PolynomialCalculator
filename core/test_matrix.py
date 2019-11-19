@@ -128,6 +128,18 @@ class TestMatrix(unittest.TestCase):
             for j in range(len(m[0])):
                 self.assertAlmostEqual(m[i][j], res[i][j])
 
+    def test_concatenate(self):
+        m = Matrix([[1, 0], [0, 1]])
+        m2 = Matrix([[1, 1]])
+        m3 = m.concatenate(m2)
+        res = Matrix([[1, 0], [0, 1], [1, 1]])
+        self.assertEqual(m3, res)
+        m3 = m.concatenate(m2.transpose(), axis=1)
+        res = Matrix([[1, 0, 1], [0, 1, 1]])
+        self.assertEqual(m3, res)
+        m3 = m.concatenate([])
+        self.assertEqual(m3, m)
+
 
 if __name__ == '__main__':
     unittest.main()
