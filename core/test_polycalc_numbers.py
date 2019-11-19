@@ -79,6 +79,8 @@ class TestRational(unittest.TestCase):
         self.assertEqual(Rational(2), Rational(2, 1))
         self.assertEqual(Rational('1/4'), Rational(1, 4))
         self.assertEqual(Rational(.75), Rational(3, 4))
+        self.assertEqual(Rational(1.5, 1.5), 1)
+        self.assertEqual(Rational(1.5, 2), 3)
 
     def test__str__(self):
         q = Rational(1, 4)

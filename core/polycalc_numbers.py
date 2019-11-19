@@ -3,21 +3,6 @@
 from core.vector import Vector
 
 
-def make_number(number):
-    """
-    input string
-    output integer or rational based on what the string represents
-    """
-    number = float(number)
-    if round(number) == number:
-        return Integer(number)
-    multiplier = 1
-    while number - int(number) > 0:
-        number *= 10
-        multiplier *= 10
-    return Rational(number, multiplier)
-
-
 class Integer:
     """
     Integer class represents members of ring of integers, Z
@@ -195,8 +180,18 @@ class Rational:
                 self.denominator = temp.denominator
         elif type(a) == float:
             integer_ratio = a.as_integer_ratio()
-            self.numerator = Integer(integer_ratio[0])
-            self.denominator = Integer(integer_ratio[1])
+            if not b:
+                self.numerator = Integer(integer_ratio[0])
+                self.denominator = Integer(integer_ratio[1])
+            if b:
+                integer_ratio_a = integer_ratio
+                if type(b) == float:
+                    integer_ratio_b = b.as_integer_ratio()
+                    self.numerator = Integer(integer_ratio_a[0] * integer_ratio_b[1])
+                    self.denominator = Integer(integer_ratio_a[1] * integer_ratio_b[0])
+                elif type(b) in {int, Integer}:
+                    self.numerator = Integer(integer_ratio_a[0] * b)
+                    self.denominator = Integer(integer_ratio_a[1])
         elif type(a) == str:
             if '/' in a:
                 self.numerator = Integer(int(a[:a.find('/')]))

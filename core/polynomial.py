@@ -43,7 +43,7 @@ class Polynomial:
 
         def make_polynomial_from_string(s):
             if s.isnumeric() or '.' in s:
-                return Polynomial(make_number(s))
+                return Polynomial(Rational(s))
             else:
                 return Polynomial([['constant', s], [1, 1]])
 
