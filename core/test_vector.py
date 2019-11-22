@@ -5,6 +5,14 @@ from core.polycalc_numbers import *
 
 class TestVector(unittest.TestCase):
 
+    def test__init__(self):
+        t = Vector([1, 2, 3])
+        res = [1, 2, 3]
+        self.assertEqual(t, res)
+        t = Vector(1, 2, 3)
+        res = [1, 2, 3]
+        self.assertEqual(t, res)
+
     def test_vector_dot(self):
         t = Vector([1, 2, 3]).dot(Vector([4, 5, 6]))
         res = Rational(32, 1)

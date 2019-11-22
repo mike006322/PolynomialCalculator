@@ -1,18 +1,31 @@
+from functools import lru_cache
+
+
 class Vector(list):
 
+    def __init__(self, *args):
+        if len(args) == 1:
+            super().__init__(*args)
+        elif len(args) > 1:
+            super().__init__(list(args))
+
+    @lru_cache(maxsize=None)
     def sdot(self):
         return self.dot(self)
 
+    @lru_cache(maxsize=None)
     def dot(self, rhs: "Vector"):
         rhs = Vector(rhs)
         assert len(self) == len(rhs)
         return sum(map(lambda x: x[0] * x[1], zip(self, rhs)))
 
+    @lru_cache(maxsize=None)
     def proj_coeff(self, rhs: "Vector"):
         rhs = Vector(rhs)
         assert len(self) == len(rhs)
         return self.dot(rhs) / self.sdot()
 
+    @lru_cache(maxsize=None)
     def proj(self, rhs: "Vector") -> "Vector":
         rhs = Vector(rhs)
         assert len(self) == len(rhs)
@@ -31,6 +44,9 @@ class Vector(list):
 
     def __repr__(self) -> str:
         return "[{}]".format(", ".join(str(x) for x in self))
+
+    def __hash__(self):
+        return hash(repr(self))
 
 
 if __name__ == '__main__':
