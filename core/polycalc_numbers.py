@@ -37,6 +37,9 @@ class Integer:
             else:
                 return False
 
+    def __bool__(self):
+        return not self == 0
+
     def __ne__(self, other):
         return not self.__eq__(other)
 
@@ -69,6 +72,9 @@ class Integer:
 
     def __repr__(self):
         return str(self.value)
+
+    def __bool__(self):
+        return not self == 0
 
     def __add__(self, other):
         if type(other) == Integer:
@@ -112,7 +118,7 @@ class Integer:
         if type(other) == float:
             return self * Rational(other)
         if type(other) == Rational:
-            return Integer(self.value * other.value())
+            return Rational(self * other.numerator, other.denominator)
         if type(other) == Integer:
             return Integer(self.value * other.value)
         if type(other) == Vector:
@@ -188,12 +194,16 @@ class Rational:
                 elif type(b) in {int, Integer}:
                     self.numerator = Integer(integer_ratio_a[0] * b)
                     self.denominator = Integer(integer_ratio_a[1])
-                Rational.normalize(self)
+            Rational.normalize(self)
         elif type(a) == str:
             if '/' in a:
                 self.numerator = Integer(int(a[:a.find('/')]))
                 self.denominator = Integer(int(a[a.find('/') + 1:]))
-                Rational.normalize(self)
+            else:
+                integer_ratio = float(a).as_integer_ratio()
+                self.numerator = Integer(integer_ratio[0])
+                self.denominator = Integer(integer_ratio[1])
+            Rational.normalize(self)
         else:
             self.numerator = Integer(a)
             if not b:
@@ -241,6 +251,10 @@ class Rational:
 
     def __eq__(self, other):
         if type(other) == Rational:
+            if self.numerator == 0:
+                if other.numerator == 0:
+                    return True
+                return False
             if self.numerator == other.numerator and self.denominator == other.denominator:
                 return True
             else:
@@ -250,6 +264,8 @@ class Rational:
                 return True
             else:
                 return False
+        if type(other) in {float, int}:
+            return self == Rational(other)
         else:
             if self.value() == other:
                 return True
@@ -267,8 +283,12 @@ class Rational:
     def __mul__(self, other):
         if type(other) == Rational:
             return Rational(self.numerator * other.numerator, self.denominator * other.denominator)
+        if type(other) == Integer:
+            return Rational(self.numerator * other, self.denominator)
         if type(other) == int:
             return Rational(self.numerator * other, self.denominator)
+        if type(other) == float:
+            return self * Rational(other)
         if type(other) == Vector:
             return Vector.__mul__(other, self)
         else:
@@ -291,6 +311,8 @@ class Rational:
         return Rational(other) / self
 
     def __floordiv__(self, other):
+        if type(other) in {float, int, Integer}:
+            return self // Rational(other)
         c = self / other
         return Rational(c.numerator // c.denominator)
 
@@ -326,8 +348,10 @@ class Rational:
     def __gt__(self, other):
         if type(other) == Rational:
             return self.numerator * other.denominator > other.numerator * self.denominator
-        if type(other) in {int, float}:
+        if type(other) == int:
             return self.numerator > other * self.denominator
+        if type(other) == float:
+            return self > Rational(other)
 
     def __lt__(self, other):
         if type(other) == Rational:
