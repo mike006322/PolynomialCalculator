@@ -64,10 +64,12 @@ class TestMatrix(unittest.TestCase):
     def test_get_integer_ref(self):
         m = [[-3, 6, -1, 1, -7], [1, -2, 2, 3, -1], [2, -4, 5, 8, -4]]
         # assert get_integer_ref(m) == [[1, -2, 0, -1, 3], [0, 0, 1, 2, -2], [0, 0, 0, 0, 0]]
-        self.assertEqual(get_integer_ref(m), [[1, -2, 0, -1, 3], [0, 0, 1, 2, -2], [0, 0, 0, 0, 0]])
+        res = [[1.0, -2.0, 0.0, -1.0, 3.0], [-0.0, -0.0, -1.0, -2.0, 2.0], [0.0, 0.0, 0.0, 0.0, 0.0]]
+        self.assertEqual(get_integer_ref(m), res)
         m = transpose_matrix(m)
         int_ref = get_integer_ref(m)
-        self.assertEqual(int_ref, [[-5, 0, -1], [0, 5, 13], [0, 0, 0], [0, 0, 0], [0, 0, 0]])
+        res = [[5.0, -0.0, 1.0], [0.0, 5.0, 13.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.0, 0.0, 0.0]]
+        self.assertEqual(int_ref, res)
 
     def test_get_nullspace(self):
         m = [[-3, 6, -1, 1, -7], [1, -2, 2, 3, -1], [2, -4, 5, 8, -4]]
@@ -121,12 +123,12 @@ class TestMatrix(unittest.TestCase):
         self.assertEqual(Matrix.identity(2), res)
 
     def test_gram_schmidt(self):
-        m = gram_schmidt([[3, 1], [2, 2]])
+        m = gram_schmidt([Vector([3, 1]), Vector([2, 2])])
         res = [[3, 1], [-2 / 5, 6 / 5]]
         for i in range(len(m)):
             for j in range(len(m[0])):
                 self.assertAlmostEqual(m[i][j], res[i][j])
-        m = gram_schmidt([[4, 1, 2], [4, 7, 2], [3, 1, 7]])
+        m = gram_schmidt([Vector([4, 1, 2]), Vector([4, 7, 2]), Vector([3, 1, 7])])
         res = [[4, 1, 2], [-8 / 7, 40 / 7, -4 / 7], [-11 / 5, 0, 22 / 5]]
         for i in range(len(m)):
             for j in range(len(m[0])):
@@ -143,6 +145,20 @@ class TestMatrix(unittest.TestCase):
         self.assertEqual(m3, res)
         m3 = m.concatenate([])
         self.assertEqual(m3, m)
+
+    def test_determinant(self):
+        m = Matrix.identity(10)
+        det = m.determinant()
+        res = 1
+        self.assertEqual(det, res)
+        m = Matrix([[1, 0, 0], [0, 1, 0], [1, 0, 0]])
+        det = m.determinant()
+        res = 0
+        self.assertEqual(det, res)
+        m = Matrix([[1, 4, 5], [0, 2, 6], [0, 0, 3]])
+        det = m.determinant()
+        res = 6
+        self.assertEqual(det, res)
 
 
 if __name__ == '__main__':

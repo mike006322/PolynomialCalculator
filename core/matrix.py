@@ -1,6 +1,6 @@
 # import numpy as np
-from math import gcd
-from core.polycalc_numbers import *
+from core.polycalc_numbers import Rational, Integer
+from core.vector import Vector
 
 
 class Matrix(list):
@@ -26,6 +26,8 @@ class Matrix(list):
         if type(other) == Matrix:
             return Matrix(matrix_times_matrix(self, other))
         if type(other) == list:
+            if type(other[0]) != list:
+                return Matrix(matrix_times_matrix(self, [other]))
             return Matrix(matrix_times_matrix(self, other))
         if type(other) in {int, float, Integer, Rational}:
             return Matrix(scalar_multiplication(other, self))
@@ -118,6 +120,9 @@ class Matrix(list):
             res[i][i] = 1
         return res
 
+    def column_sub_matrix(self, stop, start=0):
+        return Matrix([x[start: stop] for x in self])
+
 
 def transpose_matrix(m):
     return list(map(list, zip(*m)))
@@ -127,18 +132,48 @@ def get_matrix_minor(m, i, j):
     return [row[:j] + row[j + 1:] for row in (m[:i] + m[i + 1:])]
 
 
-def get_matrix_determinant(m):
-    # base case for 2x2 matrix
-    if len(m) == 2:
-        return m[0][0] * m[1][1] - m[0][1] * m[1][0]
+def matrix_copy(m):
+    res = []
+    for i in range(len(m)):
+        res.append(m[i].copy())
+    return res
 
-    determinant = 0
-    for j in range(len(m)):
-        determinant += ((-1) ** j) * m[0][j] * get_matrix_determinant(get_matrix_minor(m, 0, j))
-    return determinant
+
+def get_matrix_determinant(m):
+    assert len(m) == len(m[0])
+    n = len(m)
+    m = matrix_copy(m)
+    # row operations to get upper triangle matrix:
+    for focus_diagonal in range(n):
+        for i in range(focus_diagonal + 1, n):
+            # make sure the diagonal entry is non-zero
+            if m[focus_diagonal][focus_diagonal] == 0:
+                # look for rows below that have non-zero entry in that column
+                # if there is a non-zero, then add that row to current row
+                # else: return zero
+                for r in range(focus_diagonal, n):
+                    if m[r][focus_diagonal] != 0:
+                        for j in range(n):
+                            m[focus_diagonal][j] += m[r][j]
+                        break
+                else:
+                    return 0
+
+                # m[focus_diagonal][focus_diagonal] = 1.0e-18  # change to ~zero
+            current_row_scalar = m[i][focus_diagonal] / m[focus_diagonal][focus_diagonal]
+            for j in range(n):
+                m[i][j] = m[i][j] - current_row_scalar * m[focus_diagonal][j]
+    product = m[0][0]
+    if len(m) > 1:
+        for i in range(1, n):
+            product *= m[i][i]
+    return product
 
 
 def get_matrix_inverse(m):
+    """
+    can perhaps be improved with Cholesky decomposition
+    """
     determinant = get_matrix_determinant(m)
     # special case for 2x2 matrix:
     if len(m) == 2:
@@ -165,6 +200,8 @@ def vector_plus_vector(v_1, v_2):
         return tuple(map(sum, zip(v_1, v_2)))
     if type(v_1) == list:
         return list(map(sum, zip(v_1, v_2)))
+    if type(v_1) == Vector:
+        return Vector(map(sum, zip(v_1, v_2)))
 
 
 def vector_times_vector(v_1, v_2):
@@ -344,8 +381,18 @@ def get_left_nullspace(m):
     return transpose_matrix(get_nullspace(transpose_matrix(m)))
 
 
+def gcd(x, y):
+    if x == 0 or y == 0:
+        return 1
+    while y:
+        if y == 0:
+            break
+        x, y = y, x % y
+    return x
+
+
 def lcm(a, b):
-    return abs(a * b // gcd(int(a), int(b)))
+    return abs(a * b / gcd(a, b))
 
 
 def list_gcd(numbers):
@@ -355,10 +402,10 @@ def list_gcd(numbers):
             g = num
             break
     else:
-        return 0
+        return 1
     for a in numbers:
         if a != 0:
-            g = gcd(int(g), int(a))
+            g = gcd(g, a)
     return g
 
 
