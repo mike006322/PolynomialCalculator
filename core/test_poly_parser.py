@@ -1,5 +1,5 @@
 import unittest
-from poly_parser import *
+from core.poly_parser import *
 
 
 class TestParser(unittest.TestCase):
