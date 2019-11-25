@@ -1,6 +1,7 @@
 import unittest
 from core.vector import *
-from core.polycalc_numbers import *
+from core.matrix import *
+from core.polycalc_numbers import Rational
 
 
 class TestVector(unittest.TestCase):
@@ -35,10 +36,11 @@ class TestVector(unittest.TestCase):
         self.assertEqual(t, res)
 
     def test_multiplication(self):
-        t = Vector(["3/2", "4/5", "1/4"]) * 2
+        t = Vector([Rational(3, 2), Rational(4, 5), Rational(1, 4)]) * 2
         eight_five = Rational(8, 5)
         half = Rational(1, 2)
         res = [3, eight_five, half]
+        self.assertEqual(t, res)
 
 
 if __name__ == '__main__':

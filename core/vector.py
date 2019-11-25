@@ -31,12 +31,19 @@ class Vector(list):
         assert len(self) == len(rhs)
         return self.proj_coeff(rhs) * self
 
+    @lru_cache(maxsize=None)
+    def __add__(self, other):
+        assert len(self) == len(other)
+        return Vector(map(sum, zip(self, other)))
+
     def __sub__(self, rhs: "Vector") -> "Vector":
         rhs = Vector(rhs)
         assert len(self) == len(rhs)
         return Vector(x - y for x, y in zip(self, rhs))
 
-    def __mul__(self, rhs) -> "Vector":
+    def __mul__(self, rhs):
+        if type(rhs) == Vector:
+            return self.dot(rhs)
         return Vector(x * rhs for x in self)
 
     def __rmul__(self, lhs) -> "Vector":
