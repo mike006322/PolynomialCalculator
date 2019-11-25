@@ -69,6 +69,15 @@ class TestInteger(unittest.TestCase):
         self.assertEqual(Integer(4)/Integer(2), Integer(2))
         self.assertEqual(Integer(2)/Integer(4), Rational(1, 2))
 
+    def test__bool__(self):
+        self.assertFalse(Integer(0))
+
+    def test__mod__(self):
+        a = Integer(5404319552844595)
+        b = Integer(4503599627370496)
+        res = 900719925474099
+        self.assertEqual(a % b, res)
+
 
 class TestRational(unittest.TestCase):
 
