@@ -16,16 +16,20 @@ def line_search(f, initial_point, descent_direction_function):
     iterations = []
     x = initial_point
     norm = euclidean_norm
+    k = 0
     while abs(f(*x)) > 10 ** (-8) and norm(f.grad(*x)) > 10 ** (-8):
-        p = descent_direction_function(f, x)  # Newton's or Steepest Descent
-        alpha = find_step_length(f, x, p)
-        # alpha = backtracking_algorithm(f, x, p)
+        # print('norm(f.grad(*x)), abs(f(*x)) ', norm(f.grad(*x)), abs(f(*x)))
+        p = descent_direction_function(f, x)  # Newton's, Steepest Descent
+        # alpha = find_step_length(f, x, p)
+        alpha = backtracking_algorithm(f, x, p)
+        print('x_' + str(k) + ': ' + str(x) + ', f(x_k): ' + str(float(f(*x))) + ', p: ' +
+                          str(p) + ', alpha_k: ' + str(alpha))
         iterations.append('x_k: ' + str(x) + ', f(x_k): ' + str(f(*x)) + ', p: ' +
                           str(p) + ', alpha_k: ' + str(alpha))
         # x = x + alpha*p
         x = vector_plus_vector(x, constant_times_vector(alpha, p))
-    print('x_k: ' + str(x) + ', f.grad(*x) ' + str(f.grad(*x)))
-    return iterations
+        k += 1
+    return x
 
 
 def steepest_descent(f, x):
@@ -68,8 +72,8 @@ def backtracking_algorithm(f, x_k, p):
     rho = .5
     c = 10 ** (-4)
     # while f(x_k + alpha*p) > f(x_k) + c*alpha*p_transpose*f.grad(x_k):
-    while f(*vector_plus_vector(x_k, constant_times_vector(alpha, p))) > \
-            f(*x_k) + c * alpha * vector_times_vector(p, f.grad(*x_k)):
+    while abs(f(*vector_plus_vector(x_k, constant_times_vector(alpha, p)))) > \
+            abs(f(*x_k) + c * alpha * vector_times_vector(p, f.grad(*x_k))):
         alpha = rho * alpha
     return alpha
 
@@ -120,7 +124,7 @@ def zoom(phi, alpha_low, alpha_high, c_1, c_2):
         phi_prime = phi.derivative()
         alpha_j = interpolate(phi, alpha_low, alpha_high)
         phi_alpha_j = phi(alpha_j)
-        if (phi_alpha_j > phi(0) + c_1 * alpha_j * phi_prime(0)) or (phi_alpha_j >= phi(alpha_low)):
+        if (phi_alpha_j > phi(0) + (c_1 * alpha_j * phi_prime(0))) or (phi_alpha_j >= phi(alpha_low)):
             alpha_high = alpha_j
         else:
             phi_prime_alpha_j = phi_prime(alpha_j)
@@ -129,7 +133,7 @@ def zoom(phi, alpha_low, alpha_high, c_1, c_2):
                 return alpha_star
             if phi_prime_alpha_j * (alpha_high - alpha_low) >= 0:
                 alpha_high = alpha_low
-        alpha_low = alpha_j
+            alpha_low = alpha_j
 
 
 def interpolate(phi, alpha_left, alpha_right):
@@ -145,17 +149,15 @@ def interpolate(phi, alpha_left, alpha_right):
         (1 + 2*(alpha_right - a)/(alpha_right - alpha_left))*((a - alpha_left)/(alpha_right-alpha_left))**2*phi(alpha_right) +\
         (a - alpha_left)*((alpha_right - a)/(alpha_right - alpha_left))**2*phi_prime(alpha_left) +\
         (a - alpha_right)*((a - alpha_left)/(alpha_right - alpha_left))**2*phi_prime(alpha_right)
-    e_1 = .1
-    e_2 = .5
-    if abs(alpha_left - alpha_right) < e_1 or alpha_right < e_2:
-        alpha_right = alpha_left/2
-    alpha = alpha_left
-    d_1 = phi_prime(alpha_left) + phi_prime(alpha_right) - 3 * (phi(alpha_left) - phi(alpha_right)) / (
-            alpha_left - alpha_right)
-    d_2 = sign(alpha_right - alpha_left) * (max(d_1 ** 2 - phi_prime(alpha_left) * phi_prime(alpha_right), 0)) ** .5
+    # e_1 = .1
+    # e_2 = .5
+    # if abs(alpha_left - alpha_right) < e_1 or alpha_right < e_2:
+    #     alpha_right = alpha_left/2
+    d_1 = phi_prime(alpha_left) + phi_prime(alpha_right) - (3 * (phi(alpha_left) - phi(alpha_right)) / (
+            alpha_left - alpha_right))
+    d_2 = sign(alpha_right - alpha_left) * (d_1 ** 2 - phi_prime(alpha_left) * phi_prime(alpha_right)) ** .5
     denominator = phi_prime(alpha_right) - phi_prime(alpha_left) + 2 * d_2
     interior_point = alpha_right - (alpha_right - alpha_left) * (phi_prime(alpha_right) + d_2 - d_1) / denominator
-    print(H_3(interior_point))
     if H_3(interior_point) < H_3(alpha_left):
         if H_3(interior_point) < H_3(alpha_right):
             return interior_point
@@ -195,9 +197,13 @@ def main():
     # iterations = line_search(f, (1, 1), steepest_descent)
 
     rosenbrock_function = Polynomial('100(x2-x1^2)^2 + (1-x1)^2')
-    iterations = line_search(rosenbrock_function, (1.2, 1.2), newtons_algorithm)
+    # 100.0x1^4 - 200.0x1^2x2 + x1^2 - 2.0x1 + 100.0x2^2 + 1.0
+    print(rosenbrock_function)
+    min = line_search(rosenbrock_function, (-1, 1.2), newtons_algorithm)
+    print(min)
+    # iterations = line_search(rosenbrock_function, (-1, 1.2), newtons_algorithm)
     # iterations = line_search(rosenbrock_function, (1.2, 1.2), steepest_descent)
-    print_results(iterations)
+    # print_results(iterations)
 
 
 if __name__ == '__main__':
