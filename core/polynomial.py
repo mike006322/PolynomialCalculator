@@ -19,7 +19,8 @@ class Polynomial:
             self.term_matrix = [['constant']]
             self.field_characteristic = char
         elif isinstance(poly, int) and poly != 0:
-            self.term_matrix = [['constant'], [Integer(poly)]]
+            self.term_matrix = [['constant'], [poly]]
+            # self.term_matrix = [['constant'], [Integer(poly)]]
             self.field_characteristic = char
         elif isinstance(poly, (float, complex, Integer, Rational)) and poly != 0:
             self.term_matrix = [['constant'], [poly]]
@@ -43,7 +44,8 @@ class Polynomial:
 
         def make_polynomial_from_string(s):
             if s.isnumeric() or '.' in s:
-                return Polynomial(Rational(s))
+                return Polynomial(float(s))
+                # return Polynomial(Rational(s))
             else:
                 return Polynomial([['constant', s], [1, 1]])
 
@@ -77,7 +79,8 @@ class Polynomial:
                     if operation_stack[-1].value == 'start':
                         if type(t.value) == str:
                             if t.value.isnumeric():
-                                res = Polynomial(make_number(t.value))
+                                res = Polynomial(float(t.value))
+                                # res = Polynomial(Rational(t.value))
                             else:
                                 res = Polynomial([['constant', t.value], [1, 1]])
                         else:
@@ -121,6 +124,8 @@ class Polynomial:
             var = self.term_matrix[0][1]
         res = self.copy()
         # get the index of the variable
+        if var not in res.term_matrix[0]:
+            return Polynomial('0')
         variable_index = res.term_matrix[0].index(var)
         # iterate through the terms
         for i in range(1, len(res.term_matrix)):
@@ -142,13 +147,28 @@ class Polynomial:
         """
 
         class Gradient(list):
-            def __call__(self, *a, **k):
+            self.variables_in_order = tuple()
+
+            def __call__(self, *args, **kwargs):
+                # need to convert all to kwargs because derivatives can lose variables
+                kwargs.update(zip(self.variables_in_order, args))
                 res = []
                 for partial_derivative in g:
-                    res.append(partial_derivative(*a, **k))
+                    # res.append(partial_derivative(**kwargs))
+                    res.append(float(partial_derivative(**kwargs)))
                 return res
 
+            def __repr__(self):
+                res = ''
+                for term in self:
+                    res += str(term)
+                return res
+
+            def __str__(self):
+                return self.__repr__()
+
         g = Gradient()
+        g.variables_in_order = tuple(self.term_matrix[0][1:])
         for i in range(1, len(self.term_matrix[0])):
             g.append(self.derivative(self.term_matrix[0][i]))
         return g
@@ -169,7 +189,7 @@ class Polynomial:
                 for line in h:
                     row = []
                     for partial_derivative in line:
-                        row.append(partial_derivative(**kwargs))
+                        row.append(float(partial_derivative(**kwargs)))
                     res.append(row)
                 return res
 
@@ -364,6 +384,22 @@ class Polynomial:
         """
         if self.degree() == 0:
             return self
+        if args:
+            res = self.copy()
+            for variable_number, v in enumerate(args):
+                if type(v) == Integer or type(v) == Rational or type(v) == int or type(v) == float or type(
+                        v) == complex:
+                    for i in range(1, len(res.term_matrix)):
+                        res.term_matrix[i][0] *= v ** res.term_matrix[i][variable_number + 1]
+                        res.term_matrix[i][variable_number + 1] = 0
+                elif type(v) == Polynomial:
+                    kwargs.update({res.term_matrix[0][variable_number+1]: v})
+            res.term_matrix = collect_like_terms(res.term_matrix)
+            res.term_matrix = order(res.term_matrix)
+            if len(res.variables) == 0:
+                if res == 0:
+                    return 0
+                return res.term_matrix[1][0]
         if kwargs:
             res = self.copy()
             for v in kwargs:
@@ -378,33 +414,8 @@ class Polynomial:
                 if len(res.term_matrix) < 2:
                     return 0
                 return res.term_matrix[1][0]
-            return res
-        else:
-            res = self.copy()
-            for variable_number, v in enumerate(args):
-                if type(v) == Integer or type(v) == Rational or type(v) == int or type(v) == float or type(
-                        v) == complex:
-                    for i in range(1, len(res.term_matrix)):
-                        res.term_matrix[i][0] *= v ** res.term_matrix[i][variable_number + 1]
-                        res.term_matrix[i][variable_number + 1] = 0
-                elif type(v) == Polynomial:
-                    new_res = 0
-                    for i in range(1, len(res.term_matrix)):
-                        new_term = res.term_matrix[i][0]
-                        for j in range(1, len(res.term_matrix[i])):
-                            if j == variable_number + 1:
-                                new_term *= v ** res.term_matrix[i][j]
-                            else:
-                                new_term *= Polynomial(res.term_matrix[0][j]) ** res.term_matrix[i][j]
-                        new_res += new_term
-                    res = new_res
-            res.term_matrix = collect_like_terms(res.term_matrix)
-            res.term_matrix = order(res.term_matrix)
-            if len(res.variables) == 0:
-                if res == 0:
-                    return 0
-                return res.term_matrix[1][0]
-            return res
+        return res
+
 
     def __add__(self, other):
         if type(other) == Polynomial:
@@ -547,6 +558,8 @@ class Polynomial:
     def __float__(self):
         if len(self.variables) > 1:
             return "Cannot convert Polynomial with variables to float"
+        if len(self.term_matrix) == 1:
+            return float(0)
         return float(self.term_matrix[1][0])
 
 
