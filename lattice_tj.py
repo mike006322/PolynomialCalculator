@@ -18,24 +18,31 @@ def lattice_tj(m):
     returns lattice packing with a density that is a local maximum
     """
     # perform LLL on the matrix
-    b = lll_reduction(m, 0.75)
+    b = np.array(lll_reduction(m, 0.75))
     D = norm(m[0])
     R_i = D * 1.1
     # 1. Fin all non-zero lattices between D and R_i
-    epsilon = []  # identity??
+    epsilon = Matrix.identity(len(m))
+    # epsilon = Matrix.ones((len(m), len(m)))
     threshold = 1e-12  # possibly make bigger for algorithm to run faster in lower dimensions
     while sum_of_squared_coefficietns(epsilon) > threshold:
+        # print('sum_of_squared_coefficietns(epsilon): ', sum_of_squared_coefficietns(epsilon))
         shortest_vectors = find_vectors_less_than(b, R_i)
         constraints = make_constraints(shortest_vectors, D, R_i)
         simplex_input = make_simplex_input(epsilon, constraints)
-        simplex_output = simplex_method(simplex_input)
-        # epsilon = process_simplex_output(simplex_output)
+        # print(simplex_input)
+        simplex_input = np.array(simplex_input)
+        epsilon = np.array(simplex_method(simplex_input, output='epsilon'))
+        print('sum_of_squared_coefficietns(epsilon): ', sum_of_squared_coefficietns(epsilon))
+
         # alternatively, use numpy "linprog(method='simplex')"
         # https://docs.scipy.org/doc/scipy/reference/optimize.linprog-simplex.html
+        print('epsilon: ', epsilon)
+        print('b: ', b)
+        b = b + epsilon @ b  # element-wise multiplication
+        print('b + epsilon @ b ', b)
 
-        # b = epsilon*b  #### with special multiplication
-
-    return m + epsilon * m  # here the multiplication means each value of m gets multiplied by counterpart in epsilon
+    return b  # here the multiplication means each value of m gets multiplied by counterpart in epsilon
 
 
 def make_simplex_input(epsilon, constraints):
@@ -127,11 +134,11 @@ def make_constraints(shortest_vectors, D, R_i):
     # shortest vector constraints
     for vector in shortest_vectors:
         vector = Matrix([vector])
-        constraint = vector * epsilon * vector.transpose()
+        constraint = -1*vector * epsilon * vector.transpose()
         constraint = make_vector_from_linear_polynomial(constraint[0][0], n)
         v_v_t = vector*vector.transpose()
         v_v_t = v_v_t[0][0]  # chance from Matrix type to just a number
-        constraint.append(D**2 - v_v_t)
+        constraint.append(-1*(D**2 - v_v_t)/2)
         constraints.append(constraint)
     # example [1, 2, 3, 2, 4, 6, 3, 6, 9, -5]
     # meaning x_0 + 2x_1 + 3x_2 + 2x_3 + 4x_4 + 5x_5 + 3x_6 + 6x_7 + 9x_8 >= -5
@@ -141,11 +148,11 @@ def make_constraints(shortest_vectors, D, R_i):
     # -.5*lam <= diagonal element of epsilon
     # -.5*lam/(d-1) <= off-diagonal element of epsilon
     # off-diagonal element of epsilon <= .5*lam(d-1)
-    # making this all into form 'element of epsilon >= #':
+    # making this all into form 'element of epsilon <= #':
     #
-    # diagonal element of epsilon >= -.5*lam
-    # off-diagonal element of epsilon >= -.5*lam/(d-1)
-    # -off-diagonal element of epsilon >= -.5*lam(d-1)
+    # - diagonal element of epsilon <= .5*lam
+    # - off-diagonal element of epsilon <= .5*lam/(d-1)
+    # off-diagonal element of epsilon <= .5*lam(d-1)
 
     for i in range(n):
         for j in range(n):
@@ -154,8 +161,8 @@ def make_constraints(shortest_vectors, D, R_i):
                 constraint = []
                 for variable in range(n**2):
                     constraint.append(0)
-                constraint[i*n + j] = 1
-                constraint.append(-.5*lam)
+                constraint[i*n + j] = -1
+                constraint.append(.5*lam)
                 constraints.append(constraint)
             else:  # if off-diagonal element of epsilon
                 # off-diagonal element of epsilon >= -.5*lam/(d-1)
@@ -167,8 +174,8 @@ def make_constraints(shortest_vectors, D, R_i):
                     constraint_negative.append(0)
                 constraint_positive[i*n + j] = 1
                 constraint_negative[i * n + j] = -1
-                constraint_positive.append(-.5*lam/(D-1))
-                constraint_negative.append(-.5 * lam / (D - 1))
+                constraint_positive.append(.5 * lam / (n - 1))
+                constraint_negative.append(.5 * lam / (n - 1))
                 constraints.append(constraint_positive)
                 constraints.append(constraint_negative)
 
@@ -205,16 +212,19 @@ if __name__ == '__main__':
     # for p in make_constraints(shortest_vectors):
     #     print(p[0][0].term_matrix)
     constraints = make_constraints(shortest_vectors, 3, 3.3)
-    for c in constraints:
-        print(c)
+    # for c in constraints:
+    #     print(c)
 
-    e = Matrix.identity(3)
+    e = Matrix.ones((3, 3))
     si = make_simplex_input(e, constraints)
     print(si)
-    sim_out = simplex_method(np.array(si))
+    sim_out = simplex_method(np.array(si), output='epsilon')
     print(sim_out)
     # print(Matrix(sim_out.tolist()))
 
+    m = [[1, 1, 1], [-1, 0, 2], [3, 5, 6]]
+    denser_matrix = lattice_tj(m)
+    print(denser_matrix)
     # A = Matrix(constraints[2:])
     # print(A)
     # b = A.column_sub_matrix(len(A[0]), len(A[0])-1)

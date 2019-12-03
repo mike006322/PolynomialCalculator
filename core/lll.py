@@ -15,8 +15,6 @@ def lll_reduction(basis, delta):
 
     k = 1
     while k < n:
-        print(k)
-        print(basis[k])
         for j in range(k - 1, -1, -1):
             mu_kj = mu(k, j)
             if abs(mu_kj) > 0.5:
@@ -28,7 +26,6 @@ def lll_reduction(basis, delta):
             basis[k], basis[k - 1] = basis[k - 1], basis[k]
             orthogonal = gram_schmidt(basis)
             k = max(k - 1, 1)
-    print(basis)
     return basis
 
 

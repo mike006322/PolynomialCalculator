@@ -4,6 +4,7 @@ from core.orderings import graded_lex as graded_order
 from core.collect_like_terms import collect_like_terms
 from core.formulas import *
 from core.polycalc_numbers import *
+import numpy as np
 
 
 class NonFactor(Exception):
@@ -22,7 +23,7 @@ class Polynomial:
             self.term_matrix = [['constant'], [poly]]
             # self.term_matrix = [['constant'], [Integer(poly)]]
             self.field_characteristic = char
-        elif isinstance(poly, (float, complex, Integer, Rational)) and poly != 0:
+        elif isinstance(poly, (float, complex, Integer, Rational, np.int32)) and poly != 0:
             self.term_matrix = [['constant'], [poly]]
             self.field_characteristic = char
         elif type(poly) == list:

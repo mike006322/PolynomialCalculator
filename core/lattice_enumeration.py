@@ -7,6 +7,8 @@ import numpy as np
 from core.norms import euclidean_norm as norm
 import math
 from core.gram_schmidt_numpy import gram_schmidt
+import scipy
+from core.lll import lll_reduction
 
 
 def floor_ceil(number):
@@ -96,6 +98,8 @@ def find_vectors_less_than(b, c):
     result_old = [[]]
     for k in reversed(range(M)):
         result_new = []
+        print('len(result_old), ', len(result_old))
+        i = 0
         for r in result_old:
 
             xvalue = []
@@ -122,12 +126,48 @@ def find_vectors_less_than(b, c):
                     ok = (xr[mm] > 0)
                 if ok:
                     result_new = result_new + [xr]
+            i += 1
         result_old = result_new
     res = []
     for x in result_new:
         x = np.array(x)
         res.append(b.dot(x))
     return res
+
+def fincke_pohst_with_lll_preprocessing(B, C):
+    """
+    inputs: basis B, upper bound C
+    output:  All vectors of squared length ≤ C in the lattice L spanned by the columns of B.
+
+    Murray R. Bremner
+    "Lattice Basis Reduction: An Introduction to the LLL Algorithm and Its Applications"
+    page 174
+    """
+    m = len(B[0])
+    n = len(B)
+    Q = B.transpose() @ B
+    for j in range(m-1):
+        for i in range(j+1, m):
+            # add -Q_ij/Q_jj(Q[j]) to Q[i]
+            Q[i] += (-1*Q[i][j]/Q[j][j])*Q[j]
+    D = np.zeros((m, m))
+    for i in range(m):
+        D[i][i] = Q[i][i]
+    U = np.linalg.inv(D) @ Q
+    # R = D**.5 @ U
+    D_1_2 = scipy.linalg.sqrtm(D)
+    R = D_1_2 @ U
+    R_inverse = np.linalg.inv(R)
+    S_inverse = lll_reduction(R_inverse.tolist())
+    # Sort the rows of S−1 by decreasing norm to obtain P^−1S^−1
+    P_1S_1 = sorted(S_inverse, key=norm, reverse=True)
+    # S = RX
+    # P = (P^-1)^-1
+    # SP = S @ P
+    # H = SP.transpose() @ SP
+    # Q = H
+
+
 
 
 def test():
