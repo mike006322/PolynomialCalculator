@@ -98,7 +98,7 @@ def find_vectors_less_than(b, c):
     result_old = [[]]
     for k in reversed(range(M)):
         result_new = []
-        print('len(result_old), ', len(result_old))
+        # print('len(result_old), ', len(result_old))
         i = 0
         for r in result_old:
 

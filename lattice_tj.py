@@ -10,6 +10,7 @@ from simplex_method import simplex_method
 from core.matrix import Matrix
 from core.polynomial import Polynomial
 import numpy as np
+from core.lattice import Lattice
 
 
 def lattice_tj(m):
@@ -20,13 +21,11 @@ def lattice_tj(m):
     # perform LLL on the matrix
     b = np.array(lll_reduction(m, 0.75))
     D = norm(m[0])
-    R_i = D * 1.1
+    R_i = D * 5
     # 1. Fin all non-zero lattices between D and R_i
     epsilon = Matrix.identity(len(m))
-    # epsilon = Matrix.ones((len(m), len(m)))
     threshold = 1e-12  # possibly make bigger for algorithm to run faster in lower dimensions
     while sum_of_squared_coefficietns(epsilon) > threshold:
-        # print('sum_of_squared_coefficietns(epsilon): ', sum_of_squared_coefficietns(epsilon))
         shortest_vectors = find_vectors_less_than(b, R_i)
         constraints = make_constraints(shortest_vectors, D, R_i)
         simplex_input = make_simplex_input(epsilon, constraints)
@@ -37,10 +36,10 @@ def lattice_tj(m):
 
         # alternatively, use numpy "linprog(method='simplex')"
         # https://docs.scipy.org/doc/scipy/reference/optimize.linprog-simplex.html
-        print('epsilon: ', epsilon)
-        print('b: ', b)
+        # print('epsilon: ', epsilon)
+        # print('b: ', b)
         b = b + epsilon @ b  # element-wise multiplication
-        print('b + epsilon @ b ', b)
+        # print('b + epsilon @ b ', b)
 
     return b  # here the multiplication means each value of m gets multiplied by counterpart in epsilon
 
@@ -207,32 +206,28 @@ def make_vector_from_linear_polynomial(poly, n):
 
 
 if __name__ == '__main__':
-    shortest_vectors = [[0, 1, 0], [0, -1, 0]]
-    n = len(shortest_vectors[0])
-    # for p in make_constraints(shortest_vectors):
-    #     print(p[0][0].term_matrix)
-    constraints = make_constraints(shortest_vectors, 3, 3.3)
-    # for c in constraints:
-    #     print(c)
+    #
+    # m = [[1, 1, 1], [-1, 0, 2], [3, 5, 6]]
+    # denser_matrix = lattice_tj(m)
+    # print(denser_matrix.tolist())
+    #
+    # m = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+    # denser_matrix = lattice_tj(m)
+    # print(denser_matrix)
 
-    e = Matrix.ones((3, 3))
-    si = make_simplex_input(e, constraints)
-    print(si)
-    sim_out = simplex_method(np.array(si), output='epsilon')
-    print(sim_out)
-    # print(Matrix(sim_out.tolist()))
+    differences = []
+    for i in range(10):
+        b = np.random.rand(3, 3)
+        while np.linalg.matrix_rank(b) < len(b):
+            b = np.random.randint(3, 3)
+        # print(' b: \n', b)
+        starting_density = Lattice(b.tolist()).center_density
+        # print('starting density: ', starting_density)
+        denser_matrix = lattice_tj(b)
+        ending_density = Lattice(denser_matrix.tolist()).center_density
+        print('ending density: ', ending_density)
+        difference = ending_density - starting_density
+        print('difference = ', difference)
+        differences.append(difference)
+    print(differences)
 
-    m = [[1, 1, 1], [-1, 0, 2], [3, 5, 6]]
-    denser_matrix = lattice_tj(m)
-    print(denser_matrix)
-    # A = Matrix(constraints[2:])
-    # print(A)
-    # b = A.column_sub_matrix(len(A[0]), len(A[0])-1)
-    # A = A.column_sub_matrix(len(A[0])-1)
-    # A = np.array(A)
-    # b = np.array(b)
-    # c = [1, 0, 0, 0, 1, 0, 0, 0, 1]
-    # c = np.array(c)
-    # from scipy.optimize import linprog
-    # output = linprog(c, A, b, method='simplex')
-    # print(output)

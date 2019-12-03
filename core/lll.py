@@ -8,7 +8,6 @@ def lll_reduction(basis, delta):
     n = len(basis)
     basis = list(map(Vector, basis))
     orthogonal = gram_schmidt(basis)
-    print(orthogonal)
 
     def mu(i: int, j: int) -> Rational:
         return orthogonal[j].proj_coeff(basis[i])
