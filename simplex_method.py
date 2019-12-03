@@ -56,11 +56,16 @@ def pivot(row_index, column_index, table):
     return result
 
 
-def simplex_method(table, output='variable_names'):
+def simplex_method(table, output='variable_names', unrestricted=False):
     """
-    solves maximization problem for optimal solution, returns dictionary w/ keys x1,x2...xn and max.
+    Optimizes linear objective function with linear constraints
     """
     assert type(table) == np.ndarray  # "table[:, -1]" column selection is specific to np.ndarray
+
+    if unrestricted:
+        table = make_unrestricted_variables(table)
+
+    table = add_slack_variables(table)
 
     while has_a_negative(table[-1][:-1]):
         pivot_column_index = find_pivot_column(table[-1][:-1])
@@ -90,7 +95,7 @@ def simplex_method(table, output='variable_names'):
                 if i % 2 == 0:
                     epsilon[i // 2 % n].append(table[index, -1])
                 else:
-                    epsilon[(i - 1) // 2 % n][-1] += -1*table[index, -1]
+                    epsilon[(i - 1) // 2 % n][-1] += -1 * table[index, -1]
             else:
                 if i % 2 == 0:
                     epsilon[i // 2 % n].append(0)
@@ -107,6 +112,36 @@ def simplex_method(table, output='variable_names'):
     for k, v in val.items():
         val[k] = round(v, 6)
     return val
+
+
+def make_unrestricted_variables(table):
+    """
+    The simplex method minimizes cx subject to Ax=b and x >= 0.
+    But here we can have negative x's, so we must modify so that our variables are unrestricted
+    To do this we define x_i := x_2i - x_(2i+1). Then we reconstruct original x_i after simplex
+    """
+    unresticted = np.zeros((len(table), 2 * (len(table[0]) - 1) + 1))
+    for i in range(len(table)):
+        for j in range(len(table[0]) - 1):
+            unresticted[i][2 * j] = table[i][j]
+            unresticted[i][2 * j + 1] = -1 * table[i][j]
+    # now add the last column to unrestricted
+    for i in range(len(table)):
+        unresticted[i][2 * (len(table[0]) - 1)] = table[i][(len(table[0]) - 1)]
+    return unresticted
+
+
+def add_slack_variables(table):
+    """
+    insert the identity matrix before the constants
+    the size of the identity is the number of constraints plus 1 for the objective function
+    """
+    assert type(table) == np.ndarray
+    id = np.identity(len(table))
+    table_with_id_inserted = np.concatenate((table[:, 0:-1], id), axis=1)
+    last_column = table[:, -1]
+    table_with_id_inserted = np.column_stack((table_with_id_inserted, last_column))
+    return table_with_id_inserted
 
 
 def is_column_basic(col):
