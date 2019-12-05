@@ -4,91 +4,6 @@ https://youtu.be/E94xNYyjTmg
 """
 
 import numpy as np
-from core.matrix import Matrix
-
-
-def has_a_negative(vector):
-    """
-    Returns True if the vector has a value < 0, otherwise returns False
-    """
-    for i in range(len(vector)):
-        if vector[i] < 0:
-            return True
-    return False
-
-
-def find_pivot_column(last_row):
-    """
-    locate the most negative entry in the last row excluding the last column
-    """
-    m = 0
-    column_index = -1
-    for i, entry in enumerate(last_row):
-        if entry < 0:
-            if entry < m:
-                m = entry
-                column_index = i
-    return column_index
-
-
-def find_pivot_row(pivot_column, constants):
-    """
-    divide each constant by it's corresponding positive entry in the pivot column
-    if the ratio is negative, skip it
-    The pivot row has the smallest ratio
-    """
-    m = np.inf
-    row_index = -1
-    for i, entry in enumerate(pivot_column):
-        if entry == 0:
-            continue
-        else:
-            if entry > 0:
-                ratio = constants[i] / entry
-                if ratio < m:
-                    m = ratio
-                    row_index = i
-    return row_index
-
-
-def pivot(row_index, column_index, table):
-    """
-    Make a unit column at column index by 'pivoting' around table[row_index][column_index].
-    R is row at row index (R = R[row_index])
-    R = R / R[column_index]
-    Now R has 1 at column index position
-    Make all other entries in column 0 by subtracting multiples of R to them.
-    """
-    assert type(table).__name__ == 'ndarray'  # row multiplication/ division specific to numpy arrays
-    result = table.copy()
-    result[row_index] /= table[row_index, column_index]
-    for i in range(len(result)):
-        if i != row_index:
-            result[i] = result[i] - result[row_index] * result[i][column_index]
-    return result
-
-
-def get_column(matrix, index):
-    """
-    returns the column of matrix at index
-    """
-    if type(matrix).__name__ == 'ndarray':
-        return matrix[:, index]
-    if type(matrix).__name__ in {'list', 'Matrix'}:
-        raise NotImplemented
-
-
-def simplex_row_operation(matrix):
-    """
-    row operation on matrix to remove negative from last row
-    """
-    last_row = matrix[-1][:-1]
-    pivot_column_index = find_pivot_column(last_row)
-    pivot_column = get_column(matrix, pivot_column_index)
-    last_column = get_column(matrix, -1)
-    pivot_row_index = find_pivot_row(pivot_column[:-1], last_column)
-    matrix = pivot(pivot_row_index, pivot_column_index, matrix)
-    return matrix
 
 
 def simplex_method(table, dictionary_output=False, unrestricted=False):
@@ -161,21 +76,6 @@ def make_unrestricted_variables(table):
     return unresticted
 
 
-def reduce_variables(optimum, number_of_variables):
-    """
-    removes the extra variables that were added in make_unrestriced_variables
-    x_i := x_2i - x_(2i+1)
-    """
-    reduced_optimum = []
-    for i in range(number_of_variables):
-        if i % 2 == 0:
-            reduced_optimum.append(optimum[i])
-        else:
-            reduced_optimum[i // 2] -= optimum[i]
-    reduced_optimum.append(optimum[-1])
-    return reduced_optimum
-
-
 def add_slack_variables(table):
     """
     insert the identity matrix before the constants
@@ -187,6 +87,90 @@ def add_slack_variables(table):
     last_column = table[:, -1]
     table_with_id_inserted = np.column_stack((table_with_id_inserted, last_column))
     return table_with_id_inserted
+
+
+def has_a_negative(vector):
+    """
+    Returns True if the vector has a value < 0, otherwise returns False
+    """
+    for i in range(len(vector)):
+        if vector[i] < 0:
+            return True
+    return False
+
+
+def simplex_row_operation(matrix):
+    """
+    row operation on matrix to remove negative from last row
+    """
+    last_row = matrix[-1][:-1]
+    pivot_column_index = find_pivot_column(last_row)
+    pivot_column = get_column(matrix, pivot_column_index)
+    last_column = get_column(matrix, -1)
+    pivot_row_index = find_pivot_row(pivot_column[:-1], last_column)
+    matrix = pivot(pivot_row_index, pivot_column_index, matrix)
+    return matrix
+
+
+def find_pivot_column(last_row):
+    """
+    locate the most negative entry in the last row excluding the last column
+    """
+    m = 0
+    column_index = -1
+    for i, entry in enumerate(last_row):
+        if entry < 0:
+            if entry < m:
+                m = entry
+                column_index = i
+    return column_index
+
+
+def get_column(matrix, index):
+    """
+    returns the column of matrix at index
+    """
+    if type(matrix).__name__ == 'ndarray':
+        return matrix[:, index]
+    if type(matrix).__name__ in {'list', 'Matrix'}:
+        raise NotImplemented
+
+
+def find_pivot_row(pivot_column, constants):
+    """
+    divide each constant by it's corresponding positive entry in the pivot column
+    if the ratio is negative, skip it
+    The pivot row has the smallest ratio
+    """
+    m = np.inf
+    row_index = -1
+    for i, entry in enumerate(pivot_column):
+        if entry == 0:
+            continue
+        else:
+            if entry > 0:
+                ratio = constants[i] / entry
+                if ratio < m:
+                    m = ratio
+                    row_index = i
+    return row_index
+
+
+def pivot(row_index, column_index, table):
+    """
+    Make a unit column at column index by 'pivoting' around table[row_index][column_index].
+    R is row at row index (R = R[row_index])
+    R = R / R[column_index]
+    Now R has 1 at column index position
+    Make all other entries in column 0 by subtracting multiples of R to them.
+    """
+    assert type(table).__name__ == 'ndarray'  # row multiplication/ division specific to numpy arrays
+    result = table.copy()
+    result[row_index] /= table[row_index, column_index]
+    for i in range(len(result)):
+        if i != row_index:
+            result[i] = result[i] - result[row_index] * result[i][column_index]
+    return result
 
 
 def is_column_basic(col):
@@ -204,6 +188,21 @@ def is_column_basic(col):
             else:
                 found_one, index = True, i
     return found_one, index
+
+
+def reduce_variables(optimum, number_of_variables):
+    """
+    removes the extra variables that were added in make_unrestriced_variables
+    x_i := x_2i - x_(2i+1)
+    """
+    reduced_optimum = []
+    for i in range(number_of_variables):
+        if i % 2 == 0:
+            reduced_optimum.append(optimum[i])
+        else:
+            reduced_optimum[i // 2] -= optimum[i]
+    reduced_optimum.append(optimum[-1])
+    return reduced_optimum
 
 
 if __name__ == "__main__":
