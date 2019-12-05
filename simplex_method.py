@@ -4,9 +4,13 @@ https://youtu.be/E94xNYyjTmg
 """
 
 import numpy as np
+from core.matrix import Matrix
 
 
 def has_a_negative(vector):
+    """
+    Returns True if the vector has a value < 0, otherwise returns False
+    """
     for i in range(len(vector)):
         if vector[i] < 0:
             return True
@@ -39,8 +43,8 @@ def find_pivot_row(pivot_column, constants):
         if entry == 0:
             continue
         else:
-            ratio = constants[i] / entry
-            if ratio > 0:
+            if entry > 0:
+                ratio = constants[i] / entry
                 if ratio < m:
                     m = ratio
                     row_index = i
@@ -48,6 +52,14 @@ def find_pivot_row(pivot_column, constants):
 
 
 def pivot(row_index, column_index, table):
+    """
+    Make a unit column at column index by 'pivoting' around table[row_index][column_index].
+    R is row at row index (R = R[row_index])
+    R = R / R[column_index]
+    Now R has 1 at column index position
+    Make all other entries in column 0 by subtracting multiples of R to them.
+    """
+    assert type(table).__name__ == 'ndarray'  # row multiplication/ division specific to numpy arrays
     result = table.copy()
     result[row_index] /= table[row_index, column_index]
     for i in range(len(result)):
@@ -56,79 +68,112 @@ def pivot(row_index, column_index, table):
     return result
 
 
-def simplex_method(table, output='variable_names', unrestricted=False):
+def get_column(matrix, index):
     """
-    Optimizes linear objective function with linear constraints
+    returns the column of matrix at index
     """
-    assert type(table) == np.ndarray  # "table[:, -1]" column selection is specific to np.ndarray
+    if type(matrix).__name__ == 'ndarray':
+        return matrix[:, index]
+    if type(matrix).__name__ in {'list', 'Matrix'}:
+        raise NotImplemented
+
+
+def simplex_row_operation(matrix):
+    """
+    row operation on matrix to remove negative from last row
+    """
+    last_row = matrix[-1][:-1]
+    pivot_column_index = find_pivot_column(last_row)
+    pivot_column = get_column(matrix, pivot_column_index)
+    last_column = get_column(matrix, -1)
+    pivot_row_index = find_pivot_row(pivot_column[:-1], last_column)
+    matrix = pivot(pivot_row_index, pivot_column_index, matrix)
+    return matrix
+
+
+def simplex_method(table, dictionary_output=False, unrestricted=False):
+    """
+    Optimizes linear objective function with linear constraints.
+    Returns minimum with respect to objective function.
+    To return maximum, change sign of objective function.
+    Set unrestricted=True if variables can be negative.
+    """
+    assert type(table).__name__ == 'ndarray'  # "table[:, -1]" column selection is specific to np.ndarray
 
     if unrestricted:
         table = make_unrestricted_variables(table)
 
     table = add_slack_variables(table)
 
-    while has_a_negative(table[-1][:-1]):
-        pivot_column_index = find_pivot_column(table[-1][:-1])
-        pivot_row_index = find_pivot_row(table[:, pivot_column_index], table[:, -1])
-        table = pivot(pivot_row_index, pivot_column_index, table)
+    last_row = table[-1][:-1]
+    while has_a_negative(last_row):
+        table = simplex_row_operation(table)
+        last_row = table[-1][:-1]
 
-    if output == 'table':
-        return table
-
-    number_of_columns = len(table[0])
-    number_of_rows = len(table)
-    number_of_variables = number_of_columns - number_of_rows - 1
-
-    if output == 'epsilon':
-        epsilon = []
-        # epsilon is n by n
-        n = int(np.sqrt(number_of_variables // 2))
-        # we divide number of variables by 2 because we are reducing them
-        # we added variables to unrestrict them
-        for i in range(n):
-            epsilon.append([])
-        for i in range(number_of_variables):
-            basic, index = is_column_basic(table[:, i])
-            if basic:
-                # %2 because we are also reducing the variables
-                # this accounts for the modification for unrestricted variables, i.e. not always >=0
-                if i % 2 == 0:
-                    epsilon[i // 2 % n].append(table[index, -1])
-                else:
-                    epsilon[(i - 1) // 2 % n][-1] += -1 * table[index, -1]
-            else:
-                if i % 2 == 0:
-                    epsilon[i // 2 % n].append(0)
-        return epsilon
-
-    val = {}
+    number_of_variables = len(table[0]) - len(table) - 1
+    optimum = np.zeros(number_of_variables + 1)
     for i in range(number_of_variables):
         basic, index = is_column_basic(table[:, i])
         if basic:
-            val['x' + str(i)] = table[index, -1]
-        else:
-            val['x' + str(i)] = 0
-    val['optimum'] = table[-1, -1]
-    for k, v in val.items():
-        val[k] = round(v, 6)
-    return val
+            optimum[i] = table[index][-1]
+    optimum[-1] = table[-1][-1]
+
+    if unrestricted:
+        optimum = reduce_variables(optimum, number_of_variables)
+
+    if dictionary_output:
+        variable_dict = {}
+        for i, value in enumerate(optimum[:-1]):
+            variable_dict['x' + str(i)] = value
+        variable_dict['optimum'] = optimum[-1]
+        return variable_dict
+
+    return optimum
 
 
 def make_unrestricted_variables(table):
     """
     The simplex method minimizes cx subject to Ax=b and x >= 0.
     But here we can have negative x's, so we must modify so that our variables are unrestricted
-    To do this we define x_i := x_2i - x_(2i+1). Then we reconstruct original x_i after simplex
+    To do this we define x_i := x_2i - x_(2i+1).
+    We also add constraints that all variables be positive, i.e.
+    -x_2i <=0, -x_(2i+1) <= 0
+    Later we reconstruct original x_i after simplex
     """
-    unresticted = np.zeros((len(table), 2 * (len(table[0]) - 1) + 1))
-    for i in range(len(table)):
+    assert type(table).__name__ == 'ndarray'
+    number_of_variables = 2 * (len(table[0]) - 1)
+    unresticted = np.zeros((len(table) + number_of_variables, number_of_variables + 1))
+    for i in range(len(table) - 1):
         for j in range(len(table[0]) - 1):
             unresticted[i][2 * j] = table[i][j]
-            unresticted[i][2 * j + 1] = -1 * table[i][j]
+            unresticted[i][2 * j + 1] = -table[i][j]
     # now add the last column to unrestricted
-    for i in range(len(table)):
+    for i in range(len(table) - 1):
         unresticted[i][2 * (len(table[0]) - 1)] = table[i][(len(table[0]) - 1)]
+    # Add the objective function to bottom of unrestricted table
+    for j in range(len(table[0]) - 1):
+        unresticted[-1][2 * j] = table[-1][j]
+        unresticted[-1][2 * j + 1] = -table[-1][j]
+    # Add -x <= 0 constraint for each variable x
+    for i in range(number_of_variables):
+        unresticted[len(table) - 1 + i][i] = -1
+        unresticted[len(table) - 1 + i][-1] = 0
     return unresticted
+
+
+def reduce_variables(optimum, number_of_variables):
+    """
+    removes the extra variables that were added in make_unrestriced_variables
+    x_i := x_2i - x_(2i+1)
+    """
+    reduced_optimum = []
+    for i in range(number_of_variables):
+        if i % 2 == 0:
+            reduced_optimum.append(optimum[i])
+        else:
+            reduced_optimum[i // 2] -= optimum[i]
+    reduced_optimum.append(optimum[-1])
+    return reduced_optimum
 
 
 def add_slack_variables(table):

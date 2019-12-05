@@ -20,7 +20,7 @@ def lattice_tj(m):
     """
     b = np.array(lll_reduction(m, 0.75))  # perform LLL reduction on the matrix
     D = norm(m[0])  # D is length of shortest vector because b is LLL reduced
-    R = D * 1.1
+    R = D * 1
     epsilon = Matrix.identity(len(m))
     threshold = 1e-12
     while sum_of_squared_coefficietns(epsilon) > threshold:
@@ -30,8 +30,8 @@ def lattice_tj(m):
         simplex_input = make_simplex_input(epsilon, constraints)
         simplex_input = np.array(simplex_input)
         print('Performing Simplex Method.')
-        epsilon = simplex_method(simplex_input, output='epsilon', unrestricted=True)
-        epsilon = np.array(epsilon)
+        epsilon = simplex_method(simplex_input, unrestricted=True)[:-1]
+        epsilon = np.array(epsilon).reshape((len(b), len(b)))
         print('sum_of_squared_coefficients(epsilon): ', sum_of_squared_coefficietns(epsilon))
         b = b + epsilon @ b
 
@@ -184,18 +184,18 @@ if __name__ == '__main__':
     # denser_matrix = lattice_tj(m)
     # print(denser_matrix)
 
-    # differences = []
-    # for i in range(10):
-    #     b = np.random.rand(3, 3)
-    #     while np.linalg.matrix_rank(b) < len(b):
-    #         b = np.random.randint(3, 3)
-    #     # print(' b: \n', b)
-    #     starting_density = Lattice(b.tolist()).center_density
-    #     # print('starting density: ', starting_density)
-    #     denser_matrix = lattice_tj(b)
-    #     ending_density = Lattice(denser_matrix.tolist()).center_density
-    #     print('ending density: ', ending_density)
-    #     difference = ending_density - starting_density
-    #     print('difference = ', difference)
-    #     differences.append(difference)
-    # print(differences)
+    differences = []
+    for i in range(10):
+        b = np.random.rand(3, 3)
+        while np.linalg.matrix_rank(b) < len(b):
+            b = np.random.randint(3, 3)
+        # print(' b: \n', b)
+        starting_density = Lattice(b.tolist()).center_density
+        # print('starting density: ', starting_density)
+        denser_matrix = lattice_tj(b)
+        ending_density = Lattice(denser_matrix.tolist()).center_density
+        print('ending density: ', ending_density)
+        difference = ending_density - starting_density
+        print('difference = ', difference)
+        differences.append(difference)
+    print(differences)
