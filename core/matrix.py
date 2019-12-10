@@ -2,6 +2,8 @@
 from core.polycalc_numbers import Rational, Integer
 from core.vector import Vector
 
+# Todo: Cholesky decomposition, singlular value decomposition, eigen values
+
 
 class Matrix(list):
 

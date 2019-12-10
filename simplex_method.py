@@ -4,7 +4,7 @@ https://youtu.be/E94xNYyjTmg
 """
 
 import numpy as np
-
+from scipy import optimize
 
 def simplex_method(table, dictionary_output=False, unrestricted=False):
     """
@@ -14,12 +14,14 @@ def simplex_method(table, dictionary_output=False, unrestricted=False):
     Set unrestricted=True if variables can be negative.
     """
     assert type(table).__name__ == 'ndarray'  # "table[:, -1]" column selection is specific to np.ndarray
+    if unrestricted and dictionary_output:
+        # preserve objective function to recreate optimum value
+        objective_function = table[-1][:-1]
 
     if unrestricted:
         table = make_unrestricted_variables(table)
 
     table = add_slack_variables(table)
-
     last_row = table[-1][:-1]
     while has_a_negative(last_row):
         table = simplex_row_operation(table)
@@ -40,10 +42,32 @@ def simplex_method(table, dictionary_output=False, unrestricted=False):
         variable_dict = {}
         for i, value in enumerate(optimum[:-1]):
             variable_dict['x' + str(i)] = value
-        variable_dict['optimum'] = optimum[-1]
+        if unrestricted:
+            variable_dict['optimum'] = np.array(optimum[:-1]).dot(np.array(objective_function))
+        else:
+            variable_dict['optimum'] = optimum[-1]
         return variable_dict
 
     return optimum
+
+
+def simplex_method_scipy(table, unrestricted=False):
+    assert type(table).__name__ == 'ndarray'  # "table[:, -1]" column selection is specific to np.ndarray
+
+    if unrestricted:
+        table = make_unrestricted_variables(table)
+        number_of_variables = len(table[0]) - 1
+
+    A = table[:-1, :-1]
+    b = table[:, -1][:-1]
+    c = table[-1][:-1]
+    optimum = optimize.linprog(c, A_ub=A, b_ub=b).get('x')
+
+    if unrestricted:
+        np.append(optimum, 0)  # reduce requires a dummy at the end
+        optimum = reduce_variables(optimum, number_of_variables)[:-1]
+    return optimum
+
 
 
 def make_unrestricted_variables(table):
