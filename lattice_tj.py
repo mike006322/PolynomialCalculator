@@ -113,7 +113,7 @@ def make_constraints(shortest_vectors, D, R_i, n):
             constraint = -1 * vector * epsilon * vector.transpose()
             constraint = make_vector_from_linear_polynomial(constraint[0][0], n)
             v_v_t = vector * vector.transpose()
-            v_v_t = v_v_t[0][0]  # chance from Matrix type to just a number
+            v_v_t = v_v_t[0][0]  # change from Matrix type to just a number
             constraint.append(-1 * (D ** 2 - v_v_t) / 2)
             constraints.append(constraint)
     # example [1, 2, 3, 2, 4, 6, 3, 6, 9, -5]
@@ -320,6 +320,10 @@ def get_density_test():
     # My algorith, said 0.13181955941418586
     # (4, [-2992.9880115283113, -10.72655918418694, -373.644364082849, -79.76874811239823, 1118.502728914449, 5.872511951906576, 139.03821745089388, 31.520105005997586, 1183.3611207871302, 2.8580632518764837, 148.10165826317575, 30.42962084140757, 2217.808564341084, 8.538061925470647, 276.7082101552752, 59.66740931905222]])
     print(Lattice(m).center_density)
+    #
+    # [[-0.08217593 - 0.05837214  0.09375]
+    #  [-0.05837214 - 0.11111111 - 0.06803615]
+    #  [0.09375 - 0.06803615 - 0.01765046]]
 
 
 if __name__ == '__main__':
