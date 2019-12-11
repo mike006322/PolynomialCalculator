@@ -4,6 +4,7 @@ Adapted for lattice packings in the following paper:
 https://arxiv.org/pdf/1304.5003.pdf
 """
 import logging
+import time
 from core.lll import lll_reduction
 from core.norms import euclidean_norm as norm, sum_of_squared_coefficietns
 from core.lattice_enumeration import find_vectors_less_than
@@ -30,19 +31,19 @@ def lattice_tj(m):
     input m, that represents a basis for a lattice sphere packing
     returns lattice packing with a density that is a local maximum
     """
+    starting_time = time.time()
     n = len(m)
     logging.info('Starting lattice_tj for \n' + str(m))
     b = np.array(lll_reduction(m, 0.75))  # perform LLL reduction on the matrix
     logging.debug('b: \n' + str(b))
     D = norm(b[0])  # D is length of shortest vector because b is LLL reduced
-    R = D * 2
+    R = D * 1.1
     epsilon = Matrix.identity(n)
     threshold = 1e-12
     while sum_of_squared_coefficietns(epsilon) > threshold:
         det_b = np.linalg.det(b)
         logging.info('Finding shortest vectors.')
         logging.debug('max length of vectors: ' + str(R))
-        # print(b)
         logging.info('Finding shortst vectors.')
         shortest_vectors = find_vectors_less_than(b.transpose(), R)
         removearray(shortest_vectors, np.zeros(len(b)))
@@ -50,38 +51,39 @@ def lattice_tj(m):
         constraints = make_constraints(shortest_vectors, D, R, n)
         logging.debug('constraints: \n' + str(Matrix(constraints)))
         simplex_input = make_simplex_input(epsilon, constraints)
+        logging.debug('simplex input: \n' + str(simplex_input))
         simplex_input = np.array(simplex_input)
-        # simplex_input[-1] *= -1
-        # logging.debug('simplex input \n' + str(simplex_input))
         logging.info('Performing Simplex Method.')
-        epsilon = simplex_method_scipy(simplex_input, unrestricted=True)
-        epsilon = np.array(epsilon).reshape((len(b), len(b)))
+        epsilon_variables = simplex_method_scipy(simplex_input, unrestricted=True)
+        epsilon = np.array(make_epsilon(epsilon_variables, n))
         logging.debug('epsilon: ' + str(epsilon))
         logging.debug('trace of epsilon (objective function) ' + str(np.trace(epsilon)))
         logging.info('sum_of_squared_coefficients(epsilon): ' + str(sum_of_squared_coefficietns(epsilon)))
-        updated_b = b + epsilon @ b
+        updated_b = b + b @ epsilon
         logging.debug('updated b: ' + str(updated_b))
         logging.debug('det of b: ' + str(det_b))
         updated_det = np.linalg.det(updated_b)
-        if det_b > 0:
-            if updated_det > det_b:
-                logging.debug('Updated determinant large. Halving epsilon')
-                epsilon *= .5
-                updated_b = b + epsilon @ b
-                logging.debug('updated determinant ' + str(updated_det))
-                updated_det = np.linalg.det(updated_b)
-        else:
-            if updated_det < det_b:
-                logging.debug('Updated determinant large. Halving epsilon')
-                epsilon *= .5
-                updated_b = b + epsilon @ b
-                logging.debug('updated determinant ' + str(updated_det))
-                updated_det = np.linalg.det(updated_b)
+        # if det_b > 0:
+        #     if updated_det > det_b:
+        #         logging.debug('Updated determinant large. Halving epsilon')
+        #         epsilon *= .5
+        #         updated_b = b + epsilon @ b
+        #         logging.debug('updated determinant ' + str(updated_det))
+        #         updated_det = np.linalg.det(updated_b)
+        # else:
+        #     if updated_det < det_b:
+        #         logging.debug('Updated determinant large. Halving epsilon')
+        #         epsilon *= .5
+        #         updated_b = b + epsilon @ b
+        #         logging.debug('updated determinant ' + str(updated_det))
+        #         updated_det = np.linalg.det(updated_b)
         b = updated_b
         logging.debug('new, denser b = ' + str(b.tolist()))
         print('center density = ' + str(Lattice(b).center_density))
 
     logging.info('Finished lattice_tj for \n' + str(m))
+    ending_time = time.time()
+    print('time = ' + str(ending_time - starting_time))
     return b
 
 
@@ -91,12 +93,17 @@ def make_constraints(shortest_vectors, D, R_i, n):
     as per algorithm specifications
     to be used in simplex method
     """
-    epsilon = np.zeros((n, n)).tolist()
+    epsilon = np.zeros((n, n)).tolist();
     epsilon = Matrix(epsilon)
+    variable_numbers = []
     # fill epsilon with variables
     for i in range(len(epsilon)):
         for j in range(len(epsilon[0])):
-            epsilon[i][j] = Polynomial('x' + str(n * i + j))
+            if i > j:
+                epsilon[i][j] = epsilon[j][i]
+            else:
+                epsilon[i][j] = Polynomial('x' + str(n * i + j))
+                variable_numbers.append((i, j))
 
     constraints = []
     # shortest vector constraints
@@ -123,30 +130,56 @@ def make_constraints(shortest_vectors, D, R_i, n):
     # - off-diagonal element of epsilon <= .5*lam/(d-1)
     # off-diagonal element of epsilon <= .5*lam(d-1)
 
-    for i in range(n):
-        for j in range(n):
-            if i == j:  # if diagonal element of epsilon
-                # - diagonal element of epsilon <= .5*lam
-                constraint = []
-                for variable in range(n ** 2):
-                    constraint.append(0)
-                constraint[i * n + j] = -1
-                constraint.append(.5 * lam)
-                constraints.append(constraint)
-            else:  # if off-diagonal element of epsilon
-                # -off-diagonal element of epsilon <= .5*lam/(d-1)
-                # off-diagonal element of epsilon <= .5*lam(d-1)
-                constraint_positive = []
-                constraint_negative = []
-                for variable in range(n ** 2):
-                    constraint_positive.append(0)
-                    constraint_negative.append(0)
-                constraint_positive[i * n + j] = 1
-                constraint_negative[i * n + j] = -1
-                constraint_positive.append(.5 * lam / (n - 1))
-                constraint_negative.append(.5 * lam / (n - 1))
-                constraints.append(constraint_positive)
-                constraints.append(constraint_negative)
+
+    for v, variable in enumerate(variable_numbers):
+        i, j = variable
+        if i == j:  # if diagonal element of epsilon
+            # - diagonal element of epsilon <= .5*lam
+            constraint = []
+            for _ in range(len(variable_numbers)):
+                constraint.append(0)
+            constraint[v] = -1
+            constraint.append(.5 * lam)
+            constraints.append(constraint)
+        else:  # if off-diagonal element of epsilon
+            # -off-diagonal element of epsilon <= .5*lam/(d-1)
+            # off-diagonal element of epsilon <= .5*lam(d-1)
+            constraint_positive = []
+            constraint_negative = []
+            for _ in range(len(variable_numbers)):
+                constraint_positive.append(0)
+                constraint_negative.append(0)
+            constraint_positive[v] = 1
+            constraint_negative[v] = -1
+            constraint_positive.append(.5 * lam / (n - 1))
+            constraint_negative.append(.5 * lam / (n - 1))
+            constraints.append(constraint_positive)
+            constraints.append(constraint_negative)
+
+    # for i in range(n):
+    #     for j in range(n):
+    #         if i == j:  # if diagonal element of epsilon
+    #             # - diagonal element of epsilon <= .5*lam
+    #             constraint = []
+    #             for variable in range(number_of_variables):
+    #                 constraint.append(0)
+    #             constraint[i * n + j] = -1
+    #             constraint.append(.5 * lam)
+    #             constraints.append(constraint)
+    #         else:  # if off-diagonal element of epsilon
+    #             # -off-diagonal element of epsilon <= .5*lam/(d-1)
+    #             # off-diagonal element of epsilon <= .5*lam(d-1)
+    #             constraint_positive = []
+    #             constraint_negative = []
+    #             for variable in range(number_of_variables):
+    #                 constraint_positive.append(0)
+    #                 constraint_negative.append(0)
+    #             constraint_positive[i * n + j] = 1
+    #             constraint_negative[i * n + j] = -1
+    #             constraint_positive.append(.5 * lam / (n - 1))
+    #             constraint_negative.append(.5 * lam / (n - 1))
+    #             constraints.append(constraint_positive)
+    #             constraints.append(constraint_negative)
 
     return constraints
 
@@ -180,7 +213,7 @@ def make_simplex_input(epsilon, constraints):
     # make the objective function vector
     objective_function = []
     for i in range(len(epsilon)):
-        for j in range(len(epsilon[0])):
+        for j in range(i, len(epsilon[0])):
             if i == j:
                 objective_function.append(1)
                 # objective_function.append(epsilon[i][j])
@@ -204,21 +237,41 @@ def make_vector_from_linear_polynomial(poly, n):
     2x_1 + 3x_2 + x_3 + 8x_4, 4  ->  [2, 3, 1, 8]
     5x_2 + 3x_4, 5 ->  [0, 0, 0, 3, 0]
     """
+    number_of_variables = n*(n+1)//2
     # initialize res to be all zero's
     res = []
-    for i in range(n ** 2):
+    for i in range(number_of_variables):
         res.append(0)
 
     # add non-linear terms to make sure all variables are present
-    for i in range(n ** 2):
+    for i in range(number_of_variables):
         poly += Polynomial('x' + str(i) + '^2')
 
     for term in poly.term_matrix[1:]:
-        for variable in range(1, n ** 2 + 1):
+        for variable in range(1, number_of_variables + 1):
             if term[variable] == 1:
                 res[variable - 1] = term[0]
                 break
     return res
+
+
+def make_epsilon(variables, n):
+    epsilon = []
+    variable_index = 0
+    for i in range(n):
+        epsilon.append([])
+        for j in range(n):
+            if i > j:
+                epsilon[i].append(epsilon[j][i])
+
+
+            elif i == j:
+                epsilon[i].append(variables[variable_index])
+                variable_index += 1
+            elif i < j:
+                epsilon[i].append(variables[variable_index])
+                variable_index += 1
+    return epsilon
 
 
 def main():
@@ -226,9 +279,10 @@ def main():
                         level=logging.DEBUG,
                         format='%(asctime)s - %(name)s - %(threadName)s -  %(levelname)s - %(message)s',
                         filemode='w')
+    # m = [[1, 1, 1, 3], [-1, 0, 2, 3], [3, 5, 6, 4], [3, -4, -5, 6]]
     m = [[1, 1, 1], [-1, 0, 2], [3, 5, 6]]
-    m = Matrix.identity(3)
-    m = [[2, 1, 4], [18, -3, 0], [-3, 1, 6]]
+    # m = Matrix.identity(3)
+    # m = [[2, 1, 4], [18, -3, 0], [-3, 1, 6]]
 
     print(Lattice(m).center_density)
 
@@ -258,11 +312,13 @@ def main():
 
 
 def get_density_test():
-    m = [[204.9263234521485, -14.19193281871663, -94.11311607854634],
-         [-6434.343736245679, 442.14554087457657, 2958.394695219982],
-         [-16816.819735412955, 1163.1333278027298, 7724.832669426398]]
-
-
+    m = [[-2992.9880115283113, -10.72655918418694, -373.644364082849, -79.76874811239823],
+         [1118.502728914449, 5.872511951906576, 139.03821745089388, 31.520105005997586],
+         [1183.3611207871302, 2.8580632518764837, 148.10165826317575, 30.42962084140757],
+         [2217.808564341084, 8.538061925470647, 276.7082101552752, 59.66740931905222]]
+    # actual center density: 0.0593872379809836881793289678657
+    # My algorith, said 0.13181955941418586
+    # (4, [-2992.9880115283113, -10.72655918418694, -373.644364082849, -79.76874811239823, 1118.502728914449, 5.872511951906576, 139.03821745089388, 31.520105005997586, 1183.3611207871302, 2.8580632518764837, 148.10165826317575, 30.42962084140757, 2217.808564341084, 8.538061925470647, 276.7082101552752, 59.66740931905222]])
     print(Lattice(m).center_density)
 
 
