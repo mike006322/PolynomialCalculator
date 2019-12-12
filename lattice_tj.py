@@ -97,12 +97,14 @@ def make_constraints(shortest_vectors, D, R_i, n):
     epsilon = Matrix(epsilon)
     variable_numbers = []
     # fill epsilon with variables
+    variable_index = 0
     for i in range(len(epsilon)):
         for j in range(len(epsilon[0])):
             if i > j:
                 epsilon[i][j] = epsilon[j][i]
             else:
-                epsilon[i][j] = Polynomial('x' + str(n * i + j))
+                epsilon[i][j] = Polynomial('x' + str(variable_index))
+                variable_index += 1
                 variable_numbers.append((i, j))
 
     constraints = []
@@ -130,7 +132,6 @@ def make_constraints(shortest_vectors, D, R_i, n):
     # - off-diagonal element of epsilon <= .5*lam/(d-1)
     # off-diagonal element of epsilon <= .5*lam(d-1)
 
-
     for v, variable in enumerate(variable_numbers):
         i, j = variable
         if i == j:  # if diagonal element of epsilon
@@ -155,31 +156,6 @@ def make_constraints(shortest_vectors, D, R_i, n):
             constraint_negative.append(.5 * lam / (n - 1))
             constraints.append(constraint_positive)
             constraints.append(constraint_negative)
-
-    # for i in range(n):
-    #     for j in range(n):
-    #         if i == j:  # if diagonal element of epsilon
-    #             # - diagonal element of epsilon <= .5*lam
-    #             constraint = []
-    #             for variable in range(number_of_variables):
-    #                 constraint.append(0)
-    #             constraint[i * n + j] = -1
-    #             constraint.append(.5 * lam)
-    #             constraints.append(constraint)
-    #         else:  # if off-diagonal element of epsilon
-    #             # -off-diagonal element of epsilon <= .5*lam/(d-1)
-    #             # off-diagonal element of epsilon <= .5*lam(d-1)
-    #             constraint_positive = []
-    #             constraint_negative = []
-    #             for variable in range(number_of_variables):
-    #                 constraint_positive.append(0)
-    #                 constraint_negative.append(0)
-    #             constraint_positive[i * n + j] = 1
-    #             constraint_negative[i * n + j] = -1
-    #             constraint_positive.append(.5 * lam / (n - 1))
-    #             constraint_negative.append(.5 * lam / (n - 1))
-    #             constraints.append(constraint_positive)
-    #             constraints.append(constraint_negative)
 
     return constraints
 
@@ -237,7 +213,7 @@ def make_vector_from_linear_polynomial(poly, n):
     2x_1 + 3x_2 + x_3 + 8x_4, 4  ->  [2, 3, 1, 8]
     5x_2 + 3x_4, 5 ->  [0, 0, 0, 3, 0]
     """
-    number_of_variables = n*(n+1)//2
+    number_of_variables = n * (n + 1) // 2
     # initialize res to be all zero's
     res = []
     for i in range(number_of_variables):
@@ -263,12 +239,7 @@ def make_epsilon(variables, n):
         for j in range(n):
             if i > j:
                 epsilon[i].append(epsilon[j][i])
-
-
-            elif i == j:
-                epsilon[i].append(variables[variable_index])
-                variable_index += 1
-            elif i < j:
+            else:
                 epsilon[i].append(variables[variable_index])
                 variable_index += 1
     return epsilon
@@ -279,8 +250,9 @@ def main():
                         level=logging.DEBUG,
                         format='%(asctime)s - %(name)s - %(threadName)s -  %(levelname)s - %(message)s',
                         filemode='w')
+    m = [[1, 1, 1, 3, 0], [-1, 0, 2, 3, 0], [3, 5, 6, 4, 0], [3, -4, -5, 6, 0], [-8, 4, 7, -3, 2]]
     # m = [[1, 1, 1, 3], [-1, 0, 2, 3], [3, 5, 6, 4], [3, -4, -5, 6]]
-    m = [[1, 1, 1], [-1, 0, 2], [3, 5, 6]]
+    # m = [[1, 1, 1], [-1, 0, 2], [3, 5, 6]]
     # m = Matrix.identity(3)
     # m = [[2, 1, 4], [18, -3, 0], [-3, 1, 6]]
 
@@ -320,10 +292,6 @@ def get_density_test():
     # My algorith, said 0.13181955941418586
     # (4, [-2992.9880115283113, -10.72655918418694, -373.644364082849, -79.76874811239823, 1118.502728914449, 5.872511951906576, 139.03821745089388, 31.520105005997586, 1183.3611207871302, 2.8580632518764837, 148.10165826317575, 30.42962084140757, 2217.808564341084, 8.538061925470647, 276.7082101552752, 59.66740931905222]])
     print(Lattice(m).center_density)
-    #
-    # [[-0.08217593 - 0.05837214  0.09375]
-    #  [-0.05837214 - 0.11111111 - 0.06803615]
-    #  [0.09375 - 0.06803615 - 0.01765046]]
 
 
 if __name__ == '__main__':
