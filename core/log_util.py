@@ -5,7 +5,7 @@ from time import time
 def log(f, show_input=True, show_output=True):
     def new_f(*args, **kwargs):
         if show_input:
-            logging.info('Beginning function ' + f.__name__ + ', Input: \n' + str([*args]) + str(**kwargs))
+            logging.info('Beginning function ' + f.__name__ + ', Input: \n' + str(args) + str(kwargs))
         else:
             logging.info('Beginning function ' + f.__name__)
         start = time()
