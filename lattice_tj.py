@@ -15,17 +15,6 @@ import numpy as np
 from core.lattice import Lattice
 
 
-def removearray(L, arr):
-    ind = 0
-    size = len(L)
-    while ind != size and not np.array_equal(L[ind], arr):
-        ind += 1
-    if ind != size:
-        L.pop(ind)
-    else:
-        raise ValueError('array not found in list.')
-
-
 @log
 def lattice_tj(m):
     """
@@ -41,13 +30,9 @@ def lattice_tj(m):
     while sum_of_squared_coefficietns(epsilon) > threshold:
         det_b = np.linalg.det(b)
         shortest_vectors = find_vectors_less_than(b.transpose(), R)
-        removearray(shortest_vectors, np.zeros(len(b)))
+        shortest_vectors = remove_zero_vector(shortest_vectors)
         constraints = make_constraints(shortest_vectors, D, R, n)
-        simplex_input = make_simplex_input(epsilon, constraints)
-        simplex_input = np.array(simplex_input)
-        epsilon_variables = log(simplex_method_scipy, show_input=False)(simplex_input, unrestricted=True)
-        # epsilon_variables = simplex_method_scipy(simplex_input, unrestricted=True)
-        epsilon = np.array(make_epsilon(epsilon_variables, n))
+        epsilon = make_epsilon(constraints, n)
         updated_b = b + b @ epsilon
         updated_det = np.linalg.det(updated_b)
         # if det_b > 0:
@@ -70,13 +55,39 @@ def lattice_tj(m):
     return b
 
 
+def make_epsilon(constraints, n):
+    simplex_input = make_simplex_input(constraints, n)
+    simplex_input = np.array(simplex_input)
+    epsilon_variables = log(simplex_method_scipy, show_input=False)(simplex_input, unrestricted=True)
+    epsilon = np.array(reshape_epsilon(epsilon_variables, n))
+    return epsilon
+
+
+def remove_zero_vector(vectors):
+    """
+    Removes the all zero vector from list of shortest vectors
+    This step is necessary when working with floating point numbers because often 0 is represented as 1e-x,
+    where x is large, and later it will add an unwanted constraint in the optimization
+    """
+    assert type(vectors[0]).__name__ == 'ndarray'
+    res = vectors.copy()
+    zero = np.zeros(len(vectors[0]))
+    ind = 0
+    size = len(vectors)
+    while ind != size and not np.array_equal(res[ind], zero):
+        ind += 1
+    if ind != size:
+        res.pop(ind)
+    return res
+
+
 def make_constraints(shortest_vectors, D, R_i, n):
     """
     makes constraints out of the shortest vectors
     as per algorithm specifications
     to be used in simplex method
     """
-    epsilon = np.zeros((n, n)).tolist();
+    epsilon = np.zeros((n, n)).tolist()
     epsilon = Matrix(epsilon)
     variable_numbers = []
     # fill epsilon with variables
@@ -143,7 +154,7 @@ def make_constraints(shortest_vectors, D, R_i, n):
     return constraints
 
 
-def make_simplex_input(epsilon, constraints):
+def make_simplex_input(constraints, n):
     """
     we need to multiply the constraints by negative one because
     "simplex_method" is standardized to "<=" vectors instead of ">=" vectors
@@ -171,8 +182,8 @@ def make_simplex_input(epsilon, constraints):
     """
     # make the objective function vector
     objective_function = []
-    for i in range(len(epsilon)):
-        for j in range(i, len(epsilon[0])):
+    for i in range(n):
+        for j in range(i, n):
             if i == j:
                 objective_function.append(1)
                 # objective_function.append(epsilon[i][j])
@@ -184,7 +195,6 @@ def make_simplex_input(epsilon, constraints):
 
     output_matrix = Matrix(constraints)
     output_matrix.append(objective_function)
-    n = len(epsilon)
     # output_matrix now has length n**2 + 1, where epsilon is n by n
     return output_matrix
 
@@ -214,7 +224,7 @@ def make_vector_from_linear_polynomial(poly, n):
     return res
 
 
-def make_epsilon(variables, n):
+def reshape_epsilon(variables, n):
     epsilon = []
     variable_index = 0
     for i in range(n):
@@ -233,37 +243,16 @@ def main():
                         level=logging.DEBUG,
                         format='%(asctime)s - %(name)s - %(threadName)s -  %(levelname)s - %(message)s',
                         filemode='w')
-    # m = [[1, 1, 1, 3, 0], [-1, 0, 2, 3, 0], [3, 5, 6, 4, 0], [3, -4, -5, 6, 0], [-8, 4, 7, -3, 2]]
-    m = [[1, 1, 1, 3], [-1, 0, 2, 3], [3, 5, 6, 4], [3, -4, -5, 6]]
+    m = [[1, 12, 1, 3, 0], [-3, 0, 2, 3, 0], [3, 5, 6, 4, 0], [3, -4, -5, 6, 0], [-8, 4, 7, -3, 7]]
+    # m = [[1, 1, 1, 3], [-1, 0, 2, 3], [3, 5, 6, 4], [3, -4, -5, 6]]
     # m = [[1, 1, 1], [-1, 0, 2], [3, 5, 6]]
     # m = Matrix.identity(3)
     # m = [[2, 1, 4], [18, -3, 0], [-3, 1, 6]]
 
     print(Lattice(m).center_density)
-
     denser_matrix = lattice_tj(m)
     print('Output: \n', denser_matrix)
     print(Lattice(denser_matrix.tolist()).center_density)
-
-    # m = [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
-    # denser_matrix = lattice_tj(m)
-    # print(denser_matrix)
-    #
-    # differences = []
-    # for i in range(10):
-    #     b = np.random.rand(3, 3)
-    #     while np.linalg.matrix_rank(b) < len(b):
-    #         b = np.random.randint(3, 3)
-    #     # print(' b: \n', b)
-    #     starting_density = Lattice(b.tolist()).center_density
-    #     # print('starting density: ', starting_density)
-    #     denser_matrix = lattice_tj(b)
-    #     ending_density = Lattice(denser_matrix.tolist()).center_density
-    #     print('ending density: ', ending_density)
-    #     difference = ending_density - starting_density
-    #     print('difference = ', difference)
-    #     differences.append(difference)
-    # print(differences)
 
 
 def get_density_test():
