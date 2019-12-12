@@ -4,7 +4,7 @@ Adapted for lattice packings in the following paper:
 https://arxiv.org/pdf/1304.5003.pdf
 """
 import logging
-import time
+from core.log_util import log
 from core.lll import lll_reduction
 from core.norms import euclidean_norm as norm, sum_of_squared_coefficietns
 from core.lattice_enumeration import find_vectors_less_than
@@ -26,42 +26,29 @@ def removearray(L, arr):
         raise ValueError('array not found in list.')
 
 
+@log
 def lattice_tj(m):
     """
     input m, that represents a basis for a lattice sphere packing
     returns lattice packing with a density that is a local maximum
     """
-    starting_time = time.time()
     n = len(m)
-    logging.info('Starting lattice_tj for \n' + str(m))
     b = np.array(lll_reduction(m, 0.75))  # perform LLL reduction on the matrix
-    logging.debug('b: \n' + str(b))
     D = norm(b[0])  # D is length of shortest vector because b is LLL reduced
     R = D * 1.1
     epsilon = Matrix.identity(n)
     threshold = 1e-12
     while sum_of_squared_coefficietns(epsilon) > threshold:
         det_b = np.linalg.det(b)
-        logging.info('Finding shortest vectors.')
-        logging.debug('max length of vectors: ' + str(R))
-        logging.info('Finding shortst vectors.')
         shortest_vectors = find_vectors_less_than(b.transpose(), R)
         removearray(shortest_vectors, np.zeros(len(b)))
-        logging.debug('shortest_vectors = ' + str(shortest_vectors))
         constraints = make_constraints(shortest_vectors, D, R, n)
-        logging.debug('constraints: \n' + str(Matrix(constraints)))
         simplex_input = make_simplex_input(epsilon, constraints)
-        logging.debug('simplex input: \n' + str(simplex_input))
         simplex_input = np.array(simplex_input)
-        logging.info('Performing Simplex Method.')
-        epsilon_variables = simplex_method_scipy(simplex_input, unrestricted=True)
+        epsilon_variables = log(simplex_method_scipy, show_input=False)(simplex_input, unrestricted=True)
+        # epsilon_variables = simplex_method_scipy(simplex_input, unrestricted=True)
         epsilon = np.array(make_epsilon(epsilon_variables, n))
-        logging.debug('epsilon: ' + str(epsilon))
-        logging.debug('trace of epsilon (objective function) ' + str(np.trace(epsilon)))
-        logging.info('sum_of_squared_coefficients(epsilon): ' + str(sum_of_squared_coefficietns(epsilon)))
         updated_b = b + b @ epsilon
-        logging.debug('updated b: ' + str(updated_b))
-        logging.debug('det of b: ' + str(det_b))
         updated_det = np.linalg.det(updated_b)
         # if det_b > 0:
         #     if updated_det > det_b:
@@ -78,12 +65,8 @@ def lattice_tj(m):
         #         logging.debug('updated determinant ' + str(updated_det))
         #         updated_det = np.linalg.det(updated_b)
         b = updated_b
-        logging.debug('new, denser b = ' + str(b.tolist()))
         print('center density = ' + str(Lattice(b).center_density))
 
-    logging.info('Finished lattice_tj for \n' + str(m))
-    ending_time = time.time()
-    print('time = ' + str(ending_time - starting_time))
     return b
 
 
@@ -250,8 +233,8 @@ def main():
                         level=logging.DEBUG,
                         format='%(asctime)s - %(name)s - %(threadName)s -  %(levelname)s - %(message)s',
                         filemode='w')
-    m = [[1, 1, 1, 3, 0], [-1, 0, 2, 3, 0], [3, 5, 6, 4, 0], [3, -4, -5, 6, 0], [-8, 4, 7, -3, 2]]
-    # m = [[1, 1, 1, 3], [-1, 0, 2, 3], [3, 5, 6, 4], [3, -4, -5, 6]]
+    # m = [[1, 1, 1, 3, 0], [-1, 0, 2, 3, 0], [3, 5, 6, 4, 0], [3, -4, -5, 6, 0], [-8, 4, 7, -3, 2]]
+    m = [[1, 1, 1, 3], [-1, 0, 2, 3], [3, 5, 6, 4], [3, -4, -5, 6]]
     # m = [[1, 1, 1], [-1, 0, 2], [3, 5, 6]]
     # m = Matrix.identity(3)
     # m = [[2, 1, 4], [18, -3, 0], [-3, 1, 6]]

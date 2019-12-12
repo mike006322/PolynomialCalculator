@@ -3,8 +3,7 @@ Finds all non-zero vectors in a lattice that are shorter than a given distance f
 If argument for distance is empty then finds the shortest vector precisely (i.e. non-approximation like LLL).
 """
 
-import logging
-import time
+from core.log_util import log
 import numpy as np
 from core.norms import euclidean_norm as norm
 import math
@@ -70,6 +69,7 @@ class Node:
 #     return short_vectors
 
 
+@log
 def find_vectors_less_than(b, c):
     """
     b input matrix, lattice basis where the COLUMNS are basis vectors
@@ -79,8 +79,6 @@ def find_vectors_less_than(b, c):
     "Lattice Basis Reduction: An Introduction to the LLL Algorithm and Its Applications"
     page 163 (MAPLE code)
     """
-    logging.info('Starting vector enumeration from lattice_enumeration.py.')
-    start_time = time.time()
 
     c = c ** 2
     N, M = b.shape
@@ -137,8 +135,6 @@ def find_vectors_less_than(b, c):
         x = np.array(x)
         res.append(b.dot(x))
 
-    end_time = time.time()
-    logging.info('Vector enumeration running time: ' + str(end_time - start_time))
     return res
 
 def fincke_pohst_with_lll_preprocessing(B, C):
