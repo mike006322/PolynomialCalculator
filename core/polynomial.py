@@ -394,7 +394,7 @@ class Polynomial:
                         res.term_matrix[i][0] *= v ** res.term_matrix[i][variable_number + 1]
                         res.term_matrix[i][variable_number + 1] = 0
                 elif type(v) == Polynomial:
-                    kwargs.update({res.term_matrix[0][variable_number+1]: v})
+                    kwargs.update({res.term_matrix[0][variable_number + 1]: v})
             res.term_matrix = collect_like_terms(res.term_matrix)
             res.term_matrix = order(res.term_matrix)
             if len(res.variables) == 0:
@@ -416,7 +416,6 @@ class Polynomial:
                     return 0
                 return res.term_matrix[1][0]
         return res
-
 
     def __add__(self, other):
         if type(other) == Polynomial:
@@ -634,9 +633,6 @@ def division_string(p, *others):
         res = res[:-3]
     res += ' + (remainder:) ' + str(r)
     return res
-
-
-# self.assertEqual(gcd(Polynomial('x^3y^2'), Polynomial('x^4y')), Polynomial('x^3y'))
 
 
 def gcd(a, b):
