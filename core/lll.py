@@ -16,8 +16,6 @@ def lll_reduction(basis, delta):
 
     k = 1
     while k < n:
-        # if time.time() - start_time > 1:
-        #     logging.debug('k = ' + str(k))
         for j in range(k - 1, -1, -1):
             mu_kj = mu(k, j)
             if abs(mu_kj) > 0.5:
@@ -29,8 +27,6 @@ def lll_reduction(basis, delta):
             basis[k], basis[k - 1] = basis[k - 1], basis[k]
             orthogonal = gram_schmidt(basis)
             k = max(k - 1, 1)
-    # end_time = time.time()
-    # logging.info('LLL from lll.py running time: ' + str(end_time -start_time))
     return basis
 
 
