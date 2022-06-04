@@ -140,6 +140,8 @@ class Ideal:
     @staticmethod
     def find_solutions(groebner_basis, zeroes, solution=None):
         if solution:
+            # key could be Variable type, so convert to string which is necessary for **
+            solution = {str(key): value for key, value in solution.items()}
             new_groebner_basis = []
             for g in groebner_basis:
                 h = g.copy()(**solution)

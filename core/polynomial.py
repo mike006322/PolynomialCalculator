@@ -5,6 +5,7 @@ from collect_like_terms import collect_like_terms
 from formulas import solve
 from polycalc_numbers import Integer, Rational
 from dfs import dfs_post_order as dfs
+from variable import Variable
 import numpy as np
 
 
@@ -17,23 +18,21 @@ class NonFactor(Exception):
 class Polynomial:
 
     def __init__(self, poly, char=0):
+        self.field_characteristic = char
         if poly == 0:
             self.term_matrix = [['constant']]
-            self.field_characteristic = char
         elif isinstance(poly, int) and poly != 0:
             self.term_matrix = [['constant'], [poly]]
             # self.term_matrix = [['constant'], [Integer(poly)]]
-            self.field_characteristic = char
         elif isinstance(poly, (float, complex, Integer, Rational, np.int32)) and poly != 0:
             self.term_matrix = [['constant'], [poly]]
-            self.field_characteristic = char
-        elif type(poly) == list:
+        elif isinstance(poly, list):
             self.term_matrix = poly
-            self.field_characteristic = char
-        elif type(poly) == str:
+        elif isinstance(poly, str):
             poly = construct_expression_tree(order_prefix(parse_function(poly)))
             self.term_matrix = Polynomial.make_polynomial_from_tree(poly).term_matrix
-            self.field_characteristic = char
+        elif isinstance(poly, Variable):
+            self.term_matrix = Polynomial(poly.label).term_matrix
         else:
             raise InputError
         self.term_matrix = self.mod_char(self.term_matrix)
@@ -46,7 +45,7 @@ class Polynomial:
                 return Polynomial(float(s))
                 # return Polynomial(Rational(s))
             else:
-                return Polynomial([['constant', s], [1, 1]])
+                return Polynomial([['constant', Variable(s)], [1, 1]])
 
         def make_poly(child):
             if isinstance(child.value, str):
@@ -128,7 +127,7 @@ class Polynomial:
 
             def __call__(self, *args, **kwargs):
                 # need to convert all to kwargs because derivatives can lose variables
-                kwargs.update(zip(self.variables_in_order, args))
+                kwargs.update(zip(map(str, self.variables_in_order), args))
                 res = []
                 for partial_derivative in g:
                     # res.append(partial_derivative(**kwargs))
