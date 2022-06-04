@@ -277,29 +277,6 @@ class ExpressionTree:
         self.left = None
         self.right = None
 
-    def DFSUtil(self, v, visited):
-        # Mark the current node as visited
-        # and print it
-        visited.add(v)
-        print(v.value, end=' ')
-        # Recur for both children vertices
-        for side in (v.left, v.right):
-            if side and side not in visited:
-                self.DFSUtil(side, visited)
-
-    # The function to do DFS traversal. It uses
-    # recursive DFSUtil()
-    def DFS(self):
-        """
-        Searches the tree and depth first and prints
-        used for debugging
-        """
-        # Mark all the vertices as not visited
-        visited = set()
-        # Call the recursive helper function
-        # to print DFS traversal
-        self.DFSUtil(self, visited)
-
 
 def construct_expression_tree(prefix_ordered_items):
     """
