@@ -1,9 +1,9 @@
-from core.poly_parser import *
-from core.orderings import order_lex as order
-from core.orderings import graded_lex as graded_order
-from core.collect_like_terms import collect_like_terms
-from core.formulas import *
-from core.polycalc_numbers import *
+from poly_parser import construct_expression_tree, order_prefix, parse_function, decide_operation
+from orderings import order_lex as order
+from orderings import graded_lex as graded_order
+from collect_like_terms import collect_like_terms
+from formulas import solve
+from polycalc_numbers import Integer, Rational
 from dfs import dfs_post_order as dfs
 import numpy as np
 
