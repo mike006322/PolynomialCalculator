@@ -38,7 +38,7 @@ class Polynomial:
         self.term_matrix = self.mod_char(self.term_matrix)
 
     @staticmethod
-    def make_polynomial_from_tree(t):
+    def make_polynomial_from_tree(node):
         """
         depth first search through the tree
         """
@@ -52,43 +52,43 @@ class Polynomial:
 
         operation_stack = [ExpressionTree('start')]
         while True:
-            if t.left:
-                operation_stack.append(t)
-                t = t.left
+            if node.left:
+                operation_stack.append(node)
+                node = node.left
             else:
-                if operation_stack[-1].right == t:
+                if operation_stack[-1].right == node:
                     # collapse
-                    t = operation_stack.pop()
-                    if type(t.right.value) == str:
-                        right = make_polynomial_from_string(t.right.value)
+                    node = operation_stack.pop()
+                    if type(node.right.value) == str:
+                        right = make_polynomial_from_string(node.right.value)
                     else:
-                        right = t.right.value
-                    if type(t.left.value) == str:
-                        left = make_polynomial_from_string(t.left.value)
+                        right = node.right.value
+                    if type(node.left.value) == str:
+                        left = make_polynomial_from_string(node.left.value)
                     else:
-                        left = t.left.value
-                    if operation_stack[-1].left == t:
-                        t = ExpressionTree(decide_operation(left, right, t.value))
-                        operation_stack[-1].left = t
-                    if operation_stack[-1].right == t:
-                        t = ExpressionTree(decide_operation(left, right, t.value))
-                        operation_stack[-1].right = t
+                        left = node.left.value
+                    if operation_stack[-1].left == node:
+                        node = ExpressionTree(decide_operation(left, right, node.value))
+                        operation_stack[-1].left = node
+                    if operation_stack[-1].right == node:
+                        node = ExpressionTree(decide_operation(left, right, node.value))
+                        operation_stack[-1].right = node
                     if operation_stack[-1].value == 'start':
-                        return ExpressionTree(decide_operation(left, right, t.value)).value
+                        return ExpressionTree(decide_operation(left, right, node.value)).value
                 else:
                     # t.value = Polynomial(value)
                     if operation_stack[-1].value == 'start':
-                        if type(t.value) == str:
-                            if t.value.isnumeric():
-                                res = Polynomial(float(t.value))
+                        if type(node.value) == str:
+                            if node.value.isnumeric():
+                                res = Polynomial(float(node.value))
                                 # res = Polynomial(Rational(t.value))
                             else:
-                                res = Polynomial([['constant', t.value], [1, 1]])
+                                res = Polynomial([['constant', node.value], [1, 1]])
                         else:
-                            res = Polynomial(t.value)
+                            res = Polynomial(node.value)
                         return res
-                    t = operation_stack[-1]
-                    t = t.right
+                    node = operation_stack[-1]
+                    node = node.right
 
     def copy(self):
         return Polynomial([t[:] for t in self.term_matrix], self.field_characteristic)
