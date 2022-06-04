@@ -202,8 +202,8 @@ def add_missing_multiply(token_list):
     res = []
     for i in range(len(token_list) - 1):
         if token_list[i] != '+' and token_list[i] != '-' and token_list[i] != '*' \
-                and token_list[i] != '**' and token_list[i+1] != '+' and token_list[i+1] != '-' \
-                and token_list[i+1] != '*' and token_list[i+1] != '**':
+                and token_list[i] != '**' and token_list[i + 1] != '+' and token_list[i + 1] != '-' \
+                and token_list[i + 1] != '*' and token_list[i + 1] != '**':
             res.append(token_list[i])
             res.append('*')
         else:
