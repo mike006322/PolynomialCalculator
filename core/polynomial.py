@@ -4,6 +4,7 @@ from core.orderings import graded_lex as graded_order
 from core.collect_like_terms import collect_like_terms
 from core.formulas import *
 from core.polycalc_numbers import *
+from dfs import dfs_post_order as dfs
 import numpy as np
 
 
@@ -39,56 +40,32 @@ class Polynomial:
 
     @staticmethod
     def make_polynomial_from_tree(node):
-        """
-        depth first search through the tree
-        """
 
-        def make_polynomial_from_string(s):
+        def make_primitive_polynomial(s: str):
             if s.isnumeric() or '.' in s:
                 return Polynomial(float(s))
                 # return Polynomial(Rational(s))
             else:
                 return Polynomial([['constant', s], [1, 1]])
 
-        operation_stack = [ExpressionTree('start')]
-        while True:
-            if node.left:
-                operation_stack.append(node)
-                node = node.left
+        def make_poly(child):
+            if isinstance(child.value, str):
+                child.value = make_primitive_polynomial(child.value)
+                return child
             else:
-                if operation_stack[-1].right == node:
-                    # collapse
-                    node = operation_stack.pop()
-                    if type(node.right.value) == str:
-                        right = make_polynomial_from_string(node.right.value)
-                    else:
-                        right = node.right.value
-                    if type(node.left.value) == str:
-                        left = make_polynomial_from_string(node.left.value)
-                    else:
-                        left = node.left.value
-                    if operation_stack[-1].left == node:
-                        node = ExpressionTree(decide_operation(left, right, node.value))
-                        operation_stack[-1].left = node
-                    if operation_stack[-1].right == node:
-                        node = ExpressionTree(decide_operation(left, right, node.value))
-                        operation_stack[-1].right = node
-                    if operation_stack[-1].value == 'start':
-                        return ExpressionTree(decide_operation(left, right, node.value)).value
-                else:
-                    # t.value = Polynomial(value)
-                    if operation_stack[-1].value == 'start':
-                        if type(node.value) == str:
-                            if node.value.isnumeric():
-                                res = Polynomial(float(node.value))
-                                # res = Polynomial(Rational(t.value))
-                            else:
-                                res = Polynomial([['constant', node.value], [1, 1]])
-                        else:
-                            res = Polynomial(node.value)
-                        return res
-                    node = operation_stack[-1]
-                    node = node.right
+                return child
+
+        def collapse(current_node):
+            if current_node.has_children():
+                left = make_poly(current_node.left)
+                right = make_poly(current_node.right)
+                current_node.value = decide_operation(left.value, right.value, current_node.value)
+            else:
+                current_node = make_poly(current_node)
+
+        dfs(node, collapse)
+        return node.value
+
 
     def copy(self):
         return Polynomial([t[:] for t in self.term_matrix], self.field_characteristic)

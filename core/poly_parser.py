@@ -277,6 +277,17 @@ class ExpressionTree:
         self.left = None
         self.right = None
 
+    def has_children(self):
+        return self.left or self.right
+
+    def get_children(self):
+        res = []
+        if self.left:
+            res.append(self.left)
+        if self.right:
+            res.append(self.right)
+        return res
+
 
 def construct_expression_tree(prefix_ordered_items):
     """
