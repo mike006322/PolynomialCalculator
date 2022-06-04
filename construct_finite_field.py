@@ -1,6 +1,4 @@
-import sys
-sys.path.append(".")
-from PolynomialCalculator.core.polynomial import *
+from core.polynomial import *
 import random
 
 # Construct a Finite Field/Galois Field of order p^i, GF(p^i)
