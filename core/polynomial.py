@@ -66,7 +66,6 @@ class Polynomial:
         dfs(node, collapse)
         return node.value
 
-
     def copy(self):
         return Polynomial([t[:] for t in self.term_matrix], self.field_characteristic)
 
