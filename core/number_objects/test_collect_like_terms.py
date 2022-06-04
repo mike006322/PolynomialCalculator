@@ -1,5 +1,5 @@
 import unittest
-from collect_like_terms import collect_like_terms
+from number_objects.collect_like_terms import collect_like_terms
 
 
 class TestCollectLikeTerms(unittest.TestCase):

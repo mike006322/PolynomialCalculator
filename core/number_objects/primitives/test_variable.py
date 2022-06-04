@@ -1,5 +1,5 @@
 import unittest
-from variable import Variable
+from number_objects.primitives.variable import Variable
 
 
 class TestVector(unittest.TestCase):

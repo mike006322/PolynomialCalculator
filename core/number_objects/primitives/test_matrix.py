@@ -1,5 +1,5 @@
 import unittest
-from core.matrix import *
+from number_objects.primitives.matrix import *
 
 
 class TestMatrix(unittest.TestCase):

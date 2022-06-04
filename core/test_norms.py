@@ -1,6 +1,6 @@
 import unittest
 from core.norms import *
-from core.matrix import Matrix
+from number_objects.primitives.matrix import Matrix
 
 
 class TestNorms(unittest.TestCase):

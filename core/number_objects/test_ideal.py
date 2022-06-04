@@ -1,6 +1,6 @@
 import unittest
-from ideal import *
-from polynomial import Polynomial
+from number_objects.ideal import *
+from number_objects.polynomial import Polynomial
 
 
 class TestIdeal(unittest.TestCase):

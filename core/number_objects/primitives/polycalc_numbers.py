@@ -1,6 +1,6 @@
 # This module defines number classes so that numbers can be manipulated and presented symbolically
 
-from core.vector import Vector
+from number_objects.primitives.vector import Vector
 
 
 class Integer:

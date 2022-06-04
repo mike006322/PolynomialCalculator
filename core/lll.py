@@ -2,7 +2,7 @@
 # Solves shortest vector problem by returning a basis such that the first vector is closest vector to the origin
 
 from core.log_util import log
-from core.matrix import *
+from number_objects.primitives.matrix import *
 
 
 @log

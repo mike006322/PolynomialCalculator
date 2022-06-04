@@ -1,6 +1,5 @@
-from polynomial import *
+from number_objects.polynomial import *
 from itertools import combinations
-from time import time
 
 
 class Ideal:

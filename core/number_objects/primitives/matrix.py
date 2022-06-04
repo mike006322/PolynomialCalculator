@@ -1,6 +1,6 @@
 # import numpy as np
-from core.polycalc_numbers import Rational, Integer
-from core.vector import Vector
+from number_objects.primitives.polycalc_numbers import Rational, Integer
+from number_objects.primitives.vector import Vector
 
 # Todo: Cholesky decomposition, singlular value decomposition, eigen values
 

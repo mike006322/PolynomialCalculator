@@ -1,5 +1,5 @@
 import unittest
-import dfs
+from utils import dfs
 
 
 class Tree:
