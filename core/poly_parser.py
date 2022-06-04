@@ -314,8 +314,6 @@ def construct_expression_tree(prefix_ordered_items):
     stack = [root]
     for i in range(1, len(prefix_ordered_items)):
         t = stack[-1]
-        # root.DFS()
-        # print()
         t_1 = ExpressionTree(prefix_ordered_items[i])
         if prefix_ordered_items[i] in '+-**/':
             if not t.left:
