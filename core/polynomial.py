@@ -1,4 +1,4 @@
-from poly_parser import construct_expression_tree, order_prefix, parse_function, decide_operation
+from poly_parser import construct_expression_tree, order_prefix, parse_function, decide_operation, InputError
 from orderings import order_lex as order
 from orderings import graded_lex as graded_order
 from collect_like_terms import collect_like_terms
