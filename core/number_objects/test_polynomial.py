@@ -1,5 +1,5 @@
 import unittest
-from number_objects.polynomial import *
+from core.number_objects.polynomial import Polynomial, NonFactor, division_algorithm, division_string, divides, gcd, lcm, graded_order
 
 
 class TestPolynomial(unittest.TestCase):

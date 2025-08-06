@@ -1,11 +1,11 @@
-from poly_parser import construct_expression_tree, order_prefix, parse_function, decide_operation, InputError
-from orderings import order_lex as order
-from orderings import graded_lex as graded_order
-from number_objects.collect_like_terms import collect_like_terms
-from formulas import solve
-from number_objects.primitives.polycalc_numbers import Integer, Rational
-from utils.dfs import dfs_post_order as dfs
-from number_objects.primitives.variable import Variable
+from core.poly_parser import construct_expression_tree, order_prefix, parse_function, decide_operation, InputError
+from core.orderings import order_lex as order
+from core.orderings import graded_lex as graded_order
+from core.number_objects.collect_like_terms import collect_like_terms
+from core.formulas import solve
+from core.number_objects.primitives.polycalc_numbers import Integer, Rational
+from core.utils.dfs import dfs_post_order as dfs
+from core.number_objects.primitives.variable import Variable
 import numpy as np
 
 

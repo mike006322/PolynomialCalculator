@@ -1,5 +1,6 @@
 import unittest
-from construct_finite_field import *
+from core.number_objects.polynomial import Polynomial, random_monic, find_irreducible, find_primitive_element, ZechLogarithmTable
+from construct_finite_field import random_monic, find_irreducible, find_primitive_element, ZechLogarithmTable
 
 
 class TestConstructFiniteFields(unittest.TestCase):

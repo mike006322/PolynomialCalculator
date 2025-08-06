@@ -1,5 +1,5 @@
 import unittest
-from number_objects.primitives.matrix import *
+from core.number_objects.primitives.matrix import Matrix, get_matrix_inverse, vector_plus_vector, vector_times_vector, constant_times_vector, matrix_times_vector, vector_times_matrix, matrix_times_matrix, column_sub_matrix, get_integer_ref, get_nullspace, transpose_matrix, scalar_multiplication, gram_schmidt, Vector
 
 
 class TestMatrix(unittest.TestCase):

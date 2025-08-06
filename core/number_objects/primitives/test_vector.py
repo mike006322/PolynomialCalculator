@@ -1,6 +1,6 @@
 import unittest
-from number_objects.primitives.matrix import *
-from number_objects.primitives.polycalc_numbers import Rational
+from core.number_objects.primitives.matrix import Vector
+from core.number_objects.primitives.polycalc_numbers import Rational
 
 
 class TestVector(unittest.TestCase):

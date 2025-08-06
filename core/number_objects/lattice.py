@@ -1,4 +1,4 @@
-from number_objects.primitives.matrix import *
+from core.number_objects.primitives.matrix import Matrix
 from core.lll import lll_reduction
 from core.norms import euclidean_norm
 

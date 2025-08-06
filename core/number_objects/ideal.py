@@ -1,4 +1,6 @@
-from number_objects.polynomial import *
+from core.number_objects.polynomial import Polynomial, lcm
+from core.number_objects.primitives.polycalc_numbers import Integer, Rational
+from sympy import solve
 from itertools import combinations
 
 

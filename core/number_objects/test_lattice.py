@@ -1,5 +1,5 @@
 import unittest
-from number_objects.lattice import *
+from core.number_objects.lattice import Lattice
 
 
 class TestLattice(unittest.TestCase):

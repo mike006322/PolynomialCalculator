@@ -1,5 +1,5 @@
 import unittest
-from number_objects.primitives.polycalc_numbers import *
+from core.number_objects.primitives.polycalc_numbers import Integer, Rational
 
 
 class TestInteger(unittest.TestCase):

@@ -1,5 +1,5 @@
 import unittest
-from orderings import *
+from core.orderings import order_lex, order_grevlex, order_lexdeg, order_grevlexdeg, reverse_lex
 
 
 class TestOrderings(unittest.TestCase):

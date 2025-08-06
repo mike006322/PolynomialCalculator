@@ -1,5 +1,6 @@
 import unittest
-from core.lattice_enumeration import *
+from core.lattice_enumeration import find_vectors_less_than
+import numpy as np
 
 
 class TestLattice_enumeation(unittest.TestCase):

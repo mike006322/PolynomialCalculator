@@ -1,5 +1,5 @@
 import unittest
-from core.poly_parser import *
+from core.poly_parser import find_corresponding_right_parenthesis, InputError, handle_negative_inputs, parse_function, order_prefix, construct_expression_tree
 
 
 class TestParser(unittest.TestCase):

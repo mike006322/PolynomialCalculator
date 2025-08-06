@@ -1,5 +1,5 @@
 import unittest
-from core.lll import *
+from core.lll import lll_reduction, Rational
 
 
 class TestLLL(unittest.TestCase):

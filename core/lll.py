@@ -2,7 +2,8 @@
 # Solves shortest vector problem by returning a basis such that the first vector is closest vector to the origin
 
 from core.log_util import log
-from number_objects.primitives.matrix import *
+from core.number_objects.primitives.matrix import Matrix, gram_schmidt, Vector
+from core.number_objects.primitives.polycalc_numbers import Rational
 
 
 @log

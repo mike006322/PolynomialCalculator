@@ -1,5 +1,5 @@
 import unittest
-from number_objects.polynomial import Polynomial
+from core.number_objects.polynomial import Polynomial
 
 
 class TestFormulas(unittest.TestCase):

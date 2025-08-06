@@ -1,4 +1,4 @@
-from number_objects.polynomial import *
+from core.number_objects.polynomial import Polynomial, gcd
 import random
 
 # Construct a Finite Field/Galois Field of order p^i, GF(p^i)

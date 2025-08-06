@@ -1,6 +1,6 @@
 import unittest
-from core.norms import *
-from number_objects.primitives.matrix import Matrix
+from core.norms import euclidean_norm, weighted_frobenius_norm, sum_of_squared_coefficietns
+from core.number_objects.primitives.matrix import Matrix
 
 
 class TestNorms(unittest.TestCase):
