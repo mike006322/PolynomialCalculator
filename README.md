@@ -14,49 +14,64 @@
 - Support for constructing finite fields with polynomials
 - Can find Gröbner basis for polynomial Ideals
 
-### Usage
+### Usage (Command Line Interface)
 
-```Python
-from core.polynomial import Polynomial
-f = Polynomial('x+1')
-g = Polynomial('x-1')
-print('f = ', f)
-print('g = ', g)
-print('f*g = ', f*g)
-print('solutions = ', (f*g).solve())
-print('f*g/g = ', f*g/g)
-print(division_string(f*g, f))
+
+
+
+#### Create a finite field GF(2^3):
+```sh
+python polycalc_cli.py finite_field -p 2 3
+Created GF(2^3) with irreducible polynomial: x^3 + x + 1.0
+Primitive element table size: 7 elements
 ```
+
+
+
+
+#### Generate a random monic polynomial of degree 4 over F_5:
+```sh
+python polycalc_cli.py random_monic -p 5 4
+Random monic polynomial over F_5 of degree 4: x^4 + 3x^3 + x^2 + 2x + 2.0
 ```
-f = x + 1.0
-g = x - 1.0
-f*g = x^2 - 1.0
-solutions = (1.0, -1.0)
-f*g/g = x + 1.0
-x^2 - 1.0 = (x - 1.0)*(x + 1.0) + (remainder:) 0
+
+
+
+
+#### Find an irreducible polynomial of degree 3 over F_3:
+```sh
+python polycalc_cli.py find_irreducible -p 3 3
+Irreducible polynomial over F_3 of degree 3: x^3 + 2x^2 + x + 1.0
 ```
-```Python
-from core.polynomial import Polynomial 
-from core.ideal import Ideal 
-f = Polynomial("x^2y - 1") 
-g = Polynomial("xy^2 - x") 
-I = Ideal(f, g) 
-g_b = I.groebner_basis() 
-print("groebner basis =", *g_b)
+
+
+
+
+#### Compute the GCD of two polynomials over F_2:
+```sh
+python polycalc_cli.py gcd "x^3+x+1" "x^2+1" -p 2
+gcd(x^3 + x + 1.0, x^2 + 1.0) = 1.0
 ```
+
+
+
+
+#### Solve a univariate polynomial equation:
+```sh
+python polycalc_cli.py solve "x^2-2" x
+Solutions to x^2-2 = 0:
+1.4142135623730951
+-1.4142135623730951
 ```
-groebner basis = -x^2 + y^2 - 10  
-```
-```Python
-s = Polynomial("-x^2 + 10y")  
-t = Polynomial("-y^2 + 10")  
-J = Ideal(s, t)  
-print("groebner basis =", *J.groebner_basis())  
-print("J == I", J == I)
-```
-```
-groebner basis = -y^2 + 10 - x^2 + y  
-J == I True 
+
+
+
+
+#### Compute a Groebner basis for a system of polynomials:
+```sh
+python polycalc_cli.py groebner "x^2+y^2-1" "x-y"
+Groebner basis:
+x^2 + y^2 - 1.0
 ```
 
 ### Near-term goals:

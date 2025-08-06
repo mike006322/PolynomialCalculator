@@ -1,6 +1,5 @@
 from core.number_objects.polynomial import Polynomial, lcm
 from core.number_objects.primitives.polycalc_numbers import Integer, Rational
-from sympy import solve
 from itertools import combinations
 
 
@@ -157,7 +156,7 @@ class Ideal:
             for g in new_groebner_basis:
                 if len(g.variables) == 1:
                     v = g.variables.pop()
-                    solutions = solve(g)
+                    solutions = g.solve()
                     if type(solutions) == set or type(solutions) == tuple or type(solutions) == list:
                         for s in solutions:
                             new_solution = dict(solution)
@@ -173,7 +172,7 @@ class Ideal:
             for g in groebner_basis:
                 if len(g.variables) == 1:
                     v = g.variables.pop()
-                    solutions = solve(g)
+                    solutions = g.solve()
                     if type(solutions) == set or type(solutions) == tuple or type(solutions) == list:
                         for s in solutions:
                             solution = {v: s}
