@@ -1,0 +1,52 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "PolynomialCalculator"
+dynamic = ["version"]
+description = "A comprehensive Python Computer Algebra System for polynomial computations"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Michael Angel", email = "mike00632@gmail.com"}
+]
+maintainers = [
+    {name = "Michael Angel", email = "mike00632@gmail.com"}
+]
+keywords = ["algebra", "polynomial", "mathematics", "computer-algebra-system", "cas"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Education", 
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9", 
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+requires-python = ">=3.7"
+
+[project.urls]
+Homepage = "https://github.com/mike006322/PolynomialCalculator"
+Documentation = "https://github.com/mike006322/PolynomialCalculator"
+Repository = "https://github.com/mike006322/PolynomialCalculator"
+"Bug Tracker" = "https://github.com/mike006322/PolynomialCalculator/issues"
+
+[project.optional-dependencies]
+algebra = ["numpy>=1.18.0", "scipy>=1.5.0"]
+dev = ["pytest>=6.0.0", "pytest-cov>=2.10.0"]
+all = ["numpy>=1.18.0", "scipy>=1.5.0", "pytest>=6.0.0", "pytest-cov>=2.10.0"]
+
+[tool.setuptools]
+packages = ["polynomials", "algebra", "utils", "polynomials.primitives"]
+
+[tool.setuptools.dynamic]
+version = {attr = "__init__.__version__"}
+
+[tool.setuptools.package-data]
+"*" = ["*.md", "*.txt", "*.svg"]

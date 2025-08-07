@@ -1,0 +1,26 @@
+# Include important project files
+include README.md
+include LICENSE
+include *.py
+include *.svg
+
+# Include package data
+recursive-include polynomials *.py
+recursive-include algebra *.py  
+recursive-include utils *.py
+
+# Exclude test files from distribution
+recursive-exclude */tests *
+recursive-exclude */tests *.py
+exclude test_*.py
+
+# Exclude development files
+exclude .gitignore
+exclude *.pyc
+exclude __pycache__
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]
+
+# Include documentation
+include *.md
+recursive-include docs *.md *.rst *.txt

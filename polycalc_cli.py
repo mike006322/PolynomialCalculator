@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import argparse
-from core.number_objects.polynomial import Polynomial, gcd
-from core.number_objects.ideal import Ideal
-from construct_finite_field import ZechLogarithmTable, random_monic, find_irreducible, find_primitive_element
+from polynomials.polynomial import Polynomial, gcd
+from polynomials.ideal import Ideal
+from algebra.construct_finite_field import ZechLogarithmTable, random_monic, find_irreducible, find_primitive_element
 
 # Entry point for PolyCalc CLI (renamed from cli.py)
 
