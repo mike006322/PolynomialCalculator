@@ -51,11 +51,17 @@ def _get_version() -> str:
 
 def main():
     """Main entry point for the polycalc command-line tool."""
+    # Fast-path: handle --version without invoking argparse/subparsers
+    argv = sys.argv[1:]
+    if "--version" in argv or "-V" in argv:
+        print(f"polycalc {_get_version()}")
+        return 0
+
     parser = argparse.ArgumentParser(
         description="PolynomialCalculator CLI: Finite field and polynomial operations",
         prog="polycalc"
     )
-    # Global flags
+    # Global flags (kept for help text, but not relied upon for exit code)
     parser.add_argument(
         "--version", action="version", version=f"%(prog)s {_get_version()}"
     )
@@ -149,6 +155,10 @@ def main():
         "--vars", nargs='+', type=str, default=["x", "y"], 
         help="Variables (default: x y)"
     )
+    groebner_parser.add_argument(
+        "--order", choices=["lex", "grlex", "grevlex"], default="lex",
+        help="Monomial order to use (default: lex)"
+    )
 
     # Subcommand: solve-system (structured)
     solve_sys_parser = subparsers.add_parser(
@@ -162,8 +172,9 @@ def main():
 
     try:
         args = parser.parse_args()
-    except SystemExit:
-        return 1
+    except SystemExit as e:
+        # Propagate argparse's intended exit code (e.g., --help errors => 2)
+        return e.code if isinstance(e.code, int) else 1
 
     try:
         if args.command == "finite_field":
@@ -228,7 +239,17 @@ def main():
                 print(f"  {sol}")
                 
         elif args.command == "groebner":
-            # Lazy import core polynomial machinery
+            # Apply selected monomial order globally for Polynomial operations
+            import polynomials.polynomial as poly_mod
+            import polynomials.orderings as ord
+            if args.order == "lex":
+                poly_mod.order = ord.order_lex
+            elif args.order == "grlex":
+                poly_mod.order = ord.graded_lex
+            else:  # grevlex
+                # grevlex function name is grev_lex
+                poly_mod.order = ord.grev_lex
+            # Now construct polynomials and compute Groebner basis
             from polynomials.polynomial import Polynomial
             from polynomials.ideal import Ideal
             polys = [Polynomial(p) for p in args.polys]
