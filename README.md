@@ -14,11 +14,24 @@
 - Support for constructing finite fields with polynomials
 - Can find Gröbner basis for polynomial Ideals
 
-### Usage (Command Line Interface)
+### Command Line Interface
 
-**Note**: All examples below show the `polycalc` command. If you haven't installed the package, you can substitute:
-- `python polycalc.py` (using the wrapper script)
+PolynomialCalculator provides a powerful command-line interface with the following commands:
+
+- `finite_field`: Create finite fields and display Zech logarithm information  
+- `random_monic`: Generate random monic polynomials over finite fields
+- `find_irreducible`: Find irreducible polynomials of specified degree
+- `gcd`: Compute greatest common divisor of polynomials  
+- `solve`: Solve univariate polynomial equations over rationals
+- `groebner`: Compute Gröbner basis for polynomial ideals
+
+Use `polycalc --help` or `polycalc <command> --help` for detailed usage information.
+
+**Alternative Usage**: If you haven't installed the package, you can substitute:
+- `python polycalc.py` (using the wrapper script)  
 - `python -m polynomials.cli` (running as a module)
+
+### Usage Examples
 
 
 
