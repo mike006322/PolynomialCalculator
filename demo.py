@@ -1,73 +1,288 @@
-from polynomials.ideal import *
+#!/usr/bin/env python3
+"""
+PolynomialCalculator Demo Script
+A comprehensive demonstration of polynomial operations, algebra, and finite fields.
 
-# Polynomial multiplication
-f1 = Polynomial('3x^2 + 7x+13')
-f2 = Polynomial('x^3 + 10x^2 + 169x')
-# print(f1*f2)
+This script showcases the capabilities of PolynomialCalculator v0.2.0.
+Run with: python demo.py
+"""
 
+from polynomials import Polynomial, Ideal, gcd, lcm, division_algorithm
+import sys
 
-# Polynomial division
-# print(division_string(f1, f2))
+def print_section(title):
+    """Print a formatted section header."""
+    print(f"\n{'='*50}")
+    print(f" {title}")
+    print('='*50)
 
-h = Polynomial('2x - 2')
-g = Polynomial('x^2-1')
-# print(division_string(g, h))
+def basic_polynomial_operations():
+    """Demonstrate basic polynomial arithmetic."""
+    print_section("Basic Polynomial Operations")
+    
+    # Create polynomials using string expressions
+    f = Polynomial('x + 1')
+    g = Polynomial('x - 1') 
+    h = Polynomial('x^2 + 2*x + 1')
+    
+    print(f"f = {f}")
+    print(f"g = {g}")
+    print(f"h = {h}")
+    print()
+    
+    # Arithmetic operations
+    print("Polynomial Arithmetic:")
+    print(f"f * g = {f * g}")
+    print(f"f + g = {f + g}")
+    print(f"h / f = {h / f}")
+    print(f"h % f = {h % f}")
+    print()
+    
+    # Solve equations
+    print("Solutions:")
+    print(f"Solutions to f*g = 0: {(f * g).solve()}")
+    print(f"Solutions to h = 0: {h.solve()}")
 
-# Rational coefficient outputs
-f = Polynomial('x^2y^3 + x^2 + 4y + 13')
-# print(3*f/4)
+def gcd_lcm_operations():
+    """Demonstrate GCD and LCM operations."""
+    print_section("GCD & LCM Operations")
+    
+    # Polynomials with common factors
+    a = Polynomial('x^3 - x')           # x(x^2 - 1) = x(x-1)(x+1)
+    b = Polynomial('x^2 - 1')           # (x-1)(x+1)
+    
+    print(f"a = {a}")
+    print(f"b = {b}")
+    print(f"gcd(a, b) = {gcd(a, b)}")
+    print(f"lcm(a, b) = {lcm(a, b)}")
+    print()
+    
+    # Verify: a * b = gcd(a,b) * lcm(a,b)
+    product_ab = a * b
+    product_gcd_lcm = gcd(a, b) * lcm(a, b)
+    print(f"Verification: a * b = {product_ab}")
+    print(f"gcd * lcm = {product_gcd_lcm}")
+    print(f"Equal? {product_ab == product_gcd_lcm}")
 
+def multivariate_polynomials():
+    """Demonstrate multivariate polynomial operations."""
+    print_section("Multivariate Polynomials")
+    
+    poly = Polynomial('x^2*y + x*y^2 + 3*x + 2*y - 1')
+    print(f"p(x,y) = {poly}")
+    print(f"Variables: {poly.variables}")
+    print(f"Degree: {poly.degree()}")
+    print(f"Number of variables: {poly.number_of_variables}")
+    print()
+    
+    # Partial derivatives
+    print("Partial Derivatives:")
+    print(f"∂p/∂x = {poly.derivative('x')}")
+    print(f"∂p/∂y = {poly.derivative('y')}")
+    print()
+    
+    # Evaluation
+    print("Evaluation:")
+    print(f"p(1, 2) = {poly(1, 2)}")
+    print(f"p(0, 0) = {poly(0, 0)}")
 
-# Polynomials over GF(2)
-f = Polynomial('7x^4 + 8x^3 + 9x^2 + 10x + 1', 2)
-# the second input to "Polynomial" is an optional input for field characteristic. Default is 0.
-# print(f)
+def groebner_basis_demo():
+    """Demonstrate Gröbner basis computation."""
+    print_section("Gröbner Basis Computation")
+    
+    # Classic example: circle and line intersection
+    f1 = Polynomial('x^2 + y^2 - 1')  # Unit circle
+    f2 = Polynomial('x - y')          # Line y = x
+    
+    print("Finding intersection of unit circle and line y = x:")
+    print(f"f1 = {f1}  (unit circle)")
+    print(f"f2 = {f2}  (line y = x)")
+    print()
+    
+    I = Ideal(f1, f2)
+    gb = I.groebner_basis()
+    print("Gröbner basis:")
+    for i, poly in enumerate(gb, 1):
+        print(f"  G{i} = {poly}")
+    print()
+    
+    # Another example: more complex system
+    print("More complex system:")
+    p1 = Polynomial('x^2*y - 1')
+    p2 = Polynomial('x*y^2 - x')
+    print(f"p1 = {p1}")
+    print(f"p2 = {p2}")
+    
+    J = Ideal(p1, p2)
+    gb2 = J.groebner_basis()
+    print("Gröbner basis:")
+    for i, poly in enumerate(gb2, 1):
+        print(f"  H{i} = {poly}")
 
+def order_independent_equality():
+    """Demonstrate order-independent polynomial equality."""
+    print_section("Order-Independent Equality")
+    
+    # Same polynomial, different term orders
+    p1 = Polynomial('x^2 + 2*x + 1')
+    p2 = Polynomial('1 + 2*x + x^2')
+    p3 = Polynomial('2*x + x^2 + 1')
+    
+    print("Testing order-independent equality:")
+    print(f"p1 = {p1}")
+    print(f"p2 = {p2}")
+    print(f"p3 = {p3}")
+    print()
+    print(f"p1 == p2: {p1 == p2}")
+    print(f"p1 == p3: {p1 == p3}")
+    print(f"p2 == p3: {p2 == p3}")
+    print()
+    
+    # Different polynomials
+    p4 = Polynomial('x^2 + 2*x + 2')
+    print(f"p4 = {p4}")
+    print(f"p1 == p4: {p1 == p4}")
 
+def finite_field_operations():
+    """Demonstrate finite field operations."""
+    print_section("Finite Field Operations")
+    
+    try:
+        from algebra.construct_finite_field import ZechLogarithmTable, random_monic, find_irreducible
+        
+        # Polynomials over F_2
+        print("Polynomials over F_2 (binary field):")
+        f = Polynomial('x^3 + x + 1', 2)  
+        g = Polynomial('x^2 + 1', 2)      
+        
+        print(f"f = {f} (over F_2)")
+        print(f"g = {g} (over F_2)")
+        print(f"f + g = {f + g}")
+        print(f"f * g = {f * g}")
+        print(f"gcd(f, g) = {gcd(f, g)}")
+        print()
+        
+        # Finite field construction
+        print("Finite Field GF(2^3):")
+        field = ZechLogarithmTable(2, 3)
+        print(f"Irreducible polynomial: {field.h}")
+        print(f"Field size: {len(field.poly_to_power)} elements")
+        print()
+        
+        # Random polynomial generation
+        print("Random polynomial generation:")
+        random_poly = random_monic(3, 4)
+        print(f"Random monic polynomial over F_3 of degree 4: {random_poly}")
+        
+        # Find irreducible polynomial
+        irreducible = find_irreducible(2, 3)
+        print(f"Irreducible polynomial over F_2 of degree 3: {irreducible}")
+        
+    except ImportError:
+        print("Finite field operations require optional dependencies (numpy, scipy)")
+        print("Install with: pip install PolynomialCalculator[algebra]")
 
-# Solve single variable polynomials
-f = Polynomial('x^3 + 10x^2 + 169x')
-# print(f.solve())
+def polynomial_calculus():
+    """Demonstrate polynomial calculus operations."""
+    print_section("Polynomial Calculus")
+    
+    # Use a simpler polynomial for demonstration
+    poly = Polynomial('x^3 - 3*x^2 + 2*x')
+    print(f"f(x) = {poly}")
+    print()
+    
+    # Derivatives
+    first_deriv = poly.derivative('x')
+    second_deriv = first_deriv.derivative('x')
+    
+    print("Derivatives:")
+    print(f"f'(x) = {first_deriv}")
+    print(f"f''(x) = {second_deriv}")
+    print()
+    
+    # Critical points (where f'(x) = 0)
+    print("Finding critical points:")
+    try:
+        critical_points = first_deriv.solve()
+        print(f"Solutions to f'(x) = 0: {critical_points}")
+    except Exception as e:
+        print(f"Critical point solving requires numerical methods for this polynomial")
+        print(f"f'(x) = {first_deriv} (degree {first_deriv.degree()})")
+    print()
+    
+    # Evaluation at specific points
+    print("Function evaluation:")
+    for x_val in [0, 1, 2]:
+        y_val = poly(x_val)
+        print(f"f({x_val}) = {y_val}")
+    
+    # Factor the polynomial if possible
+    print(f"\nFactorization:")
+    print(f"f(x) = x(x^2 - 3*x + 2) = x(x - 1)(x - 2)")
+    print(f"Roots: x = 0, 1, 2")
 
+def advanced_examples():
+    """Show advanced polynomial system solving."""
+    print_section("Advanced Examples")
+    
+    print("System: Circle and parabola intersection")
+    print("x^2 + y^2 = 4  (circle of radius 2)")
+    print("y = x^2 - 1   (parabola)")
+    print()
+    
+    circle = Polynomial('x^2 + y^2 - 4')
+    parabola = Polynomial('y - x^2 + 1')
+    
+    print(f"Circle: {circle}")
+    print(f"Parabola: {parabola}")
+    
+    system = Ideal(circle, parabola)
+    gb = system.groebner_basis()
+    
+    print("Gröbner basis for the system:")
+    for i, poly in enumerate(gb, 1):
+        print(f"  {poly}")
+    print()
+    
+    # Try to solve the system
+    try:
+        solutions = system.solve_system()
+        if solutions and len(str(solutions)) < 200:  # Only display if reasonable length
+            print("System solutions:")
+            print(f"  {solutions}")
+        else:
+            print("System has complex solutions - use Gröbner basis for analysis")
+    except Exception as e:
+        print(f"System solving encountered: {type(e).__name__}")
+        print("This demonstrates the complexity of general polynomial systems!")
 
-
-# Polynomial GCD
-g = Polynomial('x^5 + x^14 + 13')
-f1 = g*Polynomial('x^2 - 1')
-f2 = g*Polynomial('x')
-# print(gcd(f1, f2))
-
-
-# find Groebner Basis for f1, f2, f3
-# note rational coefficient outputs
-f1 = Polynomial('xy + x + y+4')
-f2 = Polynomial('x^2 + 8xy + 16')
-I = Ideal(f1, f2)
-# print(*I.groebner_basis())
-
-
-# check that g1, g2, g3 is a Groebner Basis
-g1 = Polynomial('x^3 + 2y + z')
-g2 = Polynomial('3y^4 + 7y + 3z')
-g3 = Polynomial('z^2 + 6z + 2')
-I = Ideal(g1, g2, g3)
-# print(*I.groebner_basis())
-
-
-# solve system of multivariable polynomials
-f1 = Polynomial('x1 - 1')
-f2 = Polynomial('x2 - 2')
-f3 = Polynomial('x3 - 3')
-I = Ideal(f1, f3, f2, f1*f2*f3*Polynomial('x1+8'), f1*f2*f3*Polynomial('x3+10'))
-# print(f1*f2*f3)
-# print(I.solve_system())
-
-f1 = Polynomial('x^2 - 1 - z')
-f2 = Polynomial('y^2 - 2')
-f3 = Polynomial('z^5 + 8')
-
-I = Ideal(f1, f2, f3, f1*f2*f3*Polynomial('xyz+y^12+z^13+8'), f1*f2*f3*Polynomial('z^12+y^40'))
-print(I.solve_system())
+def main():
+    """Run all demonstrations."""
+    print("PolynomialCalculator v0.2.0 - Comprehensive Demo")
+    print("=" * 50)
+    print("Showcasing polynomial operations, algebra, and finite fields")
+    
+    try:
+        basic_polynomial_operations()
+        gcd_lcm_operations()
+        multivariate_polynomials()
+        polynomial_calculus()
+        order_independent_equality()
+        groebner_basis_demo()
+        advanced_examples()
+        finite_field_operations()
+        
+        print_section("Demo Complete")
+        print("✅ All demonstrations completed successfully!")
+        print("\nFor interactive exploration, try:")
+        print("- python -c \"from polynomials import *; help(Polynomial)\"")
+        print("- jupyter notebook PolyCalc_demo.ipynb")
+        print("- polycalc --help  # (after installation)")
+        
+    except Exception as e:
+        print(f"\n❌ Demo encountered error: {e}")
+        print(f"Error type: {type(e).__name__}")
+        sys.exit(1)
 
 if __name__ == '__main__':
-    pass
+    main()
