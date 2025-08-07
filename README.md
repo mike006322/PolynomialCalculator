@@ -16,62 +16,64 @@
 
 ### Usage (Command Line Interface)
 
+**Note**: All examples below show the `polycalc` command. If you haven't installed the package, you can substitute:
+- `python polycalc.py` (using the wrapper script)
+- `python -m polynomials.cli` (running as a module)
+
 
 
 
 #### Create a finite field GF(2^3):
-```sh
-python polycalc_cli.py finite_field -p 2 3
+```bash
+polycalc finite_field -p 2 3
+```
+```
 Created GF(2^3) with irreducible polynomial: x^3 + x + 1.0
 Primitive element table size: 7 elements
 ```
 
-
-
-
 #### Generate a random monic polynomial of degree 4 over F_5:
-```sh
-python polycalc_cli.py random_monic -p 5 4
+```bash
+polycalc random_monic -p 5 4
+```
+```
 Random monic polynomial over F_5 of degree 4: x^4 + 3x^3 + x^2 + 2x + 2.0
 ```
 
-
-
-
 #### Find an irreducible polynomial of degree 3 over F_3:
-```sh
-python polycalc_cli.py find_irreducible -p 3 3
+```bash
+polycalc find_irreducible -p 3 3
+```
+```
 Irreducible polynomial over F_3 of degree 3: x^3 + 2x^2 + x + 1.0
 ```
 
-
-
-
 #### Compute the GCD of two polynomials over F_2:
-```sh
-python polycalc_cli.py gcd "x^3+x+1" "x^2+1" -p 2
+```bash
+polycalc gcd "x^3+x+1" "x^2+1" -p 2
+```
+```
 gcd(x^3 + x + 1.0, x^2 + 1.0) = 1.0
 ```
 
-
-
-
 #### Solve a univariate polynomial equation:
-```sh
-python polycalc_cli.py solve "x^2-2" x
+```bash
+polycalc solve "x^2-2" x
+```
+```
 Solutions to x^2-2 = 0:
-1.4142135623730951
--1.4142135623730951
+  1.4142135623730951
+  -1.4142135623730951
 ```
 
-
-
-
 #### Compute a Groebner basis for a system of polynomials:
-```sh
-python polycalc_cli.py groebner "x^2+y^2-1" "x-y"
+```bash
+polycalc groebner "x^2+y^2-1" "x-y"
+```
+```
 Groebner basis:
-x^2 + y^2 - 1.0
+  x - y
+  2.0y^2 - 1.0
 ```
 
 ### Near-term goals:
@@ -87,10 +89,28 @@ x^2 + y^2 - 1.0
 
 ### Installation
 
+#### Option 1: Install as a package (Recommended)
 ```bash
 git clone https://github.com/mike006322/PolynomialCalculator.git
 cd PolynomialCalculator
-pip install -r requirements.txt
+pip install -e .
+```
+After installation, you can use the `polycalc` command directly:
+```bash
+polycalc solve "x^2-2" x
+```
+
+#### Option 2: Use the wrapper script
+If you prefer not to install the package, you can use the provided wrapper script:
+```bash
+git clone https://github.com/mike006322/PolynomialCalculator.git
+cd PolynomialCalculator
+python polycalc.py solve "x^2-2" x
+```
+
+#### Option 3: Run as a Python module
+```bash
+python -m polynomials.cli solve "x^2-2" x
 ```
 
 ### Contributing

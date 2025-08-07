@@ -66,8 +66,7 @@ setuptools.setup(
     zip_safe=False,
     entry_points={
         "console_scripts": [
-            # Add console scripts here if needed in the future
-            # "polycalc=polynomials.cli:main",
+            "polycalc=polynomials.cli:main",
         ],
     },
 )

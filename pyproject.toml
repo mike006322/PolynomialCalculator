@@ -42,6 +42,9 @@ algebra = ["numpy>=1.18.0", "scipy>=1.5.0"]
 dev = ["pytest>=6.0.0", "pytest-cov>=2.10.0"]
 all = ["numpy>=1.18.0", "scipy>=1.5.0", "pytest>=6.0.0", "pytest-cov>=2.10.0"]
 
+[project.scripts]
+polycalc = "polynomials.cli:main"
+
 [tool.setuptools]
 packages = ["polynomials", "algebra", "utils", "polynomials.primitives"]
 
