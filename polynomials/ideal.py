@@ -217,3 +217,32 @@ class Ideal:
             output_string += '],\n'
         output_string = output_string[:-2]
         return output_string
+
+    def solve_system_structured(self):
+        """Return solutions as a structured list of dictionaries.
+        Each dict maps variable name (str) to a numeric value (float/int).
+        If the system does not have finitely many solutions, return None.
+        """
+        variables = set()
+        for p in self.polynomials:
+            variables = variables.union(p.variables)
+        variables = sorted(list(variables))  # lex ordering
+        groebner_basis = self.groebner_basis()
+        zeroes = set()
+        if not Ideal.solvability_criteria(groebner_basis, variables):
+            return None
+        Ideal.find_solutions(groebner_basis, zeroes)
+        solutions = []
+        for zero in zeroes:
+            as_dict = dict(zero)
+            # Ensure stable key order and plain python numbers
+            clean = {}
+            for k in sorted(as_dict.keys()):
+                v = as_dict[k]
+                if isinstance(v, (Integer, Rational)):
+                    v = float(v)
+                clean[str(k)] = v
+            solutions.append(clean)
+        # Sort list of solutions for deterministic output
+        solutions.sort(key=lambda d: tuple(d.get(k) for k in variables))
+        return solutions

@@ -49,7 +49,7 @@ polycalc = "polynomials.cli:main"
 packages = ["polynomials", "algebra", "utils", "polynomials.primitives"]
 
 [tool.setuptools.dynamic]
-version = {attr = "__init__.__version__"}
+version = {attr = "version.__version__"}
 
 [tool.setuptools.package-data]
 "*" = ["*.md", "*.txt", "*.svg"]

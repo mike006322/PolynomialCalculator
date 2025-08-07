@@ -15,11 +15,11 @@ Modules:
     utils: Utility functions and data structures
 """
 
-__version__ = "0.2.0"
+from .version import __version__
 __author__ = "mike006322"
 
 # Import main classes for convenience
 from polynomials.polynomial import Polynomial
 from polynomials.ideal import Ideal
 
-__all__ = ['Polynomial', 'Ideal']
+__all__ = ['Polynomial', 'Ideal', '__version__']

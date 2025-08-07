@@ -246,10 +246,14 @@ def advanced_examples():
     
     # Try to solve the system
     try:
-        solutions = system.solve_system()
-        if solutions and len(str(solutions)) < 200:  # Only display if reasonable length
-            print("System solutions:")
-            print(f"  {solutions}")
+        solutions = system.solve_system_structured()
+        if solutions is None:
+            print("System has infinite/undetermined solutions - use Gröbner basis for analysis")
+        elif len(solutions) and len(str(solutions)) < 200:
+            print("System solutions (structured):")
+            for sol in solutions:
+                ordered = ", ".join(f"{k} = {sol[k]}" for k in sorted(sol.keys()))
+                print(f"  [ {ordered} ]")
         else:
             print("System has complex solutions - use Gröbner basis for analysis")
     except Exception as e:

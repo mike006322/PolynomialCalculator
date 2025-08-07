@@ -8,9 +8,45 @@ and algebraic operations.
 
 import argparse
 import sys
-from polynomials.polynomial import Polynomial, gcd
-from polynomials.ideal import Ideal
-from algebra.construct_finite_field import ZechLogarithmTable, random_monic, find_irreducible
+
+# Lazily resolve package version without importing the top-level package
+# Prefer importlib.metadata when installed; fallback to local version module.
+
+def _get_version() -> str:
+    try:
+        try:
+            from importlib import metadata as importlib_metadata  # Py>=3.8
+        except Exception:
+            import importlib_metadata  # type: ignore
+        try:
+            return importlib_metadata.version("PolynomialCalculator")
+        except Exception:
+            pass
+    except Exception:
+        pass
+    # Fallbacks for source checkouts / editable installs
+    # 1) Try plain import from project root if on sys.path
+    try:
+        from version import __version__  # type: ignore
+        return __version__
+    except Exception:
+        # 2) Load version.py by absolute path relative to this file
+        try:
+            import importlib.util
+            from pathlib import Path
+            root = Path(__file__).resolve().parents[2]
+            vp = root / "version.py"
+            if vp.exists():
+                spec = importlib.util.spec_from_file_location("_pc_version", str(vp))
+                if spec and spec.loader:
+                    mod = importlib.util.module_from_spec(spec)
+                    spec.loader.exec_module(mod)
+                    v = getattr(mod, "__version__", None)  # type: ignore[attr-defined]
+                    if isinstance(v, str):
+                        return v
+        except Exception:
+            pass
+    return "unknown"
 
 
 def main():
@@ -19,6 +55,11 @@ def main():
         description="PolynomialCalculator CLI: Finite field and polynomial operations",
         prog="polycalc"
     )
+    # Global flags
+    parser.add_argument(
+        "--version", action="version", version=f"%(prog)s {_get_version()}"
+    )
+
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # Subcommand: create finite field
@@ -109,6 +150,16 @@ def main():
         help="Variables (default: x y)"
     )
 
+    # Subcommand: solve-system (structured)
+    solve_sys_parser = subparsers.add_parser(
+        "solve-system", 
+        help="Solve a multivariate system using Groebner basis; returns structured solutions"
+    )
+    solve_sys_parser.add_argument(
+        "polys", nargs='+', type=str, 
+        help="List of polynomials as strings"
+    )
+
     try:
         args = parser.parse_args()
     except SystemExit:
@@ -116,26 +167,57 @@ def main():
 
     try:
         if args.command == "finite_field":
+            # Lazy import to avoid optional heavy deps at module import time
+            try:
+                from algebra.construct_finite_field import ZechLogarithmTable
+            except ImportError:
+                print(
+                    "Finite field features require optional dependencies. "
+                    "Install extras: pip install 'PolynomialCalculator[algebra]'",
+                    file=sys.stderr,
+                )
+                return 1
             table = ZechLogarithmTable(args.p, args.i)
             print(f"Created GF({args.p}^{args.i}) with irreducible polynomial: {table.h}")
             print(f"Primitive element table size: {len(table.poly_to_power)} elements")
             
         elif args.command == "random_monic":
+            try:
+                from algebra.construct_finite_field import random_monic
+            except ImportError:
+                print(
+                    "Random monic requires optional dependencies. "
+                    "Install extras: pip install 'PolynomialCalculator[algebra]'",
+                    file=sys.stderr,
+                )
+                return 1
             poly = random_monic(args.p, args.n)
             print(f"Random monic polynomial over F_{args.p} of degree {args.n}: {poly}")
             
         elif args.command == "find_irreducible":
+            try:
+                from algebra.construct_finite_field import find_irreducible
+            except ImportError:
+                print(
+                    "Finding irreducibles requires optional dependencies. "
+                    "Install extras: pip install 'PolynomialCalculator[algebra]'",
+                    file=sys.stderr,
+                )
+                return 1
             poly = find_irreducible(args.p, args.n)
             print(f"Irreducible polynomial over F_{args.p} of degree {args.n}: {poly}")
             
         elif args.command == "gcd":
+            # Lazy import core polynomial machinery
+            from polynomials.polynomial import Polynomial, gcd
             poly1 = Polynomial(args.poly1, args.p)
             poly2 = Polynomial(args.poly2, args.p)
             result = gcd(poly1, poly2)
             print(f"gcd({poly1}, {poly2}) = {result}")
             
         elif args.command == "solve":
-            # Use the project's Polynomial class to solve
+            # Lazy import core polynomial machinery
+            from polynomials.polynomial import Polynomial
             poly = Polynomial(args.poly)
             sol = poly.solve()
             print(f"Solutions to {args.poly} = 0:")
@@ -146,13 +228,31 @@ def main():
                 print(f"  {sol}")
                 
         elif args.command == "groebner":
-            # Use the project's Ideal.groebner_basis()
+            # Lazy import core polynomial machinery
+            from polynomials.polynomial import Polynomial
+            from polynomials.ideal import Ideal
             polys = [Polynomial(p) for p in args.polys]
             I = Ideal(*polys)
             G = I.groebner_basis()
             print("Groebner basis:")
             for g in G:
                 print(f"  {g}")
+                
+        elif args.command == "solve-system":
+            from polynomials.polynomial import Polynomial
+            from polynomials.ideal import Ideal
+            polys = [Polynomial(p) for p in args.polys]
+            I = Ideal(*polys)
+            solutions = I.solve_system_structured()
+            if solutions is None:
+                print("No finite number of solutions (undetermined/infinite)")
+            elif not solutions:
+                print("0 solutions")
+            else:
+                print(f"{len(solutions)} solutions:")
+                for sol in solutions:
+                    ordered = ", ".join(f"{k} = {sol[k]}" for k in sorted(sol.keys()))
+                    print(f"  [ {ordered} ]")
                 
         else:
             parser.print_help()
