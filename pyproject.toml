@@ -54,3 +54,26 @@ version = {attr = "version.__version__"}
 
 [tool.setuptools.package-data]
 "*" = ["*.md", "*.txt", "*.svg"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+exclude = [
+    ".git",
+    "__pycache__",
+    ".venv",
+    "build",
+    "dist",
+]
+
+[tool.ruff.lint]
+select = [
+    "E",  # pycodestyle errors
+    "F",  # pyflakes
+    "I",  # isort-style import order
+]
+ignore = []
+
+[tool.black]
+line-length = 100
+target-version = ["py310"]

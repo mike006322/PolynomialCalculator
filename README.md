@@ -1,6 +1,7 @@
 <img src = "https://github.com/mike006322/PolynomialCalculator/blob/master/logo.svg" height = 200>
 
 # Polynomial Calculator
+[![CI](https://github.com/mike006322/PolynomialCalculator/actions/workflows/ci.yml/badge.svg)](https://github.com/mike006322/PolynomialCalculator/actions/workflows/ci.yml)
 *A lightweight Computer Algebra System for polynomial computations over finite fields*
 
 
@@ -214,6 +215,11 @@ python -m polynomials.cli solve "x^2-2" x
 Pull requests are welcome! For major changes, please open an issue first to discuss what you’d like to change.
 
 Please make sure to update tests as appropriate.
+
+Developer tooling:
+- Lint/format: ruff and black (configured via pyproject.toml)
+- Pre-commit hooks: install with `pip install pre-commit` then `pre-commit install`
+- CI: GitHub Actions runs tests on Python 3.10–3.12 across Windows/Linux/macOS
 
 
 ### Similar projects:
