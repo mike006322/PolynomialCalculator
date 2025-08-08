@@ -11,6 +11,7 @@ from polynomials import Polynomial, Ideal, gcd, lcm, division_algorithm
 from polynomials.display import format_number
 import sys
 
+
 def print_section(title):
     """Print a formatted section header."""
     print(f"\n{'='*50}")
@@ -19,20 +20,34 @@ def print_section(title):
 
 # Helpers to format numeric outputs consistently
 
+def _strip_trailing_dot_zero(s: str) -> str:
+    """Remove trailing .0 from numeric strings (e.g., '2.0' -> '2')."""
+    return s[:-2] if s.endswith('.0') else s
+
+
 def _fmt_val(x):
-    """Format a single value using the global numeric formatter when applicable."""
+    """Format a single value using the global numeric formatter, avoiding '.0' for integers."""
     try:
-        return format_number(x)
+        s = format_number(x)
+        return _strip_trailing_dot_zero(s)
     except Exception:
+        # Best-effort fallback
+        try:
+            import math
+            if isinstance(x, float) and x.is_integer():
+                return str(int(x))
+        except Exception:
+            pass
         return str(x)
 
 
 def _fmt_seq(seq):
-    """Format a sequence of values using the global numeric formatter."""
+    """Format a sequence of values using the global numeric formatter, avoiding '.0' for integers."""
     try:
         return "[ " + ", ".join(_fmt_val(s) for s in seq) + " ]"
     except Exception:
         return str(seq)
+
 
 def basic_polynomial_operations():
     """Demonstrate basic polynomial arithmetic."""
@@ -61,6 +76,7 @@ def basic_polynomial_operations():
     print(f"Solutions to f*g = 0: {_fmt_seq((f * g).solve())}")
     print(f"Solutions to h = 0: {_fmt_seq(h.solve())}")
 
+
 def gcd_lcm_operations():
     """Demonstrate GCD and LCM operations."""
     print_section("GCD & LCM Operations")
@@ -81,6 +97,7 @@ def gcd_lcm_operations():
     print(f"Verification: a * b = {product_ab}")
     print(f"gcd * lcm = {product_gcd_lcm}")
     print(f"Equal? {product_ab == product_gcd_lcm}")
+
 
 def multivariate_polynomials():
     """Demonstrate multivariate polynomial operations."""
@@ -103,6 +120,7 @@ def multivariate_polynomials():
     print("Evaluation:")
     print(f"p(1, 2) = {_fmt_val(poly(1, 2))}")
     print(f"p(0, 0) = {_fmt_val(poly(0, 0))}")
+
 
 def groebner_basis_demo():
     """Demonstrate Gröbner basis computation."""
@@ -137,6 +155,7 @@ def groebner_basis_demo():
     for i, poly in enumerate(gb2, 1):
         print(f"  H{i} = {poly}")
 
+
 def order_independent_equality():
     """Demonstrate order-independent polynomial equality."""
     print_section("Order-Independent Equality")
@@ -161,6 +180,7 @@ def order_independent_equality():
     print(f"p4 = {p4}")
     print(f"p1 == p4: {p1 == p4}")
 
+
 def finite_field_operations():
     """Demonstrate finite field operations."""
     print_section("Finite Field Operations")
@@ -184,7 +204,7 @@ def finite_field_operations():
         print("Finite Field GF(2^3):")
         field = ZechLogarithmTable(2, 3)
         print(f"Irreducible polynomial: {field.h}")
-        print(f"Field size: {len(field.poly_to_power)} elements")
+        print(f"Field size: {_fmt_val(len(field.poly_to_power))} elements")
         print()
         
         # Random polynomial generation
@@ -199,6 +219,7 @@ def finite_field_operations():
     except ImportError:
         print("Finite field operations require optional dependencies (numpy, scipy)")
         print("Install with: pip install PolynomialCalculator[algebra]")
+
 
 def polynomial_calculus():
     """Demonstrate polynomial calculus operations."""
@@ -225,7 +246,7 @@ def polynomial_calculus():
         print(f"Solutions to f'(x) = 0: {_fmt_seq(critical_points)}")
     except Exception as e:
         print(f"Critical point solving requires numerical methods for this polynomial")
-        print(f"f'(x) = {first_deriv} (degree {first_deriv.degree()})")
+        print(f"f'(x) = {first_deriv} (degree {_fmt_val(first_deriv.degree())})")
     print()
     
     # Evaluation at specific points
@@ -238,6 +259,7 @@ def polynomial_calculus():
     print(f"\nFactorization:")
     print(f"f(x) = x(x^2 - 3*x + 2) = x(x - 1)(x - 2)")
     print(f"Roots: x = 0, 1, 2")
+
 
 def advanced_examples():
     """Show advanced polynomial system solving."""
@@ -278,6 +300,7 @@ def advanced_examples():
         print(f"System solving encountered: {type(e).__name__}")
         print("This demonstrates the complexity of general polynomial systems!")
 
+
 def main():
     """Run all demonstrations."""
     print("PolynomialCalculator v0.2.0 - Comprehensive Demo")
@@ -305,6 +328,7 @@ def main():
         print(f"\n❌ Demo encountered error: {e}")
         print(f"Error type: {type(e).__name__}")
         sys.exit(1)
+
 
 if __name__ == '__main__':
     main()
