@@ -153,6 +153,12 @@ python polycalc.py solve "x^2-2" x
 ```
 
 #### Option 3: Run as a Python module
+#### Optional features (algebra extras)
+Some features depend on optional scientific libraries. Install with extras:
+```bash
+pip install "PolynomialCalculator[algebra]"
+```
+This pulls in numpy and scipy for algebra/finite field operations.
 ```bash
 python -m polynomials.cli solve "x^2-2" x
 ```

@@ -5,12 +5,15 @@ import os.path
 
 # Get version from the main package
 def get_version():
-    """Extract version from __init__.py file."""
-    version_file = os.path.join(os.path.dirname(__file__), '__init__.py')
-    with open(version_file, 'r', encoding='utf-8') as f:
-        for line in f:
-            if line.startswith('__version__'):
-                return line.split('=')[1].strip().strip('"\'')
+    """Extract version from version.py (single source of truth)."""
+    version_file = os.path.join(os.path.dirname(__file__), 'version.py')
+    try:
+        with open(version_file, 'r', encoding='utf-8') as f:
+            for line in f:
+                if line.strip().startswith('__version__'):
+                    return line.split('=')[1].strip().strip('"\'')
+    except FileNotFoundError:
+        pass
     return "0.1.0"
 
 # Read README for long description
@@ -56,7 +59,8 @@ setuptools.setup(
         "Programming Language :: Python :: 3.8", 
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
-        "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],

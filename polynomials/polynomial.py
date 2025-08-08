@@ -6,7 +6,7 @@ from polynomials.formulas import solve
 from polynomials.primitives.polycalc_numbers import Integer, Rational
 from utils.dfs import dfs_post_order as dfs
 from polynomials.primitives.variable import Variable
-import numpy as np
+from numbers import Integral
 from polynomials.display import format_number
 from typing import Any, List, Tuple, Optional, Union, Iterable, Iterator, Dict, TypeAlias
 
@@ -298,8 +298,13 @@ class Polynomial:
         if n_val < 0:
             raise ValueError("Negative exponents not supported.")
         result = Polynomial(1, self.field_characteristic)
-        for _ in range(n_val):
-            result *= self
+        base = self.copy()
+        exp = n_val
+        while exp > 0:
+            if exp & 1:
+                result *= base
+            base *= base
+            exp >>= 1
         return result
 
     def __repr__(self) -> str:
@@ -593,7 +598,7 @@ class Polynomial:
             self.term_matrix = [['constant'], [float(poly)]]
         elif isinstance(poly, complex) and poly != 0:
             self.term_matrix = [['constant'], [complex(poly)]]
-        elif isinstance(poly, (Integer, Rational, np.int32)) and poly != 0:
+        elif isinstance(poly, (Integer, Rational, Integral)) and poly != 0:
             self.term_matrix = [['constant'], [float(poly)]]
         elif isinstance(poly, list):
             # Ensure all variable names in header are strings
@@ -754,7 +759,7 @@ def gcd(a: 'Polynomial', b: 'Polynomial') -> 'Polynomial':
             g = Polynomial([['constant'], [float(g.term_matrix[1][0])]], a.field_characteristic)
         return g
     if len(a.term_matrix) > 2 or len(b.term_matrix) > 2:
-        raise NotImplemented
+        raise NotImplementedError("gcd for multivariate polynomials with more than one term is not implemented")
     if len(a.term_matrix) < 2 or len(b.term_matrix) < 2:
         return Polynomial([['constant'], [0.0]])
     res = gcd_singlevariate(Polynomial(a.term_matrix[1][0]), Polynomial(b.term_matrix[1][0]))
