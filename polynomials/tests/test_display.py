@@ -1,3 +1,4 @@
+import os
 import unittest
 from polynomials.display import set_display_mode, get_display_mode, format_number, display_mode
 from polynomials.primitives.polycalc_numbers import Integer, Rational
@@ -26,6 +27,18 @@ class TestDisplay(unittest.TestCase):
             self.assertEqual(get_display_mode(), 'rational')
             self.assertEqual(format_number(Integer(2)), '2')
         self.assertEqual(get_display_mode(), 'float')
+
+    def test_env_variable_initialization(self):
+        # Simulate setting env var before import by reloading module
+        import importlib, polynomials.display as disp
+        set_display_mode('float')
+        os.environ['POLYCALC_NUMERIC_OUTPUT'] = 'rational'
+        importlib.reload(disp)
+        self.assertEqual(disp.get_display_mode(), 'rational')
+        # Cleanup: restore
+        os.environ.pop('POLYCALC_NUMERIC_OUTPUT', None)
+        importlib.reload(disp)
+        self.assertEqual(disp.get_display_mode(), 'float')
 
 
 if __name__ == '__main__':

@@ -101,6 +101,9 @@ polycalc groebner "x^2+y^2-1" "x-y" --order grevlex
 #### Control numeric output formatting
 Default is float mode. Use `--rational` to prefer exact-looking output when possible.
 
+Environment variable:
+- Set `POLYCALC_NUMERIC_OUTPUT` to `float` or `rational` to control the default mode.
+
 ```bash
 polycalc --rational solve-system "x-1" "y-2"
 ```

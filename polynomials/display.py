@@ -14,9 +14,11 @@ Float mode prints decimals:
 
 Use set_display_mode('rational'|'float') to change globally.
 Optionally use the context manager display_mode('float') for temporary changes.
+Environment variable POLYCALC_NUMERIC_OUTPUT can set the default ('float' or 'rational').
 """
 from __future__ import annotations
 from typing import Any
+import os
 
 from polynomials.primitives.polycalc_numbers import Integer, Rational
 
@@ -33,6 +35,19 @@ def set_display_mode(mode: str) -> None:
 
 def get_display_mode() -> str:
     return DISPLAY_MODE
+
+
+def _init_mode_from_env() -> None:
+    """Initialize DISPLAY_MODE from environment if provided.
+    Respects POLYCALC_NUMERIC_OUTPUT in {'float','rational'} (case-insensitive).
+    Invalid values are ignored.
+    """
+    env = os.environ.get('POLYCALC_NUMERIC_OUTPUT')
+    if not env:
+        return
+    val = env.strip().lower()
+    if val in {'float', 'rational'}:
+        set_display_mode(val)
 
 
 def format_number(n: Any) -> str:
@@ -88,3 +103,7 @@ class display_mode:
     def __exit__(self, exc_type, exc, tb):
         set_display_mode(self._prev)
         return False
+
+
+# Initialize default from environment, if provided
+_init_mode_from_env()
