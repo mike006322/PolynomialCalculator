@@ -45,7 +45,7 @@ Use `polycalc --help` or `polycalc <command> --help` for detailed usage informat
 polycalc finite_field -p 2 3
 ```
 ```
-Created GF(2^3) with irreducible polynomial: x^3 + x + 1.0
+Created GF(2^3) with irreducible polynomial: x^3 + x + 1
 Primitive element table size: 7 elements
 ```
 
@@ -54,7 +54,7 @@ Primitive element table size: 7 elements
 polycalc random_monic -p 5 4
 ```
 ```
-Random monic polynomial over F_5 of degree 4: x^4 + 3x^3 + x^2 + 2x + 2.0
+Random monic polynomial over F_5 of degree 4: x^4 + 3x^3 + x^2 + 2x + 2
 ```
 
 #### Find an irreducible polynomial of degree 3 over F_3:
@@ -62,7 +62,7 @@ Random monic polynomial over F_5 of degree 4: x^4 + 3x^3 + x^2 + 2x + 2.0
 polycalc find_irreducible -p 3 3
 ```
 ```
-Irreducible polynomial over F_3 of degree 3: x^3 + 2x^2 + x + 1.0
+Irreducible polynomial over F_3 of degree 3: x^3 + 2x^2 + x + 1
 ```
 
 #### Compute the GCD of two polynomials over F_2:
@@ -70,7 +70,7 @@ Irreducible polynomial over F_3 of degree 3: x^3 + 2x^2 + x + 1.0
 polycalc gcd "x^3+x+1" "x^2+1" -p 2
 ```
 ```
-gcd(x^3 + x + 1.0, x^2 + 1.0) = 1.0
+gcd(x^3 + x + 1, x^2 + 1) = 1
 ```
 
 #### Solve a univariate polynomial equation:
@@ -90,7 +90,7 @@ polycalc groebner "x^2+y^2-1" "x-y"
 ```
 Groebner basis:
   x - y
-  2.0y^2 - 1.0
+  2y^2 - 1
 ```
 
 You can choose the monomial order with `--order {lex,grlex,grevlex}`:
