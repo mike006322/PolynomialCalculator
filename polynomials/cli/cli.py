@@ -49,22 +49,54 @@ def _get_version() -> str:
     return "unknown"
 
 
-def main():
-    """Main entry point for the polycalc command-line tool."""
-    # Fast-path: handle --version without invoking argparse/subparsers
-    argv = sys.argv[1:]
+# Early parse of version and display flags
+from polynomials.display import set_display_mode, get_display_mode, format_number
+
+def _early_handle_global_flags(argv):
+    # --version fast-path
     if "--version" in argv or "-V" in argv:
         print(f"polycalc {_get_version()}")
         return 0
+    # Numeric output mode flags
+    if "--float" in argv and "--rational" in argv:
+        print("Error: --float and --rational are mutually exclusive", file=sys.stderr)
+        return 2
+    if "--numeric-output" in argv:
+        try:
+            idx = argv.index("--numeric-output")
+            mode = argv[idx+1]
+            set_display_mode(mode)
+            # Strip the pair so argparse doesn't see it twice
+            del argv[idx:idx+2]
+        except Exception:
+            print("Error: --numeric-output requires an argument: rational|float", file=sys.stderr)
+            return 2
+    # Convenience flags
+    if "--float" in argv:
+        set_display_mode('float')
+        argv.remove("--float")
+    if "--rational" in argv:
+        set_display_mode('rational')
+        argv.remove("--rational")
+    return None
+
+
+def main():
+    """Main entry point for the polycalc command-line tool."""
+    argv = sys.argv[1:]
+    early = _early_handle_global_flags(argv)
+    if isinstance(early, int):
+        return early
 
     parser = argparse.ArgumentParser(
         description="PolynomialCalculator CLI: Finite field and polynomial operations",
         prog="polycalc"
     )
-    # Global flags (kept for help text, but not relied upon for exit code)
-    parser.add_argument(
-        "--version", action="version", version=f"%(prog)s {_get_version()}"
-    )
+    # Global flags (help only; already handled early)
+    parser.add_argument("--version", action="version", version=f"%(prog)s {_get_version()}")
+    parser.add_argument("--numeric-output", choices=["rational", "float"], help="Numeric display mode")
+    parser.add_argument("--float", action="store_true", help="Shortcut for --numeric-output float")
+    parser.add_argument("--rational", action="store_true", help="Shortcut for --numeric-output rational")
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -171,7 +203,7 @@ def main():
     )
 
     try:
-        args = parser.parse_args()
+        args = parser.parse_args(argv)
     except SystemExit as e:
         # Propagate argparse's intended exit code (e.g., --help errors => 2)
         return e.code if isinstance(e.code, int) else 1
@@ -234,10 +266,20 @@ def main():
             print(f"Solutions to {args.poly} = 0:")
             if isinstance(sol, (list, tuple)):
                 for s in sol:
-                    print(f"  {s}")
+                    try:
+                        from polynomials.polynomial import Polynomial as _Poly
+                        is_poly = isinstance(s, _Poly)
+                    except Exception:
+                        is_poly = False
+                    print(f"  {s if is_poly else format_number(s)}")
             else:
-                print(f"  {sol}")
-                
+                try:
+                    from polynomials.polynomial import Polynomial as _Poly
+                    is_poly = isinstance(sol, _Poly)
+                except Exception:
+                    is_poly = False
+                print(f"  {sol if is_poly else format_number(sol)}")
+
         elif args.command == "groebner":
             # Apply selected monomial order globally for Polynomial operations
             import polynomials.polynomial as poly_mod
@@ -272,7 +314,7 @@ def main():
             else:
                 print(f"{len(solutions)} solutions:")
                 for sol in solutions:
-                    ordered = ", ".join(f"{k} = {sol[k]}" for k in sorted(sol.keys()))
+                    ordered = ", ".join(f"{k} = {format_number(sol[k])}" for k in sorted(sol.keys()))
                     print(f"  [ {ordered} ]")
                 
         else:

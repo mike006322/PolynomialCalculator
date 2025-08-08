@@ -7,6 +7,7 @@ from polynomials.primitives.polycalc_numbers import Integer, Rational
 from utils.dfs import dfs_post_order as dfs
 from polynomials.primitives.variable import Variable
 import numpy as np
+from polynomials.display import format_number
 
 class NonFactor(Exception):
     def __init__(self, q, p):
@@ -312,7 +313,7 @@ class Polynomial:
             
             if is_constant_term:
                 # For constant terms, always show the coefficient
-                term_str = str(coeff)
+                term_str = format_number(coeff)
             else:
                 # For variable terms, handle coefficient display
                 if coeff == 1:
@@ -320,7 +321,7 @@ class Polynomial:
                 elif coeff == -1:
                     term_str = "-"
                 else:
-                    term_str = str(coeff)
+                    term_str = format_number(coeff)
             
             # Handle variables
             for i in range(1, len(self.term_matrix[0])):
@@ -698,14 +699,16 @@ def division_algorithm(input_poly, *others):
     return a, r
 
 def division_string(p, *others):
-    a, r = division_algorithm(p, *others)
-    res = str(p) + ' = '
-    for i in range(len(a)):
-        res += '(' + str(a[i]) + ')' + '*' + '(' + str(others[i]) + ')' + ' + '
-    if res.endswith(" + "):
-        res = res[:-3]
-    res += ' + (remainder:) ' + str(r)
-    return res
+    from polynomials.display import display_mode
+    with display_mode('float'):
+        a, r = division_algorithm(p, *others)
+        res = str(p) + ' = '
+        for i in range(len(a)):
+            res += '(' + str(a[i]) + ')' + '*' + '(' + str(others[i]) + ')' + ' + '
+        if res.endswith(" + "):
+            res = res[:-3]
+        res += ' + (remainder:) ' + str(r)
+        return res
 
 def gcd(a, b):
     a = a.copy()

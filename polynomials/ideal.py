@@ -220,7 +220,7 @@ class Ideal:
 
     def solve_system_structured(self):
         """Return solutions as a structured list of dictionaries.
-        Each dict maps variable name (str) to a numeric value (float/int).
+        Each dict maps variable name (str) to a numeric value (Integer/Rational/int/float).
         If the system does not have finitely many solutions, return None.
         """
         variables = set()
@@ -235,14 +235,18 @@ class Ideal:
         solutions = []
         for zero in zeroes:
             as_dict = dict(zero)
-            # Ensure stable key order and plain python numbers
+            # Ensure stable key order; keep exact types
             clean = {}
             for k in sorted(as_dict.keys()):
                 v = as_dict[k]
-                if isinstance(v, (Integer, Rational)):
-                    v = float(v)
                 clean[str(k)] = v
             solutions.append(clean)
-        # Sort list of solutions for deterministic output
-        solutions.sort(key=lambda d: tuple(d.get(k) for k in variables))
+        # Sort list of solutions deterministically using float as key only
+        def key_fn(d):
+            def to_float(x):
+                if isinstance(x, (Integer, Rational)):
+                    return float(x)
+                return float(x)
+            return tuple(to_float(d.get(k)) for k in variables)
+        solutions.sort(key=key_fn)
         return solutions

@@ -40,12 +40,19 @@ Then fill in the right hand side of the parent, backtracking if needed.
 To make a polynomial do a depth first traversal of the tree.
 """
 
+import os
+
+_DEBUG = os.environ.get("POLYCALC_TEST_DEBUG") in {"1", "true", "True"}
+
 
 class InputError(Exception):
 
     def __init__(self):
-        print("Polynomial input needs to be similar to following example: 'x^2+2xy^3+4'")
-        print("Alternatively, try a term matrix in form [['constant, 'x', 'y'], [1.0, 2, 0], [2.0, 1, 3], [4.0, 0, 0]]")
+        msg = (
+            "Polynomial input needs to be similar to following example: 'x^2+2xy^3+4'\n"
+            "Alternatively, try a term matrix in form [['constant', 'x', 'y'], [1, 2, 0], [2, 1, 3], [4, 0, 0]]"
+        )
+        super().__init__(msg)
 
 
 def find_corresponding_right_parenthesis(s, i):
@@ -69,7 +76,7 @@ def parse_function(function_string):
     """
     returns the function string but as a list of tuples with variables and numbers labeled
     parenthesis are a list of nested parse function
-    [[[('2', Integer), ('+', operation), ('x', variable)]('*', operation)('y', variable)], ('**', Operation), ...]
+    [[[("2", Integer), ('+', operation), ('x', variable)]('*', operation)('y', variable)], ('**', Operation), ...]
     """
     function_string = function_string.replace(' ', '')
     single_char_operations = '+-/^'
@@ -128,7 +135,7 @@ def parse_function(function_string):
                 res.append(function_string[i: i + 1 + index_size])
                 i += 1 + index_size
         else:
-            print("can't parse ", function_string[i])
+            # Do not print to stdout/stderr; raise with helpful message
             raise InputError
     return res
 

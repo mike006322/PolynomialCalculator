@@ -35,9 +35,37 @@ class TestCLI(unittest.TestCase):
         code, out, err = run_cli(['solve-system', 'x-1', 'y-2', 'z-3'])
         self.assertEqual(code, 0)
         self.assertIn('1 solutions:', out)
+        self.assertIn('x = 1.0', out)  # default may be float prior to display mode flags
+
+    def test_numeric_output_flags_solve_system(self):
+        # Rational mode: integers should not have .0
+        code, out, err = run_cli(['--rational', 'solve-system', 'x-1', 'y-2'])
+        self.assertEqual(code, 0)
+        self.assertIn('x = 1', out)
+        self.assertIn('y = 2', out)
+        self.assertNotIn('1.0', out)
+        self.assertNotIn('2.0', out)
+        # Float mode: integers should display with .0
+        code, out, err = run_cli(['--float', 'solve-system', 'x-1', 'y-2'])
+        self.assertEqual(code, 0)
         self.assertIn('x = 1.0', out)
         self.assertIn('y = 2.0', out)
-        self.assertIn('z = 3.0', out)
+
+    def test_numeric_output_flags_groebner(self):
+        # Rational mode should drop .0 in integer constants
+        code, out, err = run_cli(['--rational', 'groebner', 'x^2+y^2-1', 'x-y', '--order', 'grevlex'])
+        self.assertEqual(code, 0)
+        self.assertIn('Groebner basis:', out)
+        self.assertIn('x - y', out)
+        self.assertIn('2y^2 - 1', out)
+        self.assertNotIn('2.0', out)
+        self.assertNotIn('1.0', out)
+        # Float mode should include .0 for integer-looking floats
+        code, out, err = run_cli(['--float', 'groebner', 'x^2+y^2-1', 'x-y', '--order', 'grevlex'])
+        self.assertEqual(code, 0)
+        self.assertIn('Groebner basis:', out)
+        self.assertIn('x - y', out)
+        self.assertIn('2.0y^2 - 1.0', out)
 
 
 if __name__ == '__main__':

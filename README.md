@@ -25,6 +25,10 @@ PolynomialCalculator provides a powerful command-line interface with the followi
 - `solve`: Solve univariate polynomial equations over rationals
 - `groebner`: Compute Gröbner basis for polynomial ideals
 
+Global options:
+- `--numeric-output {float,rational}` to control numeric display (default: `float`)
+- Convenience flags: `--float`, `--rational`
+
 Use `polycalc --help` or `polycalc <command> --help` for detailed usage information.
 
 **Alternative Usage**: If you haven't installed the package, you can substitute:
@@ -87,6 +91,30 @@ polycalc groebner "x^2+y^2-1" "x-y"
 Groebner basis:
   x - y
   2.0y^2 - 1.0
+```
+
+You can choose the monomial order with `--order {lex,grlex,grevlex}`:
+```bash
+polycalc groebner "x^2+y^2-1" "x-y" --order grevlex
+```
+
+#### Control numeric output formatting
+Default is float mode. Use `--rational` to prefer exact-looking output when possible.
+
+```bash
+polycalc --rational solve-system "x-1" "y-2"
+```
+```
+1 solutions:
+  [ x = 1, y = 2 ]
+```
+
+```bash
+polycalc --float solve-system "x-1" "y-2"
+```
+```
+1 solutions:
+  [ x = 1.0, y = 2.0 ]
 ```
 
 ### Near-term goals:

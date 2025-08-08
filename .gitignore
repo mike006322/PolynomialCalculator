@@ -15,3 +15,7 @@ dist/
 venv/
 env/
 .env
+
+# Planning documents (do not track)
+DEV_IMPROVEMENTS.md
+LOCAL_PLAN_NUMERIC_OUTPUT.md

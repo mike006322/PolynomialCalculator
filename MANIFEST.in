@@ -20,7 +20,10 @@ exclude *.pyc
 exclude __pycache__
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
+# Exclude planning markdown files
+exclude DEV_IMPROVEMENTS.md
+exclude LOCAL_PLAN_NUMERIC_OUTPUT.md
 
-# Include documentation
-include *.md
+# Include documentation (explicit; avoid blanket *.md)
+# README is already included above; include docs folder only
 recursive-include docs *.md *.rst *.txt

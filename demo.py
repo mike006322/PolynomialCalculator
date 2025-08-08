@@ -8,6 +8,7 @@ Run with: python demo.py
 """
 
 from polynomials import Polynomial, Ideal, gcd, lcm, division_algorithm
+from polynomials.display import format_number
 import sys
 
 def print_section(title):
@@ -15,6 +16,23 @@ def print_section(title):
     print(f"\n{'='*50}")
     print(f" {title}")
     print('='*50)
+
+# Helpers to format numeric outputs consistently
+
+def _fmt_val(x):
+    """Format a single value using the global numeric formatter when applicable."""
+    try:
+        return format_number(x)
+    except Exception:
+        return str(x)
+
+
+def _fmt_seq(seq):
+    """Format a sequence of values using the global numeric formatter."""
+    try:
+        return "[ " + ", ".join(_fmt_val(s) for s in seq) + " ]"
+    except Exception:
+        return str(seq)
 
 def basic_polynomial_operations():
     """Demonstrate basic polynomial arithmetic."""
@@ -40,8 +58,8 @@ def basic_polynomial_operations():
     
     # Solve equations
     print("Solutions:")
-    print(f"Solutions to f*g = 0: {(f * g).solve()}")
-    print(f"Solutions to h = 0: {h.solve()}")
+    print(f"Solutions to f*g = 0: {_fmt_seq((f * g).solve())}")
+    print(f"Solutions to h = 0: {_fmt_seq(h.solve())}")
 
 def gcd_lcm_operations():
     """Demonstrate GCD and LCM operations."""
@@ -83,8 +101,8 @@ def multivariate_polynomials():
     
     # Evaluation
     print("Evaluation:")
-    print(f"p(1, 2) = {poly(1, 2)}")
-    print(f"p(0, 0) = {poly(0, 0)}")
+    print(f"p(1, 2) = {_fmt_val(poly(1, 2))}")
+    print(f"p(0, 0) = {_fmt_val(poly(0, 0))}")
 
 def groebner_basis_demo():
     """Demonstrate Gröbner basis computation."""
@@ -204,7 +222,7 @@ def polynomial_calculus():
     print("Finding critical points:")
     try:
         critical_points = first_deriv.solve()
-        print(f"Solutions to f'(x) = 0: {critical_points}")
+        print(f"Solutions to f'(x) = 0: {_fmt_seq(critical_points)}")
     except Exception as e:
         print(f"Critical point solving requires numerical methods for this polynomial")
         print(f"f'(x) = {first_deriv} (degree {first_deriv.degree()})")
@@ -214,7 +232,7 @@ def polynomial_calculus():
     print("Function evaluation:")
     for x_val in [0, 1, 2]:
         y_val = poly(x_val)
-        print(f"f({x_val}) = {y_val}")
+        print(f"f({x_val}) = {_fmt_val(y_val)}")
     
     # Factor the polynomial if possible
     print(f"\nFactorization:")
@@ -252,7 +270,7 @@ def advanced_examples():
         elif len(solutions) and len(str(solutions)) < 200:
             print("System solutions (structured):")
             for sol in solutions:
-                ordered = ", ".join(f"{k} = {sol[k]}" for k in sorted(sol.keys()))
+                ordered = ", ".join(f"{k} = {_fmt_val(sol[k])}" for k in sorted(sol.keys()))
                 print(f"  [ {ordered} ]")
         else:
             print("System has complex solutions - use Gröbner basis for analysis")

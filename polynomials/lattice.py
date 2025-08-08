@@ -1,6 +1,7 @@
 from polynomials.primitives.matrix import Matrix
 from algebra.lll import lll_reduction
 from algebra.norms import euclidean_norm
+from polynomials.display import format_number
 
 
 class Lattice:
@@ -37,19 +38,19 @@ class Lattice:
 
 
 if __name__ == '__main__':
-    print(1/(4*(2**.5)))
+    print(format_number(1/(4*(2**.5))))
     L = Lattice([[1, 1, 1], [-1, 0, 2], [3, 5, 6]])
-    print(float(L.center_density))
+    print(format_number(L.center_density))
     # R_i = D * 1.1
     L = Lattice([[-0.0433884297520686, 0.9566115702479883, 0.0216942148760343], [0.9783057851239667, -0.02169421487603307, 0.9132231404958682], [-0.9783057851239669, 0.02169421487603307, 1.8915289256198347]])
     # R_i = D * 2
-    print(float(L.center_density))
+    print(format_number(L.center_density))
     L = Lattice([[-0.18749999999999992, 0.875, 0.09374999999999983], [0.8229166666666899, -0.09375000000000266, 0.8541666666666909], [-0.9270833333333333, 0.09375, 1.5729166666666665]])
-    print(float(L.center_density))
+    print(format_number(L.center_density))
     # R_i = D * 5
     L = Lattice([[-0.13499999999999995, 0.875, -0.09000000000000008], [0.8333333333333451, -0.1200000000000017, 0.8333333333333451], [-0.9166666666666666, 0.12, 1.5833333333333333]])
-    print(float(L.center_density))
+    print(format_number(L.center_density))
     # R_i = D * 8
     L = Lattice([[-0.12890624999999994, 0.875, -0.11132812500000011], [0.8333333333333214, -0.12304687499999825, 0.8333333333333214], [-0.9166666666666666, 0.123046875, 1.5833333333333333]])
-    print(float(L.center_density))
+    print(format_number(L.center_density))
 
