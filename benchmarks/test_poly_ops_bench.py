@@ -1,8 +1,8 @@
 import pytest
 
-from polynomials.polynomial import Polynomial
-from polynomials.collect_like_terms import collect_like_terms
 import polynomials.orderings as ord
+from polynomials.collect_like_terms import collect_like_terms
+from polynomials.polynomial import Polynomial
 
 
 def _rand_poly(deg: int, var: str = "x") -> Polynomial:

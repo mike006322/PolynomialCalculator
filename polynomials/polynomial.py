@@ -126,7 +126,6 @@ class Polynomial:
             other = Polynomial(other, self.field_characteristic)
         a, b = Polynomial.combine_variables(self, other)
         tm = collect_like_terms([a.term_matrix[0]] + a.term_matrix[1:] + b.term_matrix[1:])
-        tm = order(tm)  # Apply consistent ordering
         result = Polynomial(tm, self.field_characteristic)
         result._filter_zero_terms()
         return result
@@ -140,7 +139,6 @@ class Polynomial:
         a, b = Polynomial.combine_variables(self, other)
         neg_b = [[-x if i == 0 else x for i, x in enumerate(term)] for term in b.term_matrix[1:]]
         tm = collect_like_terms([a.term_matrix[0]] + a.term_matrix[1:] + neg_b)
-        tm = order(tm)  # Apply consistent ordering
         result = Polynomial(tm, self.field_characteristic)
         result._filter_zero_terms()
         return result
@@ -160,7 +158,6 @@ class Polynomial:
                 exps = [ta[i] + tb[i] for i in range(1, len(header))]
                 terms.append([coeff] + exps)
         tm = collect_like_terms([header] + terms)
-        tm = order(tm)  # Apply consistent ordering
         result = Polynomial(tm, self.field_characteristic)
         result._filter_zero_terms()
         return result
@@ -760,17 +757,27 @@ def division_algorithm(
         prev_p = p.copy()
         i = 0
         division_occurred = False
+        # Cache leading terms to avoid repeated ordering work
+        p_LT_cached: Optional[Polynomial] = None
+        others_LT_cached: List[Optional[Polynomial]] = [None] * len(others)
         while i < len(others) and not division_occurred:
+            # compute/cached LTs
+            if p_LT_cached is None:
+                p_LT_cached = p.LT()
+            if others_LT_cached[i] is None:
+                others_LT_cached[i] = others[i].LT()
             if divides(others[i], p):
-                a[i] += monomial_divide(p.LT(), others[i].LT())
-                p -= monomial_divide(p.LT(), others[i].LT()) * others[i]
+                div_term = monomial_divide(p_LT_cached, others_LT_cached[i])
+                a[i] += div_term
+                p -= div_term * others[i]
                 division_occurred = True
             else:
                 i += 1
         if not division_occurred:
-            p_LT = p.LT()
-            r += p_LT
-            p -= p.LT()
+            if p_LT_cached is None:
+                p_LT_cached = p.LT()
+            r += p_LT_cached
+            p -= p_LT_cached
         if p == prev_p:
             if _DEBUG:
                 logger.debug(
