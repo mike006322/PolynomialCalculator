@@ -29,6 +29,7 @@ Global options:
 - `--numeric-output {float,rational}` to control numeric display (default: `float`)
 - Convenience flags: `--float`, `--rational`
 - Logging: `--verbose` for debug logs, `--quiet` to show errors only
+- Machine-readable: `--json` to emit JSON for `solve` and `solve-system`
 
 Use `polycalc --help` or `polycalc <command> --help` for detailed usage information.
 
@@ -119,6 +120,31 @@ polycalc --float solve-system "x-1" "y-2"
 ```
 1 solutions:
   [ x = 1.0, y = 2.0 ]
+```
+
+#### JSON output
+Add `--json` to `solve` or `solve-system` for structured output.
+
+Examples:
+```bash
+polycalc --json solve "x^2-2" x
+```
+Outputs:
+```json
+{ "command": "solve", "poly": "x^2-2", "var": "x", "solutions": [1.4142135623730951, -1.4142135623730951], "count": 2, "status": "ok" }
+```
+
+```bash
+polycalc --json solve-system "x-1" "y-2"
+```
+Outputs:
+```json
+{ "command": "solve-system", "polys": ["x-1", "y-2"], "status": "ok", "solutions": [{"x": 1.0, "y": 2.0}], "count": 1 }
+```
+
+On errors, JSON mode returns:
+```json
+{ "status": "error", "error": "<message>" }
 ```
 
 ### Logging and diagnostics

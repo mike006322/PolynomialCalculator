@@ -7,6 +7,7 @@ and algebraic operations.
 """
 
 import argparse
+import json
 import logging
 import sys
 from typing import List, Optional
@@ -101,6 +102,7 @@ def main() -> int:
     parser.add_argument("--rational", action="store_true", help="Shortcut for --numeric-output rational")
     parser.add_argument("--verbose", action="store_true", help="Enable verbose debug logging")
     parser.add_argument("--quiet", action="store_true", help="Suppress non-error output")
+    parser.add_argument("--json", action="store_true", help="Output machine-readable JSON (solve, solve-system)")
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -220,6 +222,22 @@ def main() -> int:
             logging.basicConfig(level=logging.ERROR, format="%(levelname)s:%(name)s:%(message)s")
         else:
             logging.basicConfig(level=logging.WARNING, format="%(levelname)s:%(name)s:%(message)s")
+        def _to_json_value(val):
+            try:
+                import numbers
+                if isinstance(val, numbers.Integral):
+                    return int(val)
+                if isinstance(val, numbers.Real) and not isinstance(val, bool):
+                    # Keep as float (covers float and Decimal-real-ish)
+                    return float(val)
+            except Exception:
+                pass
+            # Fallback to string formatting used by display module
+            try:
+                return format_number(val)
+            except Exception:
+                return str(val)
+
         if args.command == "finite_field":
             # Lazy import to avoid optional heavy deps at module import time
             try:
@@ -274,22 +292,37 @@ def main() -> int:
             from polynomials.polynomial import Polynomial
             poly = Polynomial(args.poly)
             sol = poly.solve()
-            print(f"Solutions to {args.poly} = 0:")
-            if isinstance(sol, (list, tuple)):
-                for s in sol:
+            if args.json:
+                if isinstance(sol, (list, tuple)):
+                    solutions_payload = [_to_json_value(s) for s in sol]
+                else:
+                    solutions_payload = [_to_json_value(sol)]
+                payload = {
+                    "command": "solve",
+                    "poly": args.poly,
+                    "var": args.var,
+                    "solutions": solutions_payload,
+                    "count": len(solutions_payload),
+                    "status": "ok",
+                }
+                print(json.dumps(payload))
+            else:
+                print(f"Solutions to {args.poly} = 0:")
+                if isinstance(sol, (list, tuple)):
+                    for s in sol:
+                        try:
+                            from polynomials.polynomial import Polynomial as _Poly
+                            is_poly = isinstance(s, _Poly)
+                        except Exception:
+                            is_poly = False
+                        print(f"  {s if is_poly else format_number(s)}")
+                else:
                     try:
                         from polynomials.polynomial import Polynomial as _Poly
-                        is_poly = isinstance(s, _Poly)
+                        is_poly = isinstance(sol, _Poly)
                     except Exception:
                         is_poly = False
-                    print(f"  {s if is_poly else format_number(s)}")
-            else:
-                try:
-                    from polynomials.polynomial import Polynomial as _Poly
-                    is_poly = isinstance(sol, _Poly)
-                except Exception:
-                    is_poly = False
-                print(f"  {sol if is_poly else format_number(sol)}")
+                    print(f"  {sol if is_poly else format_number(sol)}")
 
         elif args.command == "groebner":
             # Apply selected monomial order globally for Polynomial operations
@@ -318,15 +351,45 @@ def main() -> int:
             polys = [Polynomial(p) for p in args.polys]
             I = Ideal(*polys)
             solutions = I.solve_system_structured()
-            if solutions is None:
-                print("No finite number of solutions (undetermined/infinite)")
-            elif not solutions:
-                print("0 solutions")
+            if args.json:
+                if solutions is None:
+                    payload = {
+                        "command": "solve-system",
+                        "polys": args.polys,
+                        "status": "undetermined",
+                        "solutions": None,
+                        "count": None,
+                    }
+                elif not solutions:
+                    payload = {
+                        "command": "solve-system",
+                        "polys": args.polys,
+                        "status": "no_solutions",
+                        "solutions": [],
+                        "count": 0,
+                    }
+                else:
+                    norm_solutions = []
+                    for sol in solutions:
+                        norm_solutions.append({k: _to_json_value(v) for k, v in sol.items()})
+                    payload = {
+                        "command": "solve-system",
+                        "polys": args.polys,
+                        "status": "ok",
+                        "solutions": norm_solutions,
+                        "count": len(norm_solutions),
+                    }
+                print(json.dumps(payload))
             else:
-                print(f"{len(solutions)} solutions:")
-                for sol in solutions:
-                    ordered = ", ".join(f"{k} = {format_number(sol[k])}" for k in sorted(sol.keys()))
-                    print(f"  [ {ordered} ]")
+                if solutions is None:
+                    print("No finite number of solutions (undetermined/infinite)")
+                elif not solutions:
+                    print("0 solutions")
+                else:
+                    print(f"{len(solutions)} solutions:")
+                    for sol in solutions:
+                        ordered = ", ".join(f"{k} = {format_number(sol[k])}" for k in sorted(sol.keys()))
+                        print(f"  [ {ordered} ]")
                 
         else:
             parser.print_help()
@@ -335,7 +398,14 @@ def main() -> int:
         return 0
         
     except Exception as e:
-        print(f"Error: {e}", file=sys.stderr)
+        if 'args' in locals() and getattr(args, 'json', False):
+            err_payload = {
+                "status": "error",
+                "error": str(e),
+            }
+            print(json.dumps(err_payload))
+        else:
+            print(f"Error: {e}", file=sys.stderr)
         return 1
 
 
