@@ -24,3 +24,6 @@ env/
 
 # Local git worktrees used for baseline runs
 .worktrees/
+
+# Local profiling scripts and outputs
+profiles/

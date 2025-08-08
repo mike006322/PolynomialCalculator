@@ -4,7 +4,7 @@ from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
 from polynomials.collect_like_terms import collect_like_terms
 from polynomials.display import format_number
 from polynomials.formulas import solve
-from polynomials.orderings import graded_lex as graded_order
+from polynomials.orderings import graded_lex as graded_order  # noqa: F401 re-exported for tests/API
 from polynomials.orderings import order_lex as order
 from polynomials.poly_parser import (
     InputError,

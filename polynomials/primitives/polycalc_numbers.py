@@ -1,10 +1,10 @@
 """Number types used by the polynomial library (Integer and Rational)."""
 from __future__ import annotations
 
+import math
 from typing import Any, Optional, Union
 
 from polynomials.primitives.vector import Vector
-import math
 
 NumberLike = Union[int, float, "Integer", "Rational"]
 
@@ -16,6 +16,24 @@ class Integer:
     """
 
     __slots__ = ("value",)
+
+    _CONST_CACHE = {}  # small intern pool for integers in range [-5, 256]
+
+    def __new__(cls, i: Union[int, float, "Integer"]):
+        try:
+            val = int(i)
+        except Exception:
+            val = int(float(i))
+        if -5 <= val <= 256:
+            cached = cls._CONST_CACHE.get(val)
+            if cached is None:
+                obj = object.__new__(cls)
+                obj.value = val  # type: ignore[attr-defined]
+                cls._CONST_CACHE[val] = obj
+                return obj
+            return cached
+        obj = object.__new__(cls)
+        return obj
 
     def __init__(self, i: Union[int, float, "Integer"]) -> None:
         self.value = int(i)
@@ -189,7 +207,54 @@ class Rational:
 
     __slots__ = ("numerator", "denominator")
 
+    def __new__(cls, a: Any, b: Optional[Any] = None):
+        # Pass-through for Rational without denominator
+        if isinstance(a, Rational) and b is None:
+            return a
+
+        # Pool simple single-argument integers/floats
+        if b is None:
+            if isinstance(a, Integer):
+                av = a.value
+            elif isinstance(a, int):
+                av = a
+            elif isinstance(a, float) and a.is_integer():
+                av = int(a)
+            else:
+                av = None
+            if av in (-1, 0, 1):
+                # Return Integer directly for exact identities
+                return Integer(av)
+            return object.__new__(cls)
+
+        # Pool only very simple two-argument integer cases
+        if isinstance(a, (Integer, int)) and isinstance(b, (Integer, int)):
+            av = a.value if isinstance(a, Integer) else int(a)
+            bv = b.value if isinstance(b, Integer) else int(b)
+            # Canonicalize sign and gcd
+            if av == 0:
+                # 0/b => 0
+                return Integer(0)
+            g = math.gcd(abs(av), abs(bv))
+            if g:
+                av //= g
+                bv //= g
+            if bv < 0:
+                av = -av
+                bv = -bv
+            if bv == 1:
+                # Return Integer for exact integers
+                return Integer(av)
+            # Identity 1 when av==bv!=0, but Integer(1) per spec
+            if av == bv:
+                return Integer(1)
+
+        return object.__new__(cls)
+
     def __init__(self, a: Any, b: Optional[Any] = None) -> None:
+        # If this is a pass-through, skip reinitialization
+        if isinstance(a, Rational) and b is None and self is a:
+            return
         if isinstance(a, Rational):
             if not b:
                 self.numerator = a.numerator
@@ -363,11 +428,18 @@ class Rational:
                 self.numerator * other.denominator + other.numerator * self.denominator,
                 self.denominator * other.denominator,
             )
-        else:
+        if isinstance(other, (int, Integer)):
+            return Rational(self.numerator + self.denominator * other, self.denominator)
+        if isinstance(other, float):
             return self + Rational(other)
+        return self.value() + other
 
     def __radd__(self, other: Any):
-        return self + Rational(other)
+        if isinstance(other, (int, Integer)):
+            return Rational(other * self.denominator + self.numerator, self.denominator)
+        if isinstance(other, float):
+            return Rational(other) + self
+        return other + self.value()
 
     def __sub__(self, other: Any):
         if isinstance(other, Rational):
@@ -375,11 +447,18 @@ class Rational:
                 self.numerator * other.denominator - other.numerator * self.denominator,
                 self.denominator * other.denominator,
             )
-        else:
+        if isinstance(other, (int, Integer)):
+            return Rational(self.numerator - self.denominator * other, self.denominator)
+        if isinstance(other, float):
             return self - Rational(other)
+        return self.value() - other
 
     def __rsub__(self, other: Any):
-        return -(self - other)
+        if isinstance(other, (int, Integer)):
+            return Rational(other * self.denominator - self.numerator, self.denominator)
+        if isinstance(other, float):
+            return Rational(other) - self
+        return other - self.value()
 
     def __neg__(self) -> "Rational":
         return Rational(-self.numerator, self.denominator)
