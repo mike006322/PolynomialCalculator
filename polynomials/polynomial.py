@@ -45,6 +45,9 @@ class NonFactor(Exception):
 
 class Polynomial:
 
+    # Lightweight cache for frequently computed properties
+    _lt_cache: Optional["Polynomial"] = None
+
     def _filter_zero_terms(self) -> None:
         """Remove zero terms from the term matrix, except for canonical zero polynomial."""
         if not self.term_matrix or len(self.term_matrix) < 2:
@@ -124,6 +127,11 @@ class Polynomial:
     def __add__(self, other: Union["Polynomial", int, float, complex]) -> "Polynomial":
         if not isinstance(other, Polynomial):
             other = Polynomial(other, self.field_characteristic)
+        # Fast paths for zero
+        if len(self.term_matrix) == 2 and self.term_matrix[0] == ["constant"] and self.term_matrix[1][0] == 0:
+            return other
+        if len(other.term_matrix) == 2 and other.term_matrix[0] == ["constant"] and other.term_matrix[1][0] == 0:
+            return self
         a, b = Polynomial.combine_variables(self, other)
         tm = collect_like_terms([a.term_matrix[0]] + a.term_matrix[1:] + b.term_matrix[1:])
         result = Polynomial(tm, self.field_characteristic)
@@ -136,6 +144,11 @@ class Polynomial:
     def __sub__(self, other: Union["Polynomial", int, float, complex]) -> "Polynomial":
         if not isinstance(other, Polynomial):
             other = Polynomial(other, self.field_characteristic)
+        # Fast paths for zero
+        if len(other.term_matrix) == 2 and other.term_matrix[0] == ["constant"] and other.term_matrix[1][0] == 0:
+            return self
+        if len(self.term_matrix) == 2 and self.term_matrix[0] == ["constant"] and self.term_matrix[1][0] == 0:
+            return -other
         a, b = Polynomial.combine_variables(self, other)
         neg_b = [[-x if i == 0 else x for i, x in enumerate(term)] for term in b.term_matrix[1:]]
         tm = collect_like_terms([a.term_matrix[0]] + a.term_matrix[1:] + neg_b)
@@ -146,9 +159,26 @@ class Polynomial:
     def __rsub__(self, other: Union["Polynomial", int, float, complex]) -> "Polynomial":
         return Polynomial(other, self.field_characteristic).__sub__(self)
 
+    def __neg__(self) -> "Polynomial":
+        """Unary negation: negate all coefficients, preserve exponents."""
+        if len(self.term_matrix) < 2:
+            return Polynomial([["constant"], [0.0]], self.field_characteristic)
+        header = self.term_matrix[0]
+        neg_terms = [[-t[0]] + t[1:] for t in self.term_matrix[1:]]
+        return Polynomial([header] + neg_terms, self.field_characteristic)
+
     def __mul__(self, other: Union["Polynomial", int, float, complex]) -> "Polynomial":
         if not isinstance(other, Polynomial):
             other = Polynomial(other, self.field_characteristic)
+        # Fast paths for zero and constants
+        # Zero
+        if (len(self.term_matrix) == 2 and self.term_matrix[0] == ["constant"] and self.term_matrix[1][0] == 0) or (
+            len(other.term_matrix) == 2 and other.term_matrix[0] == ["constant"] and other.term_matrix[1][0] == 0
+        ):
+            return Polynomial([ ["constant"], [0.0] ], self.field_characteristic)
+        # Both constant
+        if self.number_of_variables == 0 and other.number_of_variables == 0:
+            return Polynomial(self.term_matrix[1][0] * other.term_matrix[1][0], self.field_characteristic)
         a, b = Polynomial.combine_variables(self, other)
         header = a.term_matrix[0]
         terms: List[List[Any]] = []
@@ -390,16 +420,22 @@ class Polynomial:
         return copy.deepcopy(self)
 
     def LT(self) -> "Polynomial":
+        # Cached leading term (does not mutate self)
+        if self._lt_cache is not None:
+            return self._lt_cache
         if len(self.term_matrix) == 1:
-            return Polynomial(0, self.field_characteristic)
-        self.term_matrix = order(self.term_matrix)
+            self._lt_cache = Polynomial(0, self.field_characteristic)
+            return self._lt_cache
+        # Compute leading term by ordering a local copy once
+        ordered = order([row[:] for row in self.term_matrix])
         res: TermMatrix = [[], []]
-        for variable in self.term_matrix[0]:
+        for variable in ordered[0]:
             res[0].append(variable)
-        for coefficient in self.term_matrix[1]:
+        for coefficient in ordered[1]:
             res[1].append(coefficient)
         res = Polynomial.clean(res)
-        return Polynomial(res, self.field_characteristic)
+        self._lt_cache = Polynomial(res, self.field_characteristic)
+        return self._lt_cache
 
     def LM(self) -> "Polynomial":
         res = self.LT()
@@ -440,11 +476,19 @@ class Polynomial:
             return [header, [0.0] + [0] * (len(header) - 1)]
 
     def degree(self) -> int:
-        if len(self.term_matrix[0]) == 1:
+        # Compute max total degree without sorting
+        if len(self.term_matrix) < 2 or len(self.term_matrix[0]) == 1:
             return 0
-        t = self.copy()
-        t.term_matrix = graded_order(t.term_matrix)
-        return sum(t.term_matrix[1][1:])
+        max_deg = 0
+        for term in self.term_matrix[1:]:
+            # Sum of exponents across variables for this term
+            deg = 0
+            # term structure: [coeff, e1, e2, ...]
+            for exp in term[1:]:
+                deg += exp
+            if deg > max_deg:
+                max_deg = deg
+        return max_deg
 
     @property
     def variables(self) -> List[str]:
@@ -492,6 +536,8 @@ class Polynomial:
                     term.append(0)
         a.term_matrix = order(a.term_matrix)
         b.term_matrix = order(b.term_matrix)
+        a._lt_cache = None
+        b._lt_cache = None
         return a, b
 
     def isolate(self, variable: Union[str, "Variable"]) -> "Polynomial":
@@ -651,6 +697,8 @@ class Polynomial:
 
     def __init__(self, poly: Any, char: int = 0):
         self.field_characteristic = char
+        # reset caches
+        self._lt_cache = None
         # Always construct with header for constants/zeros
         if (
             poly == 0
@@ -694,6 +742,8 @@ class Polynomial:
             self.term_matrix = [self.term_matrix[0], [0.0]]
         self.term_matrix = self.mod_char(self.term_matrix)
         self._filter_zero_terms()
+        # invalidate caches after normalization
+        self._lt_cache = None
 
 
 # Standalone helper functions with type hints
@@ -732,6 +782,7 @@ def monomial_divide(a: "Polynomial", b: "Polynomial") -> "Polynomial":
     for i in range(1, header_len):
         a_term[i] -= b_term[i]
     res.term_matrix[1] = a_term
+    res._lt_cache = None
     return res
 
 
@@ -766,7 +817,8 @@ def division_algorithm(
                 p_LT_cached = p.LT()
             if others_LT_cached[i] is None:
                 others_LT_cached[i] = others[i].LT()
-            if divides(others[i], p):
+            # Check divisibility on leading terms only (faster and sufficient)
+            if divides(others_LT_cached[i], p_LT_cached):
                 div_term = monomial_divide(p_LT_cached, others_LT_cached[i])
                 a[i] += div_term
                 p -= div_term * others[i]
