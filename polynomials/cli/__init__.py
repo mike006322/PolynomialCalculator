@@ -7,4 +7,4 @@ allowing users to perform polynomial operations from the command line.
 
 from .cli import main
 
-__all__ = ['main']
+__all__ = ["main"]

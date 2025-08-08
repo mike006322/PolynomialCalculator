@@ -2,7 +2,9 @@
 Variable object
 aka indeterminate or unknown
 """
+
 from __future__ import annotations
+
 from typing import Any
 
 
@@ -53,5 +55,5 @@ class Variable:
         return hash(repr(self))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass

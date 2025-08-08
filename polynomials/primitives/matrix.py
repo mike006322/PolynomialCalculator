@@ -1,8 +1,9 @@
 # import numpy as np
 from __future__ import annotations
-from typing import Any, Iterable, List, Sequence, Tuple, Union, overload
 
-from polynomials.primitives.polycalc_numbers import Rational, Integer
+from typing import Any, List, Sequence, Tuple, Union
+
+from polynomials.primitives.polycalc_numbers import Integer, Rational
 from polynomials.primitives.vector import Vector
 
 # Todo: Cholesky decomposition, singlular value decomposition, eigen values
@@ -21,10 +22,10 @@ class Matrix(list):
         return float(self[0][0])
 
     def __add__(self, other: Any):
-        if type(other) == Matrix:
+        if isinstance(other, Matrix):
             assert self.shape == other.shape
             return Matrix(matrix_plus_matrix(self, other))
-        if type(other) == list:
+        if isinstance(other, list):
             return Matrix(matrix_plus_matrix(self, other))
         return NotImplemented
 
@@ -35,13 +36,13 @@ class Matrix(list):
         return -1 * self
 
     def __mul__(self, other: Any):
-        if type(other) == Matrix:
+        if isinstance(other, Matrix):
             return Matrix(matrix_times_matrix(self, other))
-        if type(other) == list:
-            if type(other[0]) != list:
+        if isinstance(other, list):
+            if not isinstance(other[0], list):
                 return Matrix(matrix_times_matrix(self, [other]))
             return Matrix(matrix_times_matrix(self, other))
-        if type(other) in {int, float, Integer, Rational}:
+        if isinstance(other, (int, float, Integer, Rational)):
             return Matrix(scalar_multiplication(other, self))
         return NotImplemented
 
@@ -97,14 +98,14 @@ class Matrix(list):
     @staticmethod
     def zeroes(dimension: Union[Tuple[int, int], int]) -> "Matrix":
         res: MatrixLike = []
-        if type(dimension) == tuple:
+        if isinstance(dimension, tuple):
             n = dimension[0]
             m = dimension[1]
             for i in range(n):
                 res.append([])
                 for j in range(m):
                     res[i].append(0)
-        if type(dimension) == int:
+        if isinstance(dimension, int):
             res.append([])
             for i in range(dimension):
                 res[0].append(0)
@@ -113,14 +114,14 @@ class Matrix(list):
     @staticmethod
     def ones(dimension: Union[Tuple[int, int], int]) -> "Matrix":
         res: MatrixLike = []
-        if type(dimension) == tuple:
+        if isinstance(dimension, tuple):
             n = dimension[0]
             m = dimension[1]
             for i in range(n):
                 res.append([])
                 for j in range(m):
                     res[i].append(1)
-        if type(dimension) == int:
+        if isinstance(dimension, int):
             res.append([])
             for i in range(dimension):
                 res[0].append(1)
@@ -134,7 +135,7 @@ class Matrix(list):
         return res
 
     def column_sub_matrix(self, stop: int, start: int = 0) -> "Matrix":
-        return Matrix([x[start: stop] for x in self])
+        return Matrix([x[start:stop] for x in self])
 
 
 def transpose_matrix(m: MatrixLike) -> MatrixLike:
@@ -142,7 +143,7 @@ def transpose_matrix(m: MatrixLike) -> MatrixLike:
 
 
 def get_matrix_minor(m: MatrixLike, i: int, j: int) -> MatrixLike:
-    return [row[:j] + row[j + 1:] for row in (m[:i] + m[i + 1:])]
+    return [row[:j] + row[j + 1 :] for row in (m[:i] + m[i + 1 :])]
 
 
 def matrix_copy(m: MatrixLike) -> MatrixLike:
@@ -190,8 +191,10 @@ def get_matrix_inverse(m: MatrixLike) -> MatrixLike:
     determinant = get_matrix_determinant(m)
     # special case for 2x2 matrix:
     if len(m) == 2:
-        return [[m[1][1] / determinant, -1 * m[0][1] / determinant],
-                [-1 * m[1][0] / determinant, m[0][0] / determinant]]
+        return [
+            [m[1][1] / determinant, -1 * m[0][1] / determinant],
+            [-1 * m[1][0] / determinant, m[0][0] / determinant],
+        ]
 
     # find matrix of cofactors
     cofactors: MatrixLike = []
@@ -209,11 +212,11 @@ def get_matrix_inverse(m: MatrixLike) -> MatrixLike:
 
 
 def vector_plus_vector(v_1: VectorLike, v_2: VectorLike):
-    if type(v_1) == tuple:
+    if isinstance(v_1, tuple):
         return tuple(map(sum, zip(v_1, v_2)))
-    if type(v_1) == list:
+    if isinstance(v_1, list):
         return list(map(sum, zip(v_1, v_2)))
-    if type(v_1) == Vector:
+    if isinstance(v_1, Vector):
         return Vector(map(sum, zip(v_1, v_2)))
 
 
@@ -461,7 +464,7 @@ def get_integer_ref(matrix: MatrixLike) -> MatrixLike:
 
 
 def column_sub_matrix(m: MatrixLike, stop: int, start: int = 0) -> MatrixLike:
-    return [x[start: stop] for x in m]
+    return [x[start:stop] for x in m]
 
 
 def matrix_to_string(matrix: MatrixLike) -> str:
@@ -470,9 +473,9 @@ def matrix_to_string(matrix: MatrixLike) -> str:
     """
     s = [[str(e) for e in row] for row in matrix]
     lens = [max(map(len, col)) for col in zip(*s)]
-    fmt = '\t'.join('{{:{}}}'.format(x) for x in lens)
+    fmt = "\t".join("{{:{}}}".format(x) for x in lens)
     table = [fmt.format(*row) for row in s]
-    return '\n'.join(table) + '\n'
+    return "\n".join(table) + "\n"
 
 
 def gram_schmidt(m: MatrixLike) -> List[Vector]:
@@ -493,5 +496,5 @@ def gram_schmidt(m: MatrixLike) -> List[Vector]:
     return res
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass

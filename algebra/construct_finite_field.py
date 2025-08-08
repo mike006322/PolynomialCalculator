@@ -1,6 +1,7 @@
-from polynomials.polynomial import Polynomial, gcd
 import random
 from typing import Dict, Optional
+
+from polynomials.polynomial import Polynomial, gcd
 
 # Construct a Finite Field/Galois Field of order p^i, GF(p^i)
 # Zech logarithm table stores every element of GF(p^i)
@@ -33,7 +34,7 @@ class ZechLogarithmTable:
         for j in range(self.field_characteristic - 1):
             self.poly_to_power[str(beta_j)] = j
             self.power_to_poly[j] = beta_j
-            beta_j = (beta_j*beta) % self.h
+            beta_j = (beta_j * beta) % self.h
 
     def multiply(self, poly1: Polynomial, poly2: Polynomial) -> Polynomial:
         """
@@ -43,18 +44,18 @@ class ZechLogarithmTable:
         """
         i = self.poly_to_power[str(poly1)]
         j = self.poly_to_power[str(poly2)]
-        return self.power_to_poly[(i+j) % (self.field_characteristic - 1)]
+        return self.power_to_poly[(i + j) % (self.field_characteristic - 1)]
 
 
 def random_monic(p: int, n: int) -> Polynomial:
     """
     returns a random monic polynomial of degree n over field F_q
     """
-    x = Polynomial('x', p)
+    x = Polynomial("x", p)
     f = x**n
     m = n - 1
     while m >= 0:
-        f += random.randint(0, p-1)*(x**m)
+        f += random.randint(0, p - 1) * (x**m)
         m -= 1
     return f
 
@@ -76,19 +77,21 @@ def find_irreducible(p: int, n: int) -> Polynomial:
         f = random_monic(p, n)
         i = 1
         reducible = False
-        while i <= n//2:
-            g_i = gcd(Polynomial('x', p)**(p**i) - Polynomial('x', p), f)
+        while i <= n // 2:
+            g_i = gcd(Polynomial("x", p) ** (p**i) - Polynomial("x", p), f)
             if g_i != 1:
                 if g_i != f:
                     reducible = True
-                elif Polynomial('x', p)**(p**i) - Polynomial('x', p) == f:
+                elif Polynomial("x", p) ** (p**i) - Polynomial("x", p) == f:
                     reducible = True
                 break
             i += 1
         if not reducible:
             return f
         attempts += 1
-    raise RuntimeError(f"Failed to find irreducible polynomial of degree {n} over F_{p} after {max_attempts} attempts.")
+    raise RuntimeError(
+        f"Failed to find irreducible polynomial of degree {n} over F_{p} after {max_attempts} attempts."
+    )
 
 
 def find_primitive_element(h: Polynomial, p: int, i: int) -> Polynomial:
@@ -114,14 +117,14 @@ def find_primitive_element(h: Polynomial, p: int, i: int) -> Polynomial:
             j += 1
         return j
 
-    f = Polynomial('x', p)
-    while order(f) != q-1:
+    f = Polynomial("x", p)
+    while order(f) != q - 1:
         f = Polynomial(0, p)
-        a = random.randint(1, i-1)
+        a = random.randint(1, i - 1)
         for k in range(a):
-            f += random.randint(0, p-1)*Polynomial('x', p)**k
+            f += random.randint(0, p - 1) * Polynomial("x", p) ** k
     return f
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass

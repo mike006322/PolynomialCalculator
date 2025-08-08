@@ -3,19 +3,23 @@ from typing import List, Union
 Term = List[Union[int, float, complex]]
 TermMatrix = List[List[Union[str, int, float, complex]]]
 
+
 def order_grevlex(term_matrix: TermMatrix) -> TermMatrix:
     """
     Alias for grev_lex for compatibility with test imports.
     """
     return grev_lex(term_matrix)
 
+
 def order_lexdeg(term_matrix: TermMatrix) -> TermMatrix:
     # If needed, this can be implemented as a graded lex ordering
     return graded_lex(term_matrix)
 
+
 def order_grevlexdeg(term_matrix: TermMatrix) -> TermMatrix:
     # If needed, this can be implemented as a grev_lex ordering
     return grev_lex(term_matrix)
+
 
 """
 For each ordering, input is in form term_matrix from poly_parser.py
@@ -50,6 +54,7 @@ def order_lex(term_matrix: TermMatrix) -> TermMatrix:
     res = [res[0]] + sorted(res[1:], key=lambda x: x[1:], reverse=True)
     return res
 
+
 # Monomial ordering specified by matrix u:
 # An n by m sized matrix, u, defines a monomial ordering on N^n by
 # for a, b in N^n, a >= b if u*(a-b) doesn't have a negative as it's highest non-zero term.
@@ -68,8 +73,8 @@ def order_lex(term_matrix: TermMatrix) -> TermMatrix:
 # # Sort: sort the terms based on the ordering specified by matrix u
 
 
-
 # ----- Graded Lexicographic Ordering -----
+
 
 def graded_lex(term_matrix: TermMatrix) -> TermMatrix:
     """
@@ -96,20 +101,20 @@ def graded_lex(term_matrix: TermMatrix) -> TermMatrix:
     # if the sum is the same then break the tie with lex ordering
     j = 1
     while j < len(res) - 2:
-        if res[j][-1] == res[j+1][-1]:
+        if res[j][-1] == res[j + 1][-1]:
             start = j
             j += 1
-            while res[j][-1] == res[j+1][-1]:
+            while res[j][-1] == res[j + 1][-1]:
                 if j + 1 == len(res) - 1:
                     j += 1
                     break
                 j += 1
             end = j
-            if j+1 < len(res):
-                res = res[0:start] + order_lex([res[0]]+res[start:end+1])[1:] + res[end+1:]
+            if j + 1 < len(res):
+                res = res[0:start] + order_lex([res[0]] + res[start : end + 1])[1:] + res[end + 1 :]
             else:
-                
-                res = res[0:start] + order_lex([res[0]]+res[start:j+1])[1:]
+
+                res = res[0:start] + order_lex([res[0]] + res[start : j + 1])[1:]
         else:
             j += 1
     # remove the sum appendage if the terms still has it
@@ -117,9 +122,10 @@ def graded_lex(term_matrix: TermMatrix) -> TermMatrix:
         if len(res[i]) > len(res[0]):
             res[i] = res[i][:-1]
     return res
-        
+
 
 # ----- Reverse Graded Lexicographic Ordering -----
+
 
 def reverse_lex(term_matrix: TermMatrix) -> TermMatrix:
     t = term_matrix
@@ -137,7 +143,7 @@ def reverse_lex(term_matrix: TermMatrix) -> TermMatrix:
     res = [res[0]] + sorted(res[1:], key=lambda x: x[-1], reverse=True)
     return res
 
-    
+
 def grev_lex(term_matrix: TermMatrix) -> TermMatrix:
     t = term_matrix
     # first move terms around
@@ -160,20 +166,22 @@ def grev_lex(term_matrix: TermMatrix) -> TermMatrix:
     # if the sum is the same then break the tie with lex ordering
     j = 1
     while j < len(res) - 2:
-        if res[j][-1] == res[j+1][-1]:
+        if res[j][-1] == res[j + 1][-1]:
             start = j
             j += 1
-            while res[j][-1] == res[j+1][-1]:
+            while res[j][-1] == res[j + 1][-1]:
                 if j + 1 == len(res) - 1:
                     j += 1
                     break
                 j += 1
             end = j
-            if j+1 < len(res):
-                res = res[0:start] + reverse_lex([res[0]]+res[start:end+1])[1:] + res[end+1:]
+            if j + 1 < len(res):
+                res = (
+                    res[0:start] + reverse_lex([res[0]] + res[start : end + 1])[1:] + res[end + 1 :]
+                )
             else:
-                
-                res = res[0:start] + reverse_lex([res[0]]+res[start:j+1])[1:]
+
+                res = res[0:start] + reverse_lex([res[0]] + res[start : j + 1])[1:]
         else:
             j += 1
     # remove the sum appendage if the terms still has it
@@ -182,5 +190,6 @@ def grev_lex(term_matrix: TermMatrix) -> TermMatrix:
             res[i] = res[i][:-1]
     return res
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     pass

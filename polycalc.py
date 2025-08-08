@@ -6,8 +6,8 @@ This script simulates the installed 'polycalc' command and can be used
 until the package is properly installed.
 """
 
-import sys
 import os
+import sys
 
 # Add the current directory to Python path so imports work
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))

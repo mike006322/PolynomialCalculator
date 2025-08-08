@@ -40,5 +40,5 @@ def dfs_post_order(root, func):
         func(current_node)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass

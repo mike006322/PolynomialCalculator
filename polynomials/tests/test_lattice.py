@@ -1,4 +1,5 @@
 import unittest
+
 from polynomials.lattice import Lattice
 
 
@@ -9,5 +10,5 @@ class TestLattice(unittest.TestCase):
         self.assertEqual(R.center_density, 0.041666666666666664)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

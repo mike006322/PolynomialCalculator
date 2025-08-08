@@ -1,5 +1,6 @@
-import numpy as np
 from typing import Tuple
+
+import numpy as np
 
 
 def gram_schmidt(matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
@@ -21,7 +22,7 @@ def gram_schmidt(matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     return ortho, u
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     A = np.array([[1.0, 1.0, 0.0], [1.0, 3.0, 1.0], [2.0, -1.0, 1.0]])
     b, u = gram_schmidt(A)
     print(A)

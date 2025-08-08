@@ -6,8 +6,8 @@ the polynomial calculator, including matrices, vectors, variables, and number ty
 """
 
 from .matrix import Matrix
-from .vector import Vector
-from .variable import Variable
 from .polycalc_numbers import Integer, Rational
+from .variable import Variable
+from .vector import Vector
 
-__all__ = ['Matrix', 'Vector', 'Variable', 'Integer', 'Rational']
+__all__ = ["Matrix", "Vector", "Variable", "Integer", "Rational"]

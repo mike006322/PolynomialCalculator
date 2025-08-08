@@ -1,4 +1,5 @@
-from typing import List, Union, Dict, Tuple, Optional, cast, Any
+from typing import Any, Dict, List, Optional, Tuple, Union, cast
+
 try:
     # Python 3.10+
     from typing import TypeAlias  # type: ignore[attr-defined]
@@ -86,5 +87,5 @@ def collect_like_terms(term_matrix: TermMatrix, preserve_header: bool = True) ->
     return collected
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass

@@ -21,15 +21,15 @@ import logging
 # Import key functions for the public API
 try:
     from .lll import lll_reduction
-    from .norms import euclidean_norm, weighted_frobenius_norm, sum_of_squared_coefficietns
-    
+    from .norms import euclidean_norm, sum_of_squared_coefficietns, weighted_frobenius_norm
+
     __all__ = [
-        'lll_reduction', 'euclidean_norm', 'weighted_frobenius_norm', 
-        'sum_of_squared_coefficietns'
+        "lll_reduction",
+        "euclidean_norm",
+        "weighted_frobenius_norm",
+        "sum_of_squared_coefficietns",
     ]
 except ImportError as e:
     # Handle missing dependencies gracefully
-    logging.getLogger(__name__).warning(
-        "Some algebra functions not available: %s", e
-    )
+    logging.getLogger(__name__).warning("Some algebra functions not available: %s", e)
     __all__ = []

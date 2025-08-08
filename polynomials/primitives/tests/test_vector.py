@@ -1,4 +1,5 @@
 import unittest
+
 from polynomials.primitives.matrix import Vector
 from polynomials.primitives.polycalc_numbers import Rational
 
@@ -24,7 +25,9 @@ class TestVector(unittest.TestCase):
         self.assertEqual(t, res)
 
     def test_vector_proj(self):
-        t = Vector([Rational(1), Rational(1), Rational(1)]).proj(Vector([Rational(-1), Rational(0), Rational(2)]))
+        t = Vector([Rational(1), Rational(1), Rational(1)]).proj(
+            Vector([Rational(-1), Rational(0), Rational(2)])
+        )
         # Projection = (1/5) * [-1, 0, 2] = [-1/5, 0, 2/5]
         res = [Rational(-1, 5), Rational(0, 1), Rational(2, 5)]
         self.assertEqual(t, res)
@@ -42,5 +45,5 @@ class TestVector(unittest.TestCase):
         self.assertEqual(t, res)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

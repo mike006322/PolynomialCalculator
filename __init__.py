@@ -16,10 +16,11 @@ Modules:
 """
 
 from .version import __version__
+
 __author__ = "mike006322"
 
 # Import main classes for convenience
-from polynomials.polynomial import Polynomial
 from polynomials.ideal import Ideal
+from polynomials.polynomial import Polynomial
 
-__all__ = ['Polynomial', 'Ideal', '__version__']
+__all__ = ["Polynomial", "Ideal", "__version__"]

@@ -1,5 +1,21 @@
 import unittest
-from polynomials.primitives.matrix import Matrix, get_matrix_inverse, vector_plus_vector, vector_times_vector, constant_times_vector, matrix_times_vector, vector_times_matrix, matrix_times_matrix, column_sub_matrix, get_integer_ref, get_nullspace, transpose_matrix, scalar_multiplication, gram_schmidt, Vector
+
+from polynomials.primitives.matrix import (
+    Matrix,
+    Vector,
+    column_sub_matrix,
+    constant_times_vector,
+    get_integer_ref,
+    get_matrix_inverse,
+    get_nullspace,
+    gram_schmidt,
+    matrix_times_matrix,
+    matrix_times_vector,
+    transpose_matrix,
+    vector_plus_vector,
+    vector_times_matrix,
+    vector_times_vector,
+)
 
 
 class TestMatrix(unittest.TestCase):
@@ -47,28 +63,34 @@ class TestMatrix(unittest.TestCase):
     #     self.assertEqual(left_nullspace.tolist(), [[-1, -13, 5]])
 
     def test_matrix_times_matrix(self):
-        x = [[12, 7, 3],
-             [4, 5, 6],
-             [7, 8, 9]]
-        y = [[5, 8, 1, 2],
-             [6, 7, 3, 0],
-             [4, 5, 9, 1]]
-        self.assertEqual(matrix_times_matrix(x, y), [[114, 160, 60, 27], [74, 97, 73, 14], [119, 157, 112, 23]])
+        x = [[12, 7, 3], [4, 5, 6], [7, 8, 9]]
+        y = [[5, 8, 1, 2], [6, 7, 3, 0], [4, 5, 9, 1]]
+        self.assertEqual(
+            matrix_times_matrix(x, y), [[114, 160, 60, 27], [74, 97, 73, 14], [119, 157, 112, 23]]
+        )
 
     def test_column_sub_matrix(self):
-        m = [[12, 7, 3],
-             [4, 5, 6],
-             [7, 8, 9]]
+        m = [[12, 7, 3], [4, 5, 6], [7, 8, 9]]
         self.assertEqual(column_sub_matrix(m, 2), [[12, 7], [4, 5], [7, 8]])
 
     def test_get_integer_ref(self):
         m = [[-3, 6, -1, 1, -7], [1, -2, 2, 3, -1], [2, -4, 5, 8, -4]]
         # assert get_integer_ref(m) == [[1, -2, 0, -1, 3], [0, 0, 1, 2, -2], [0, 0, 0, 0, 0]]
-        res = [[1.0, -2.0, 0.0, -1.0, 3.0], [-0.0, -0.0, -1.0, -2.0, 2.0], [0.0, 0.0, 0.0, 0.0, 0.0]]
+        res = [
+            [1.0, -2.0, 0.0, -1.0, 3.0],
+            [-0.0, -0.0, -1.0, -2.0, 2.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0],
+        ]
         self.assertEqual(get_integer_ref(m), res)
         m = transpose_matrix(m)
         int_ref = get_integer_ref(m)
-        res = [[5.0, -0.0, 1.0], [0.0, 5.0, 13.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [-0.0, 0.0, 0.0]]
+        res = [
+            [5.0, -0.0, 1.0],
+            [0.0, 5.0, 13.0],
+            [0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0],
+            [-0.0, 0.0, 0.0],
+        ]
         self.assertEqual(int_ref, res)
 
     def test_get_nullspace(self):
@@ -77,18 +99,24 @@ class TestMatrix(unittest.TestCase):
         self.assertEqual(N, [[2, 1, -3], [1, 0, 0], [0, -2, 2], [0, 1, 0], [0, 0, 1]])
         test_vec = transpose_matrix([[1, 2, 3]])
         self.assertEqual(matrix_times_matrix(m, matrix_times_matrix(N, test_vec)), [[0], [0], [0]])
-        m = [[4, 4, 4, 4, 4, 124, 0, 0, 0, 0, 0, 0, 0],
-             [4, 12, 36, 108, 324, 0, 124, 0, 0, 0, 0, 0, 0],
-             [4, 36, 324, 2916, 26244, 0, 0, 124, 0, 0, 0, 0, 0],
-             [62, 0, 0, 0, 0, 0, 0, 0, 124, 0, 0, 0, 0],
-             [0, 62, 0, 0, 0, 0, 0, 0, 0, 124, 0, 0, 0],
-             [0, 0, 62, 0, 0, 0, 0, 0, 0, 0, 124, 0, 0],
-             [0, 0, 0, 62, 0, 0, 0, 0, 0, 0, 0, 124, 0],
-             [31, 31, 31, 31, 31, 0, 0, 0, 0, 0, 0, 0, 124]]
+        m = [
+            [4, 4, 4, 4, 4, 124, 0, 0, 0, 0, 0, 0, 0],
+            [4, 12, 36, 108, 324, 0, 124, 0, 0, 0, 0, 0, 0],
+            [4, 36, 324, 2916, 26244, 0, 0, 124, 0, 0, 0, 0, 0],
+            [62, 0, 0, 0, 0, 0, 0, 0, 124, 0, 0, 0, 0],
+            [0, 62, 0, 0, 0, 0, 0, 0, 0, 124, 0, 0, 0],
+            [0, 0, 62, 0, 0, 0, 0, 0, 0, 0, 124, 0, 0],
+            [0, 0, 0, 62, 0, 0, 0, 0, 0, 0, 0, 124, 0],
+            [31, 31, 31, 31, 31, 0, 0, 0, 0, 0, 0, 0, 124],
+        ]
         N = get_nullspace(m)
-        res = [[-62, 0, 0, 0, 62, 0, -160, -13120, 31, 0, 0, 0, 0], [0, -62, 0, 0, 62, 0, -156, -13104, 0, 31, 0, 0, 0],
-               [0, 0, -62, 0, 62, 0, -144, -12960, 0, 0, 31, 0, 0], [0, 0, 0, -62, 62, 0, -108, -11664, 0, 0, 0, 31, 0],
-               [0, 0, 0, 0, -124, 4, 324, 26244, 0, 0, 0, 0, 31]]
+        res = [
+            [-62, 0, 0, 0, 62, 0, -160, -13120, 31, 0, 0, 0, 0],
+            [0, -62, 0, 0, 62, 0, -156, -13104, 0, 31, 0, 0, 0],
+            [0, 0, -62, 0, 62, 0, -144, -12960, 0, 0, 31, 0, 0],
+            [0, 0, 0, -62, 62, 0, -108, -11664, 0, 0, 0, 31, 0],
+            [0, 0, 0, 0, -124, 4, 324, 26244, 0, 0, 0, 0, 31],
+        ]
         self.assertEqual(transpose_matrix(N), res)
 
     def test_scalar_multiplication(self):
@@ -161,5 +189,5 @@ class TestMatrix(unittest.TestCase):
         self.assertEqual(det, res)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

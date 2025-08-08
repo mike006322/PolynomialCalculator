@@ -19,15 +19,22 @@ Functions:
     lcm: Least common multiple of polynomials
 """
 
-from .polynomial import Polynomial, NonFactor, division_algorithm, gcd, lcm
-from .ideal import Ideal
-from .formulas import solve
-from .orderings import order_lex, graded_lex, order_grevlex
 from .collect_like_terms import collect_like_terms
+from .formulas import solve
+from .ideal import Ideal
+from .orderings import graded_lex, order_grevlex, order_lex
+from .polynomial import NonFactor, Polynomial, division_algorithm, gcd, lcm
 
 __all__ = [
-    'Polynomial', 'NonFactor', 'Ideal',
-    'division_algorithm', 'gcd', 'lcm', 'solve',
-    'order_lex', 'graded_lex', 'order_grevlex', 
-    'collect_like_terms'
+    "Polynomial",
+    "NonFactor",
+    "Ideal",
+    "division_algorithm",
+    "gcd",
+    "lcm",
+    "solve",
+    "order_lex",
+    "graded_lex",
+    "order_grevlex",
+    "collect_like_terms",
 ]

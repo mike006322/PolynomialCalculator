@@ -1,7 +1,6 @@
 from functools import lru_cache
 from typing import Sequence, Union
 
-
 Number = Union[int, float]
 VectorLike = Sequence[Number]
 
@@ -63,5 +62,5 @@ class Vector(list):
         return hash(repr(self))
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     pass

@@ -12,6 +12,6 @@ Key Functions:
     dfs_post_order: Post-order depth-first search
 """
 
-from .dfs import dfs_pre_order, dfs_post_order
+from .dfs import dfs_post_order, dfs_pre_order
 
-__all__ = ['dfs_pre_order', 'dfs_post_order']
+__all__ = ["dfs_pre_order", "dfs_post_order"]
