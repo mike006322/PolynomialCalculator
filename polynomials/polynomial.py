@@ -168,6 +168,22 @@ class Polynomial:
         return Polynomial([header] + neg_terms, self.field_characteristic)
 
     def __mul__(self, other: Union["Polynomial", int, float, complex]) -> "Polynomial":
+        # Fast path: numeric scalar multiply without constructing Polynomial
+        if isinstance(other, (int, float, complex, Integer, Rational)):
+            # Short-circuits
+            if other == 0:
+                return Polynomial([["constant"], [0.0]], self.field_characteristic)
+            if other == 1:
+                return self
+            if len(self.term_matrix) < 2:
+                return Polynomial([["constant"], [0.0]], self.field_characteristic)
+            header = self.term_matrix[0]
+            scaled_terms: List[List[Any]] = []
+            for t in self.term_matrix[1:]:
+                scaled_terms.append([t[0] * other] + t[1:])
+            res = Polynomial([header] + scaled_terms, self.field_characteristic)
+            res._filter_zero_terms()
+            return res
         if not isinstance(other, Polynomial):
             other = Polynomial(other, self.field_characteristic)
         # Fast paths for zero and constants
@@ -176,6 +192,20 @@ class Polynomial:
             len(other.term_matrix) == 2 and other.term_matrix[0] == ["constant"] and other.term_matrix[1][0] == 0
         ):
             return Polynomial([ ["constant"], [0.0] ], self.field_characteristic)
+        # If multiplying by a constant polynomial, scale directly
+        if other.number_of_variables == 0:
+            scalar = other.term_matrix[1][0] if len(other.term_matrix) > 1 else 0
+            if scalar == 0:
+                return Polynomial([["constant"], [0.0]], self.field_characteristic)
+            if scalar == 1:
+                return self
+            header = self.term_matrix[0]
+            scaled_terms2: List[List[Any]] = []
+            for t in self.term_matrix[1:]:
+                scaled_terms2.append([t[0] * scalar] + t[1:])
+            res2 = Polynomial([header] + scaled_terms2, self.field_characteristic)
+            res2._filter_zero_terms()
+            return res2
         # Both constant
         if self.number_of_variables == 0 and other.number_of_variables == 0:
             return Polynomial(self.term_matrix[1][0] * other.term_matrix[1][0], self.field_characteristic)
@@ -798,6 +828,10 @@ def division_algorithm(
     steps = 0
     if p == Polynomial(0):
         return a, r
+    # Precompute divisor leading terms once (divisors are constant across iterations)
+    precomp_LT_others: List[Optional[Polynomial]] = [None] * len(others)
+    for i in range(len(others)):
+        precomp_LT_others[i] = others[i].LT()
     while p != Polynomial(0):
         if steps > max_steps:
             if _DEBUG:
@@ -810,16 +844,14 @@ def division_algorithm(
         division_occurred = False
         # Cache leading terms to avoid repeated ordering work
         p_LT_cached: Optional[Polynomial] = None
-        others_LT_cached: List[Optional[Polynomial]] = [None] * len(others)
         while i < len(others) and not division_occurred:
             # compute/cached LTs
             if p_LT_cached is None:
                 p_LT_cached = p.LT()
-            if others_LT_cached[i] is None:
-                others_LT_cached[i] = others[i].LT()
             # Check divisibility on leading terms only (faster and sufficient)
-            if divides(others_LT_cached[i], p_LT_cached):
-                div_term = monomial_divide(p_LT_cached, others_LT_cached[i])
+            lt_other = precomp_LT_others[i]
+            if divides(lt_other, p_LT_cached):
+                div_term = monomial_divide(p_LT_cached, lt_other)
                 a[i] += div_term
                 p -= div_term * others[i]
                 division_occurred = True
