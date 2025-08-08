@@ -12,8 +12,11 @@ import logging
 import sys
 from typing import List, Optional
 
+from polynomials.display import format_number, set_display_mode
+
 # Lazily resolve package version without importing the top-level package
 # Prefer importlib.metadata when installed; fallback to local version module.
+
 
 def _get_version() -> str:
     try:
@@ -31,12 +34,14 @@ def _get_version() -> str:
     # 1) Try plain import from project root if on sys.path
     try:
         from version import __version__  # type: ignore
+
         return __version__
     except Exception:
         # 2) Load version.py by absolute path relative to this file
         try:
             import importlib.util
             from pathlib import Path
+
             root = Path(__file__).resolve().parents[2]
             vp = root / "version.py"
             if vp.exists():
@@ -53,7 +58,7 @@ def _get_version() -> str:
 
 
 # Early parse of version and display flags
-from polynomials.display import set_display_mode, get_display_mode, format_number
+
 
 def _early_handle_global_flags(argv: List[str]) -> Optional[int]:
     # --version fast-path
@@ -67,19 +72,19 @@ def _early_handle_global_flags(argv: List[str]) -> Optional[int]:
     if "--numeric-output" in argv:
         try:
             idx = argv.index("--numeric-output")
-            mode = argv[idx+1]
+            mode = argv[idx + 1]
             set_display_mode(mode)
             # Strip the pair so argparse doesn't see it twice
-            del argv[idx:idx+2]
+            del argv[idx : idx + 2]
         except Exception:
             print("Error: --numeric-output requires an argument: rational|float", file=sys.stderr)
             return 2
     # Convenience flags
     if "--float" in argv:
-        set_display_mode('float')
+        set_display_mode("float")
         argv.remove("--float")
     if "--rational" in argv:
-        set_display_mode('rational')
+        set_display_mode("rational")
         argv.remove("--rational")
     return None
 
@@ -93,119 +98,85 @@ def main() -> int:
 
     parser = argparse.ArgumentParser(
         description="PolynomialCalculator CLI: Finite field and polynomial operations",
-        prog="polycalc"
+        prog="polycalc",
     )
     # Global flags (help only; already handled early)
     parser.add_argument("--version", action="version", version=f"%(prog)s {_get_version()}")
-    parser.add_argument("--numeric-output", choices=["rational", "float"], help="Numeric display mode")
+    parser.add_argument(
+        "--numeric-output", choices=["rational", "float"], help="Numeric display mode"
+    )
     parser.add_argument("--float", action="store_true", help="Shortcut for --numeric-output float")
-    parser.add_argument("--rational", action="store_true", help="Shortcut for --numeric-output rational")
+    parser.add_argument(
+        "--rational", action="store_true", help="Shortcut for --numeric-output rational"
+    )
     parser.add_argument("--verbose", action="store_true", help="Enable verbose debug logging")
     parser.add_argument("--quiet", action="store_true", help="Suppress non-error output")
-    parser.add_argument("--json", action="store_true", help="Output machine-readable JSON (solve, solve-system)")
+    parser.add_argument(
+        "--json", action="store_true", help="Output machine-readable JSON (solve, solve-system)"
+    )
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
     # Subcommand: create finite field
     ff_parser = subparsers.add_parser(
-        "finite_field", 
-        help="Create a finite field and show Zech logarithm table info"
+        "finite_field", help="Create a finite field and show Zech logarithm table info"
     )
-    ff_parser.add_argument(
-        "-p", type=int, default=0, 
-        help="Prime characteristic p (default: 0)"
-    )
-    ff_parser.add_argument(
-        "i", type=int, 
-        help="Field degree i (GF(p^i))"
-    )
+    ff_parser.add_argument("-p", type=int, default=0, help="Prime characteristic p (default: 0)")
+    ff_parser.add_argument("i", type=int, help="Field degree i (GF(p^i))")
 
     # Subcommand: random monic polynomial
     monic_parser = subparsers.add_parser(
-        "random_monic", 
-        help="Generate a random monic polynomial of degree n over F_p"
+        "random_monic", help="Generate a random monic polynomial of degree n over F_p"
     )
-    monic_parser.add_argument(
-        "-p", type=int, default=0, 
-        help="Prime characteristic p (default: 0)"
-    )
-    monic_parser.add_argument(
-        "n", type=int, 
-        help="Degree n"
-    )
+    monic_parser.add_argument("-p", type=int, default=0, help="Prime characteristic p (default: 0)")
+    monic_parser.add_argument("n", type=int, help="Degree n")
 
     # Subcommand: find irreducible polynomial
     irr_parser = subparsers.add_parser(
-        "find_irreducible", 
-        help="Find an irreducible polynomial of degree n over F_p"
+        "find_irreducible", help="Find an irreducible polynomial of degree n over F_p"
     )
-    irr_parser.add_argument(
-        "-p", type=int, default=0, 
-        help="Prime characteristic p (default: 0)"
-    )
-    irr_parser.add_argument(
-        "n", type=int, 
-        help="Degree n"
-    )
+    irr_parser.add_argument("-p", type=int, default=0, help="Prime characteristic p (default: 0)")
+    irr_parser.add_argument("n", type=int, help="Degree n")
 
     # Subcommand: gcd of two polynomials
-    gcd_parser = subparsers.add_parser(
-        "gcd", 
-        help="Compute GCD of two polynomials over F_p"
-    )
-    gcd_parser.add_argument(
-        "poly1", type=str, 
-        help="First polynomial (as string, e.g. 'x^2+1')"
-    )
-    gcd_parser.add_argument(
-        "poly2", type=str, 
-        help="Second polynomial (as string)"
-    )
-    gcd_parser.add_argument(
-        "-p", type=int, default=0, 
-        help="Prime characteristic p (default: 0)"
-    )
+    gcd_parser = subparsers.add_parser("gcd", help="Compute GCD of two polynomials over F_p")
+    gcd_parser.add_argument("poly1", type=str, help="First polynomial (as string, e.g. 'x^2+1')")
+    gcd_parser.add_argument("poly2", type=str, help="Second polynomial (as string)")
+    gcd_parser.add_argument("-p", type=int, default=0, help="Prime characteristic p (default: 0)")
 
     # Subcommand: solve polynomial equation
     solve_parser = subparsers.add_parser(
-        "solve", 
-        help="Solve a univariate polynomial equation over the rationals"
+        "solve", help="Solve a univariate polynomial equation over the rationals"
     )
+    solve_parser.add_argument("poly", type=str, help="Polynomial equation as string, e.g. 'x^2-2'")
     solve_parser.add_argument(
-        "poly", type=str, 
-        help="Polynomial equation as string, e.g. 'x^2-2'"
-    )
-    solve_parser.add_argument(
-        "var", type=str, default="x", nargs='?',
-        help="Variable to solve for (default: x)"
+        "var", type=str, default="x", nargs="?", help="Variable to solve for (default: x)"
     )
 
     # Subcommand: Groebner basis
     groebner_parser = subparsers.add_parser(
-        "groebner", 
-        help="Compute Groebner basis for a list of polynomials"
+        "groebner", help="Compute Groebner basis for a list of polynomials"
     )
     groebner_parser.add_argument(
-        "polys", nargs='+', type=str, 
-        help="List of polynomials as strings, e.g. 'x^2+y^2-1' 'x-y'"
+        "polys", nargs="+", type=str, help="List of polynomials as strings, e.g. 'x^2+y^2-1' 'x-y'"
     )
     groebner_parser.add_argument(
-        "--vars", nargs='+', type=str, default=["x", "y"], 
-        help="Variables (default: x y)"
+        "--vars", nargs="+", type=str, default=["x", "y"], help="Variables (default: x y)"
     )
     groebner_parser.add_argument(
-        "--order", choices=["lex", "grlex", "grevlex"], default="lex",
-        help="Monomial order to use (default: lex)"
+        "--order",
+        choices=["lex", "grlex", "grevlex"],
+        default="lex",
+        help="Monomial order to use (default: lex)",
     )
 
     # Subcommand: solve-system (structured)
     solve_sys_parser = subparsers.add_parser(
-        "solve-system", 
-        help="Solve a multivariate system using Groebner basis; returns structured solutions"
+        "solve-system",
+        help="Solve a multivariate system using Groebner basis; returns structured solutions",
     )
     solve_sys_parser.add_argument(
-        "polys", nargs='+', type=str, 
-        help="List of polynomials as strings"
+        "polys", nargs="+", type=str, help="List of polynomials as strings"
     )
 
     try:
@@ -222,9 +193,11 @@ def main() -> int:
             logging.basicConfig(level=logging.ERROR, format="%(levelname)s:%(name)s:%(message)s")
         else:
             logging.basicConfig(level=logging.WARNING, format="%(levelname)s:%(name)s:%(message)s")
+
         def _to_json_value(val):
             try:
                 import numbers
+
                 if isinstance(val, numbers.Integral):
                     return int(val)
                 if isinstance(val, numbers.Real) and not isinstance(val, bool):
@@ -252,7 +225,7 @@ def main() -> int:
             table = ZechLogarithmTable(args.p, args.i)
             print(f"Created GF({args.p}^{args.i}) with irreducible polynomial: {table.h}")
             print(f"Primitive element table size: {len(table.poly_to_power)} elements")
-            
+
         elif args.command == "random_monic":
             try:
                 from algebra.construct_finite_field import random_monic
@@ -265,7 +238,7 @@ def main() -> int:
                 return 1
             poly = random_monic(args.p, args.n)
             print(f"Random monic polynomial over F_{args.p} of degree {args.n}: {poly}")
-            
+
         elif args.command == "find_irreducible":
             try:
                 from algebra.construct_finite_field import find_irreducible
@@ -278,18 +251,20 @@ def main() -> int:
                 return 1
             poly = find_irreducible(args.p, args.n)
             print(f"Irreducible polynomial over F_{args.p} of degree {args.n}: {poly}")
-            
+
         elif args.command == "gcd":
             # Lazy import core polynomial machinery
             from polynomials.polynomial import Polynomial, gcd
+
             poly1 = Polynomial(args.poly1, args.p)
             poly2 = Polynomial(args.poly2, args.p)
             result = gcd(poly1, poly2)
             print(f"gcd({poly1}, {poly2}) = {result}")
-            
+
         elif args.command == "solve":
             # Lazy import core polynomial machinery
             from polynomials.polynomial import Polynomial
+
             poly = Polynomial(args.poly)
             sol = poly.solve()
             if args.json:
@@ -312,6 +287,7 @@ def main() -> int:
                     for s in sol:
                         try:
                             from polynomials.polynomial import Polynomial as _Poly
+
                             is_poly = isinstance(s, _Poly)
                         except Exception:
                             is_poly = False
@@ -319,6 +295,7 @@ def main() -> int:
                 else:
                     try:
                         from polynomials.polynomial import Polynomial as _Poly
+
                         is_poly = isinstance(sol, _Poly)
                     except Exception:
                         is_poly = False
@@ -326,8 +303,9 @@ def main() -> int:
 
         elif args.command == "groebner":
             # Apply selected monomial order globally for Polynomial operations
-            import polynomials.polynomial as poly_mod
             import polynomials.orderings as ord
+            import polynomials.polynomial as poly_mod
+
             if args.order == "lex":
                 poly_mod.order = ord.order_lex
             elif args.order == "grlex":
@@ -336,11 +314,12 @@ def main() -> int:
                 # grevlex function name is grev_lex
                 poly_mod.order = ord.grev_lex
             # Now construct polynomials and compute Groebner basis
-            from polynomials.polynomial import Polynomial
             from polynomials.ideal import Ideal
+            from polynomials.polynomial import Polynomial
+
             polys = [Polynomial(p) for p in args.polys]
-            I = Ideal(*polys)
-            G = I.groebner_basis()
+            ideal = Ideal(*polys)
+            G = ideal.groebner_basis()
             if args.json:
                 payload = {
                     "command": "groebner",
@@ -355,13 +334,14 @@ def main() -> int:
                 print("Groebner basis:")
                 for g in G:
                     print(f"  {g}")
-                
+
         elif args.command == "solve-system":
-            from polynomials.polynomial import Polynomial
             from polynomials.ideal import Ideal
+            from polynomials.polynomial import Polynomial
+
             polys = [Polynomial(p) for p in args.polys]
-            I = Ideal(*polys)
-            solutions = I.solve_system_structured()
+            ideal = Ideal(*polys)
+            solutions = ideal.solve_system_structured()
             if args.json:
                 if solutions is None:
                     payload = {
@@ -399,17 +379,19 @@ def main() -> int:
                 else:
                     print(f"{len(solutions)} solutions:")
                     for sol in solutions:
-                        ordered = ", ".join(f"{k} = {format_number(sol[k])}" for k in sorted(sol.keys()))
+                        ordered = ", ".join(
+                            f"{k} = {format_number(sol[k])}" for k in sorted(sol.keys())
+                        )
                         print(f"  [ {ordered} ]")
-                
+
         else:
             parser.print_help()
             return 1
-            
+
         return 0
-        
+
     except Exception as e:
-        if 'args' in locals() and getattr(args, 'json', False):
+        if "args" in locals() and getattr(args, "json", False):
             err_payload = {
                 "status": "error",
                 "error": str(e),

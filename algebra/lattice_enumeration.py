@@ -3,14 +3,15 @@ Finds all non-zero vectors in a lattice that are shorter than a given distance f
 If argument for distance is empty then finds the shortest vector precisely (i.e. non-approximation like LLL).
 """
 
-from algebra.log_util import log
-import numpy as np
-from algebra.norms import euclidean_norm as norm
 import math
-from algebra.gram_schmidt_numpy import gram_schmidt
+from typing import Any, List, Sequence, Union
+
+import numpy as np
 import scipy
+
 from algebra.lll import lll_reduction
-from typing import List, Sequence, Union, Any
+from algebra.log_util import log
+from algebra.norms import euclidean_norm as norm
 
 Number = Union[int, float, complex]
 Vector = Sequence[Number]
@@ -85,7 +86,7 @@ def find_vectors_less_than(b: np.ndarray, c: Number):
     page 163 (MAPLE code)
     """
 
-    c = c ** 2
+    c = c**2
     N, M = b.shape
     G = b.transpose() @ b
     u = G.copy()
@@ -116,7 +117,10 @@ def find_vectors_less_than(b: np.ndarray, c: Number):
                 counter += 1
             xvalue += r
 
-            s = sum(dd[i][i] * sum(u[i][j] * xvalue[j] for j in range(i, M)) ** 2 for i in range(k + 1, M))
+            s = sum(
+                dd[i][i] * sum(u[i][j] * xvalue[j] for j in range(i, M)) ** 2
+                for i in range(k + 1, M)
+            )
             t = sum(u[k][j] * xvalue[j] for j in range(k + 1, M))
 
             lower_bound = math.ceil(-1 * np.sqrt((c - s) / dd[k][k]) - t)
@@ -130,7 +134,7 @@ def find_vectors_less_than(b: np.ndarray, c: Number):
                 if mm == 0:
                     ok = True
                 else:
-                    ok = (xr[mm] > 0)
+                    ok = xr[mm] > 0
                 if ok:
                     result_new = result_new + [xr]
             i += 1
@@ -142,6 +146,7 @@ def find_vectors_less_than(b: np.ndarray, c: Number):
 
     return res
 
+
 def fincke_pohst_with_lll_preprocessing(B: np.ndarray, C: Number) -> None:
     """
     inputs: basis B, upper bound C
@@ -152,12 +157,11 @@ def fincke_pohst_with_lll_preprocessing(B: np.ndarray, C: Number) -> None:
     page 174
     """
     m = len(B[0])
-    n = len(B)
     Q = B.transpose() @ B
-    for j in range(m-1):
-        for i in range(j+1, m):
+    for j in range(m - 1):
+        for i in range(j + 1, m):
             # add -Q_ij/Q_jj(Q[j]) to Q[i]
-            Q[i] += (-1*Q[i][j]/Q[j][j])*Q[j]
+            Q[i] += (-1 * Q[i][j] / Q[j][j]) * Q[j]
     D = np.zeros((m, m))
     for i in range(m):
         D[i][i] = Q[i][i]
@@ -167,8 +171,8 @@ def fincke_pohst_with_lll_preprocessing(B: np.ndarray, C: Number) -> None:
     R = D_1_2 @ U
     R_inverse = np.linalg.inv(R)
     S_inverse = lll_reduction(R_inverse.tolist())
-    # Sort the rows of S−1 by decreasing norm to obtain P^−1S^−1
-    P_1S_1 = sorted(S_inverse, key=norm, reverse=True)
+    # Sort the rows of S−1 by decreasing norm to obtain P^−1S^−1 (not used downstream)
+    _ = sorted(S_inverse, key=norm, reverse=True)
     # S = RX
     # P = (P^-1)^-1
     # SP = S @ P
@@ -176,17 +180,13 @@ def fincke_pohst_with_lll_preprocessing(B: np.ndarray, C: Number) -> None:
     # Q = H
 
 
-
-
 def test() -> None:
-    t = [[0, 1, 0],
-         [1, 0, 1],
-         [-1, 0, 2]]
+    t = [[0, 1, 0], [1, 0, 1], [-1, 0, 2]]
     t = np.array(t).transpose()
     short_vectors = find_vectors_less_than(t, 1)
     for i in range(len(short_vectors)):
         print(short_vectors[i])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     test()

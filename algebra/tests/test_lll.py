@@ -1,9 +1,11 @@
-import unittest
 import os
+import unittest
+
 from algebra.lll import lll_reduction
 
 # Debug printing toggle for this test module
 _DEBUG = os.environ.get("POLYCALC_TEST_DEBUG") in {"1", "true", "True"}
+
 
 def _dprint(*args, **kwargs):
     if _DEBUG:
@@ -14,9 +16,9 @@ class TestLLL(unittest.TestCase):
 
     def gram_schmidt(self, B):
         import numpy as np
+
         B = [np.array(b, dtype=float) for b in B]
         n = len(B)
-        d = len(B[0])
         B_star = []
         mu = np.zeros((n, n))
         for i in range(n):
@@ -29,6 +31,7 @@ class TestLLL(unittest.TestCase):
 
     def is_lll_reduced(self, B, delta=0.75, places=6):
         import numpy as np
+
         B_star, mu = self.gram_schmidt(B)
         n = len(B)
         _dprint("Checking LLL-reduced basis:", B)
@@ -37,16 +40,21 @@ class TestLLL(unittest.TestCase):
         for i in range(n):
             for j in range(i):
                 _dprint(f"mu[{i},{j}] = {mu[i,j]}")
-                self.assertLessEqual(abs(mu[i, j]), 0.5 + 10**-places, f"Size reduction failed at mu[{i},{j}]={mu[i,j]}")
+                self.assertLessEqual(
+                    abs(mu[i, j]),
+                    0.5 + 10**-places,
+                    f"Size reduction failed at mu[{i},{j}]={mu[i,j]}",
+                )
         # Lovász condition: delta * ||b*_k-1||^2 <= ||b*_k||^2 + mu[k, k-1]^2 * ||b*_{k-1}||^2
         for k in range(1, n):
-            norm_km1 = np.dot(B_star[k-1], B_star[k-1])
+            norm_km1 = np.dot(B_star[k - 1], B_star[k - 1])
             norm_k = np.dot(B_star[k], B_star[k])
             lhs = delta * norm_km1
-            rhs = norm_k + mu[k, k-1]**2 * norm_km1
+            rhs = norm_k + mu[k, k - 1] ** 2 * norm_km1
             _dprint(f"Lovasz: k={k}, lhs={lhs}, rhs={rhs}")
-            self.assertLessEqual(lhs - rhs, 10**-places, f"Lovász condition failed at k={k}: {lhs} > {rhs}")
-
+            self.assertLessEqual(
+                lhs - rhs, 10**-places, f"Lovász condition failed at k={k}: {lhs} > {rhs}"
+            )
 
     def test_lll(self):
         # Test 1
@@ -62,5 +70,5 @@ class TestLLL(unittest.TestCase):
         self.is_lll_reduced(m, delta=0.75)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()

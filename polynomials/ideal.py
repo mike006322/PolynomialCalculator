@@ -1,7 +1,8 @@
-from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union
-from polynomials.polynomial import Polynomial, lcm, division_algorithm
-from polynomials.primitives.polycalc_numbers import Integer, Rational
 from itertools import combinations
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union
+
+from polynomials.polynomial import Polynomial, division_algorithm, lcm
+from polynomials.primitives.polycalc_numbers import Integer, Rational
 
 # Numeric types used in solutions/coefficients
 NumberLike = Union[Integer, Rational, int, float]
@@ -26,10 +27,10 @@ class Ideal:
         return str(self)
 
     def __str__(self) -> str:
-        res = '<'
+        res = "<"
         for p in self.polynomials:
-            res += str(p) + ', '
-        return res[:-2] + '>'
+            res += str(p) + ", "
+        return res[:-2] + ">"
 
     @staticmethod
     def s_polynomial(f: Polynomial, g: Polynomial) -> Polynomial:
@@ -83,9 +84,7 @@ class Ideal:
         B: Set[Tuple[int, int]] = set(combinations(range(len(self.polynomials)), 2))
         G = Ideal.reduce(list(self.polynomials))
         F: List[Optional[Polynomial]] = list(self.polynomials)
-        # test if this modifies self.polynomials
-        # polynomials are indexed 0 to s
-        s = len(self.polynomials) - 1
+    # polynomials are indexed 0..len(self.polynomials)-1
         t = 0
         while B:
             (i, j) = B.pop()
@@ -138,7 +137,9 @@ class Ideal:
     # 3. Evaluate and extend solution
 
     @staticmethod
-    def solvability_criteria(groebner_basis: Iterable[Polynomial], variables: Iterable[str]) -> bool:
+    def solvability_criteria(
+        groebner_basis: Iterable[Polynomial], variables: Iterable[str]
+    ) -> bool:
         """
         returns boolean whether system has finite number of solutions
         """
@@ -164,19 +165,19 @@ class Ideal:
             new_groebner_basis: List[Polynomial] = []
             for g in groebner_basis:
                 h = g.copy()(**solution)
-                if type(h) == Polynomial:
+                if isinstance(h, Polynomial):
                     if len(h.variables) != 0:
                         new_groebner_basis.append(h)
             if len(new_groebner_basis) == 0:
                 for v in solution:
-                    if type(solution[v]) == Integer or type(solution[v]) == Rational:
+                    if isinstance(solution[v], (Integer, Rational)):
                         solution[v] = float(solution[v])
                 zeroes.add(frozenset(sorted(solution.items())))
             for g in new_groebner_basis:
                 if len(g.variables) == 1:
                     v = g.variables.pop()
                     solutions = g.solve()
-                    if type(solutions) == set or type(solutions) == tuple or type(solutions) == list:
+                    if isinstance(solutions, (set, tuple, list)):
                         for s in solutions:
                             new_solution = dict(solution)
                             new_solution[v] = s
@@ -192,7 +193,7 @@ class Ideal:
                 if len(g.variables) == 1:
                     v = g.variables.pop()
                     solutions = g.solve()
-                    if type(solutions) == set or type(solutions) == tuple or type(solutions) == list:
+                    if isinstance(solutions, (set, tuple, list)):
                         for s in solutions:
                             solution = {v: s}
                             Ideal.find_solutions(groebner_basis, zeroes, solution)
@@ -218,11 +219,11 @@ class Ideal:
         output_string = str(len(zeroes)) + " solutions: \n"
         for zero in zeroes:
             zero_list = list(zero)
-            output_string += '['
+            output_string += "["
             for var in sorted(zero_list):
-                output_string += var[0] + ' = ' + str(var[1]) + ', '
+                output_string += var[0] + " = " + str(var[1]) + ", "
             output_string = output_string[:-2]
-            output_string += '],\n'
+            output_string += "],\n"
         output_string = output_string[:-2]
         return output_string
 
@@ -249,12 +250,15 @@ class Ideal:
                 v = as_dict[k]
                 clean[str(k)] = v  # type: ignore[assignment]
             solutions.append(clean)
+
         # Sort list of solutions deterministically using float as key only
         def key_fn(d: Dict[str, NumberLike]):
             def to_float(x: NumberLike) -> float:
                 if isinstance(x, (Integer, Rational)):
                     return float(x)
                 return float(x)
+
             return tuple(to_float(d.get(k)) for k in variables_list)
+
         solutions.sort(key=key_fn)  # type: ignore[arg-type]
         return solutions

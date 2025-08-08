@@ -56,7 +56,7 @@ version = {attr = "version.__version__"}
 "*" = ["*.md", "*.txt", "*.svg"]
 
 [tool.ruff]
-line-length = 100
+line-length = 120
 target-version = "py310"
 exclude = [
     ".git",
@@ -72,8 +72,17 @@ select = [
     "F",  # pyflakes
     "I",  # isort-style import order
 ]
-ignore = []
+ignore = [
+    "E501",  # Let Black handle line length; avoid conflicts
+]
+
+[tool.ruff.lint.per-file-ignores]
+"polynomials/tests/*.py" = ["E741"]
+"polynomials/primitives/tests/*.py" = ["E741"]
+"algebra/tests/*.py" = ["E741"]
+"utils/tests/*.py" = ["E741"]
+"PolyCalc_demo.ipynb" = ["E741"]
 
 [tool.black]
-line-length = 100
+line-length = 120
 target-version = ["py310"]
