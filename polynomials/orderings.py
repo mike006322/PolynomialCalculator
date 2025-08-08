@@ -1,14 +1,19 @@
-def order_grevlex(term_matrix):
+from typing import List, Union
+
+Term = List[Union[int, float, complex]]
+TermMatrix = List[List[Union[str, int, float, complex]]]
+
+def order_grevlex(term_matrix: TermMatrix) -> TermMatrix:
     """
     Alias for grev_lex for compatibility with test imports.
     """
     return grev_lex(term_matrix)
 
-def order_lexdeg(term_matrix):
+def order_lexdeg(term_matrix: TermMatrix) -> TermMatrix:
     # If needed, this can be implemented as a graded lex ordering
     return graded_lex(term_matrix)
 
-def order_grevlexdeg(term_matrix):
+def order_grevlexdeg(term_matrix: TermMatrix) -> TermMatrix:
     # If needed, this can be implemented as a grev_lex ordering
     return grev_lex(term_matrix)
 
@@ -20,7 +25,7 @@ output is another term_matrix sorted according to the ordering
 # ----- Lexicographic Ordering -----
 
 
-def order_lex(term_matrix):
+def order_lex(term_matrix: TermMatrix) -> TermMatrix:
     """
     orders lexicographically
     """
@@ -33,12 +38,12 @@ def order_lex(term_matrix):
     var_order = list(zip(t[0], list(range(len(t[0])))))
     var_order.sort()
     var_order = [u[1] for u in var_order]
-    res = [sorted(t[0])]
+    res: TermMatrix = [sorted(t[0])]  # type: ignore[list-item]
     for i in range(1, len(t)):
-        term = []
+        term: List[Union[int, float, complex]] = []
         for j in range(len(var_order)):
             term.append(t[i][var_order[j]])
-        res.append(term)
+        res.append(term)  # type: ignore[arg-type]
     # put constant back on
     for i in range(len(res)):
         res[i].insert(0, term_matrix[i][0])
@@ -66,7 +71,7 @@ def order_lex(term_matrix):
 
 # ----- Graded Lexicographic Ordering -----
 
-def graded_lex(term_matrix):
+def graded_lex(term_matrix: TermMatrix) -> TermMatrix:
     """
     orders by degree first, then breaks ties with lexicographical ordering
     """
@@ -75,12 +80,12 @@ def graded_lex(term_matrix):
     var_order = list(zip(t[0], list(range(len(t[0])))))
     var_order.sort()
     var_order = [u[1] for u in var_order]
-    res = [sorted(t[0])]
+    res: TermMatrix = [sorted(t[0])]  # type: ignore[list-item]
     for i in range(1, len(t)):
-        term = []
+        term: List[Union[int, float, complex]] = []
         for j in range(len(var_order)):
             term.append(t[i][var_order[j]])
-        res.append(term)
+        res.append(term)  # type: ignore[arg-type]
     # sort terms based on the sum of their variable orders
     # append a sum of powers to each term, then sort by that sum, then remove sum
     for i in range(1, len(res)):
@@ -116,35 +121,35 @@ def graded_lex(term_matrix):
 
 # ----- Reverse Graded Lexicographic Ordering -----
 
-def reverse_lex(term_matrix):
+def reverse_lex(term_matrix: TermMatrix) -> TermMatrix:
     t = term_matrix
     # first move around variables within terms
     # then move terms around
     var_order = list(zip(t[0], list(range(len(t[0])))))
     var_order.sort()
     var_order = [u[1] for u in var_order]
-    res = [sorted(t[0])]
+    res: TermMatrix = [sorted(t[0])]  # type: ignore[list-item]
     for i in range(1, len(t)):
-        term = []
+        term: List[Union[int, float, complex]] = []
         for j in range(len(var_order)):
             term.append(t[i][var_order[j]])
-        res.append(term)
+        res.append(term)  # type: ignore[arg-type]
     res = [res[0]] + sorted(res[1:], key=lambda x: x[-1], reverse=True)
     return res
 
     
-def grev_lex(term_matrix):
+def grev_lex(term_matrix: TermMatrix) -> TermMatrix:
     t = term_matrix
     # first move terms around
     var_order = list(zip(t[0], list(range(len(t[0])))))
     var_order.sort()
     var_order = [u[1] for u in var_order]
-    res = [sorted(t[0])]
+    res: TermMatrix = [sorted(t[0])]  # type: ignore[list-item]
     for i in range(1, len(t)):
-        term = []
+        term: List[Union[int, float, complex]] = []
         for j in range(len(var_order)):
             term.append(t[i][var_order[j]])
-        res.append(term)
+        res.append(term)  # type: ignore[arg-type]
     # sort terms based on the sum of their variable orders
     # append a sum of powers to each term, then sort by that sum, then remove sum
     for i in range(1, len(res)):

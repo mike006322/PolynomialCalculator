@@ -8,6 +8,11 @@ from utils.dfs import dfs_post_order as dfs
 from polynomials.primitives.variable import Variable
 import numpy as np
 from polynomials.display import format_number
+from typing import Any, List, Tuple, Optional, Union, Iterable, Iterator, Dict, TypeAlias
+
+# Typing aliases
+NumberLike: TypeAlias = Union[int, float, complex, Integer, Rational]
+TermMatrix: TypeAlias = List[List[Any]]
 
 class NonFactor(Exception):
     def __init__(self, q, p):
@@ -15,7 +20,7 @@ class NonFactor(Exception):
 
 class Polynomial:
 
-    def _filter_zero_terms(self):
+    def _filter_zero_terms(self) -> None:
         """Remove zero terms from the term matrix, except for canonical zero polynomial."""
         if not self.term_matrix or len(self.term_matrix) < 2:
             return
@@ -29,8 +34,8 @@ class Polynomial:
             self.term_matrix = [header, [0.0] + [0] * (len(header) - 1)]
 
     @staticmethod
-    def make_polynomial_from_tree(node):
-        def make_primitive_polynomial(s: str):
+    def make_polynomial_from_tree(node) -> 'Polynomial':
+        def make_primitive_polynomial(s: str) -> 'Polynomial':
             if s.isnumeric() or '.' in s:
                 return Polynomial(float(s))
             else:
@@ -43,7 +48,7 @@ class Polynomial:
             else:
                 return child
 
-        def collapse(current_node):
+        def collapse(current_node) -> None:
             if current_node.has_children():
                 left = make_poly(current_node.left)
                 right = make_poly(current_node.right)
@@ -54,7 +59,7 @@ class Polynomial:
         dfs(node, collapse)
         return node.value
 
-    def __eq__(self, other):
+    def __eq__(self, other: object) -> bool:
         if isinstance(other, Polynomial):
             # First check if they have the same term matrix structure
             if self.term_matrix == other.term_matrix:
@@ -88,10 +93,10 @@ class Polynomial:
             return cleaned == [['constant'], [1.0]]
         return False
 
-    def __ne__(self, other):
+    def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
-    def __add__(self, other):
+    def __add__(self, other: Union['Polynomial', int, float, complex]) -> 'Polynomial':
         if not isinstance(other, Polynomial):
             other = Polynomial(other, self.field_characteristic)
         a, b = Polynomial.combine_variables(self, other)
@@ -101,10 +106,10 @@ class Polynomial:
         result._filter_zero_terms()
         return result
 
-    def __radd__(self, other):
+    def __radd__(self, other: Union['Polynomial', int, float, complex]) -> 'Polynomial':
         return self.__add__(other)
 
-    def __sub__(self, other):
+    def __sub__(self, other: Union['Polynomial', int, float, complex]) -> 'Polynomial':
         if not isinstance(other, Polynomial):
             other = Polynomial(other, self.field_characteristic)
         a, b = Polynomial.combine_variables(self, other)
@@ -115,15 +120,15 @@ class Polynomial:
         result._filter_zero_terms()
         return result
 
-    def __rsub__(self, other):
+    def __rsub__(self, other: Union['Polynomial', int, float, complex]) -> 'Polynomial':
         return Polynomial(other, self.field_characteristic).__sub__(self)
 
-    def __mul__(self, other):
+    def __mul__(self, other: Union['Polynomial', int, float, complex]) -> 'Polynomial':
         if not isinstance(other, Polynomial):
             other = Polynomial(other, self.field_characteristic)
         a, b = Polynomial.combine_variables(self, other)
         header = a.term_matrix[0]
-        terms = []
+        terms: List[List[Any]] = []
         for ta in a.term_matrix[1:]:
             for tb in b.term_matrix[1:]:
                 coeff = ta[0] * tb[0]
@@ -135,10 +140,10 @@ class Polynomial:
         result._filter_zero_terms()
         return result
 
-    def __rmul__(self, other):
+    def __rmul__(self, other: Union['Polynomial', int, float, complex]) -> 'Polynomial':
         return self.__mul__(other)
 
-    def __truediv__(self, other):
+    def __truediv__(self, other: Union['Polynomial', int, float, complex]) -> Union['Polynomial', List['Polynomial']]:
         if not isinstance(other, Polynomial):
             if other == 0:
                 raise ZeroDivisionError("division by zero")
@@ -149,7 +154,7 @@ class Polynomial:
         if r != Polynomial(0):
             raise NonFactor(other, self)
         if len(q) == 1:
-            result = q[0]
+            result: Union['Polynomial', List['Polynomial']] = q[0]
         else:
             result = q
         if isinstance(result, Polynomial):
@@ -159,14 +164,14 @@ class Polynomial:
                 if isinstance(poly, Polynomial):
                     poly._filter_zero_terms()
         return result
-    def __mod__(self, other):
+    def __mod__(self, other: Union['Polynomial', int, float, complex]) -> 'Polynomial':
         """Implements the % operator for polynomials."""
         if not isinstance(other, Polynomial):
             other = Polynomial(other, self.field_characteristic)
         _, r = division_algorithm(self, other)
         r._filter_zero_terms()
         return r
-    def __call__(self, *args, **kwargs):
+    def __call__(self, *args: Any, **kwargs: Any) -> 'Polynomial':
         """Evaluate the polynomial at given variable values."""
         # Map variables to values
         var_list = self.variables
@@ -178,8 +183,8 @@ class Polynomial:
             subs = kwargs
         
         # Determine which variables will remain in the result
-        remaining_vars = []
-        substitutions = {}
+        remaining_vars: List[str] = []
+        substitutions: Dict[Any, Any] = {}
         
         for var in var_list:
             if var in subs:
@@ -212,7 +217,7 @@ class Polynomial:
         # Build the result polynomial
         if not remaining_vars:
             # All variables substituted with numeric values
-            result_value = 0.0
+            result_value: NumberLike = 0.0
             for term in self.term_matrix[1:]:
                 coeff = term[0]
                 prod = coeff
@@ -222,7 +227,7 @@ class Polynomial:
                         val = substitutions.get(var, 0)
                         if not isinstance(val, str):
                             prod *= val ** exp
-                result_value += prod
+                result_value = result_value + prod  # type: ignore[operator]
             # Handle complex results
             if isinstance(result_value, complex):
                 return Polynomial([['constant'], [result_value]], self.field_characteristic)
@@ -231,11 +236,11 @@ class Polynomial:
         else:
             # Some variables remain - construct a new polynomial
             header = ['constant'] + remaining_vars
-            new_terms = []
+            new_terms: List[List[Any]] = []
             
             for term in self.term_matrix[1:]:
                 coeff = term[0]
-                new_term = [coeff]
+                new_term: List[Any] = [coeff]
                 
                 # Calculate coefficient after substituting numeric values
                 for i, var in enumerate(var_list):
@@ -269,15 +274,15 @@ class Polynomial:
             result._filter_zero_terms()
             return result
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other: Union['Polynomial', int, float, complex]) -> Union['Polynomial', List['Polynomial']]:
         return Polynomial(other, self.field_characteristic).__truediv__(self)
 
-    def __pow__(self, n):
+    def __pow__(self, n: Union[int, float, 'Polynomial']) -> 'Polynomial':
         # Accept int, float (if integer-valued), or Polynomial (if constant integer)
         if isinstance(n, Polynomial):
             # Only allow constant polynomials as exponents
             if n.number_of_variables == 0 and len(n.term_matrix) == 2:
-                n_val = n.term_matrix[1][0]
+                n_val: Union[int, float, Any] = n.term_matrix[1][0]
             else:
                 raise ValueError("Exponent must be a constant integer or integer-valued float, not a non-constant Polynomial.")
         else:
@@ -297,10 +302,10 @@ class Polynomial:
             result *= self
         return result
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Polynomial({self.term_matrix})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         if len(self.term_matrix) == 1:
             return "0"
         res = ""
@@ -337,15 +342,15 @@ class Polynomial:
         res = res.replace('+ -', '- ')
         return res
 
-    def copy(self):
+    def copy(self) -> 'Polynomial':
         import copy
         return copy.deepcopy(self)
 
-    def LT(self):
+    def LT(self) -> 'Polynomial':
         if len(self.term_matrix) == 1:
             return Polynomial(0, self.field_characteristic)
         self.term_matrix = order(self.term_matrix)
-        res = [[], []]
+        res: TermMatrix = [[], []]
         for variable in self.term_matrix[0]:
             res[0].append(variable)
         for coefficient in self.term_matrix[1]:
@@ -353,25 +358,25 @@ class Polynomial:
         res = Polynomial.clean(res)
         return Polynomial(res, self.field_characteristic)
 
-    def LM(self):
+    def LM(self) -> 'Polynomial':
         res = self.LT()
         if res != 0:
             res.term_matrix[1][0] /= res.term_matrix[1][0]
         return res
 
-    def terms(self):
+    def terms(self) -> Iterable['Polynomial']:
         for term in self.term_matrix[1:]:
             yield Polynomial(Polynomial.clean([self.term_matrix[0], term]), self.field_characteristic)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator['Polynomial']:
         for term in self.term_matrix[1:]:
             yield Polynomial([self.term_matrix[0], term], self.field_characteristic)
 
-    def mod_char(self, tm):
+    def mod_char(self, tm: TermMatrix) -> TermMatrix:
         if self.field_characteristic == 0:
             return tm
         header = tm[0]
-        new_terms = []
+        new_terms: List[List[Any]] = []
         for term in tm[1:]:
             new_terms.append([term[0] % self.field_characteristic] + term[1:])
         # Filter zero terms after modular reduction
@@ -381,7 +386,7 @@ class Polynomial:
         else:
             return [header, [0.0] + [0]*(len(header)-1)]
 
-    def degree(self):
+    def degree(self) -> int:
         if len(self.term_matrix[0]) == 1:
             return 0
         t = self.copy()
@@ -389,15 +394,15 @@ class Polynomial:
         return sum(t.term_matrix[1][1:])
 
     @property
-    def variables(self):
+    def variables(self) -> List[str]:
         return [variable for variable in self.term_matrix[0] if variable != 'constant']
 
     @property
-    def number_of_variables(self):
+    def number_of_variables(self) -> int:
         return len(self.variables)
 
     @staticmethod
-    def clean(term_matrix):
+    def clean(term_matrix: TermMatrix) -> TermMatrix:
         res = term_matrix
         j = 0
         while j < len(term_matrix[0]):
@@ -416,7 +421,7 @@ class Polynomial:
         return res
 
     @staticmethod
-    def combine_variables(a, b):
+    def combine_variables(a: 'Polynomial', b: 'Polynomial') -> Tuple['Polynomial', 'Polynomial']:
         a = a.copy()
         b = b.copy()
         var_set = set(a.term_matrix[0]).union(set(b.term_matrix[0]))
@@ -436,7 +441,7 @@ class Polynomial:
         b.term_matrix = order(b.term_matrix)
         return a, b
 
-    def isolate(self, variable):
+    def isolate(self, variable: Union[str, 'Variable']) -> 'Polynomial':
         poly = self.copy()
         if variable in poly.variables:
             i = poly.term_matrix[0].index(variable)
@@ -447,7 +452,7 @@ class Polynomial:
         else:
             remaining_vars = poly.term_matrix[0][:i]
         header = ['constant', str(variable)]
-        res_terms = [header]  # Start with just the header, don't use Polynomial constructor
+        res_terms: TermMatrix = [header]  # Start with just the header, don't use Polynomial constructor
         for term in poly.term_matrix[1:]:
             term_copy = term.copy()  # Make a copy so we don't modify the original
             variable_power = term_copy.pop(i)
@@ -457,7 +462,7 @@ class Polynomial:
         
         # Manually collect like terms for polynomial coefficients
         # Group terms by their power (variable_power)
-        power_groups = {}
+        power_groups: Dict[Any, List[Polynomial]] = {}
         for term in res_terms[1:]:  # Skip header
             coeff_poly, power = term
             if power not in power_groups:
@@ -465,7 +470,7 @@ class Polynomial:
             power_groups[power].append(coeff_poly)
         
         # Sum polynomial coefficients for each power
-        collected_terms = [header]
+        collected_terms: TermMatrix = [header]
         for power in sorted(power_groups.keys()):  # Sort by ascending power
             coeff_list = power_groups[power]
             if len(coeff_list) == 1:
@@ -486,7 +491,7 @@ class Polynomial:
             res.term_matrix = [header, [0.0, 0]]
         return res
 
-    def derivative(self, var=None):
+    def derivative(self, var: Optional[Union[str, 'Variable']] = None) -> 'Polynomial':
         res = self.copy()
         if var is None:
             if len(res.term_matrix[0]) == 1:
@@ -512,7 +517,7 @@ class Polynomial:
         return res
 
     @property
-    def grad(self):
+    def grad(self) -> List['Polynomial']:
         class Gradient(list):
             def __init__(self, *args):
                 super().__init__(*args)
@@ -541,7 +546,7 @@ class Polynomial:
         return g
 
     @property
-    def hessian(self):
+    def hessian(self) -> List[List['Polynomial']]:
         class Hessian(list):
             def __init__(self, *args):
                 super().__init__(*args)
@@ -574,10 +579,10 @@ class Polynomial:
                 h[i].append(self.derivative(var1).derivative(var2))
         return h
 
-    def solve(self):
+    def solve(self) -> Any:
         return solve(self)
 
-    def __init__(self, poly, char=0):
+    def __init__(self, poly: Any, char: int = 0):
         self.field_characteristic = char
         # Always construct with header for constants/zeros
         if poly == 0 or poly == [['constant']] or poly == [['constant'], [0]] or poly == [['constant'], [0.0]]:
@@ -619,7 +624,9 @@ class Polynomial:
         self._filter_zero_terms()
 
     
-def divides(a, b):
+# Standalone helper functions with type hints
+
+def divides(a: 'Polynomial', b: 'Polynomial') -> bool:
     a, b = Polynomial.combine_variables(a, b)
     a_tm = a.term_matrix
     b_tm = b.term_matrix
@@ -635,7 +642,7 @@ def divides(a, b):
             return False
     return True
 
-def monomial_divide(a, b):
+def monomial_divide(a: 'Polynomial', b: 'Polynomial') -> 'Polynomial':
     a, b = Polynomial.combine_variables(a, b)
     res = a.copy()
     if len(b.term_matrix) < 2 or all(x == 0 for x in b.term_matrix[1]):
@@ -653,8 +660,8 @@ def monomial_divide(a, b):
     res.term_matrix[1] = a_term
     return res
 
-def division_algorithm(input_poly, *others):
-    a = []
+def division_algorithm(input_poly: 'Polynomial', *others: 'Polynomial') -> Tuple[List['Polynomial'], 'Polynomial']:
+    a: List[Polynomial] = []
     for i in range(len(others)):
         a.append(Polynomial([['constant'], [0.0]], input_poly.field_characteristic))
     p = input_poly.copy()
@@ -698,7 +705,7 @@ def division_algorithm(input_poly, *others):
     r.term_matrix = input_poly.mod_char(r.term_matrix)
     return a, r
 
-def division_string(p, *others):
+def division_string(p: 'Polynomial', *others: 'Polynomial') -> str:
     from polynomials.display import display_mode
     with display_mode('float'):
         a, r = division_algorithm(p, *others)
@@ -710,7 +717,7 @@ def division_string(p, *others):
         res += ' + (remainder:) ' + str(r)
         return res
 
-def gcd(a, b):
+def gcd(a: 'Polynomial', b: 'Polynomial') -> 'Polynomial':
     a = a.copy()
     b = b.copy()
     
@@ -765,7 +772,7 @@ def gcd(a, b):
         res = Polynomial([['constant'], [float(res.term_matrix[1][0])]], a.field_characteristic)
     return res
 
-def gcd_singlevariate(a, b):
+def gcd_singlevariate(a: 'Polynomial', b: 'Polynomial') -> 'Polynomial':
     a = a.copy()
     b = b.copy()
     if a.degree() >= b.degree():
@@ -788,7 +795,7 @@ def gcd_singlevariate(a, b):
     else:
         return gcd(b, a)
 
-def lcm(a, b):
+def lcm(a: 'Polynomial', b: 'Polynomial') -> Union['Polynomial', List['Polynomial']]:
     l = a * b / gcd(a, b)
     if isinstance(l, Polynomial):
         if len(l.term_matrix) < 2:

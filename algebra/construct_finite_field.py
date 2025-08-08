@@ -1,5 +1,6 @@
 from polynomials.polynomial import Polynomial, gcd
 import random
+from typing import Dict, Optional
 
 # Construct a Finite Field/Galois Field of order p^i, GF(p^i)
 # Zech logarithm table stores every element of GF(p^i)
@@ -12,30 +13,29 @@ import random
 
 class ZechLogarithmTable:
 
-    def __init__(self, p, i, h=None):
+    def __init__(self, p: int, i: int, h: Optional[Polynomial] = None) -> None:
         """
         Multiplication table for GF(p^i)
         Uses or finds an irreducible polynomial over field F_p[x], called h
         then finds the primitive element, beta, of the multiplication group of F_p[x]/h
         then makes a Zech logarithm table populated with powers of the primitive element
         """
-        self.field_characteristic = p**i
+        self.field_characteristic: int = p**i
         if not h:
-            self.h = find_irreducible(p, i)
+            self.h: Polynomial = find_irreducible(p, i)
         else:
             self.h = h
         # find primitive element beta
         beta = find_primitive_element(self.h, p, i)
-        self.poly_to_power = dict()
-        self.power_to_poly = dict()
-        beta_j = 1
+        self.poly_to_power: Dict[str, int] = {}
+        self.power_to_poly: Dict[int, Polynomial] = {}
+        beta_j: Polynomial = Polynomial(1, p)
         for j in range(self.field_characteristic - 1):
             self.poly_to_power[str(beta_j)] = j
             self.power_to_poly[j] = beta_j
             beta_j = (beta_j*beta) % self.h
-            j += 1
 
-    def multiply(self, poly1, poly2):
+    def multiply(self, poly1: Polynomial, poly2: Polynomial) -> Polynomial:
         """
         input two polynomials
         look up their representation as powers of beta, the primitive field element
@@ -46,7 +46,7 @@ class ZechLogarithmTable:
         return self.power_to_poly[(i+j) % (self.field_characteristic - 1)]
 
 
-def random_monic(p, n):
+def random_monic(p: int, n: int) -> Polynomial:
     """
     returns a random monic polynomial of degree n over field F_q
     """
@@ -59,7 +59,7 @@ def random_monic(p, n):
     return f
 
 
-def find_irreducible(p, n):
+def find_irreducible(p: int, n: int) -> Polynomial:
     """
     returns an irreducible polynomial of degree n over F_q where q is a power of p
     https://math.stackexchange.com/questions/1654562/algorithm-to-find-the-irreducible-polynomial
@@ -91,7 +91,7 @@ def find_irreducible(p, n):
     raise RuntimeError(f"Failed to find irreducible polynomial of degree {n} over F_{p} after {max_attempts} attempts.")
 
 
-def find_primitive_element(h, p, i):
+def find_primitive_element(h: Polynomial, p: int, i: int) -> Polynomial:
     """
     input irreducible polynomial h over field with characteristic q
     output element of F_q[x] that generates the multiplication group of F_q[x]/h
@@ -100,7 +100,7 @@ def find_primitive_element(h, p, i):
     # https://www.sciencedirect.com/science/article/pii/S1071579705000456
     q = p**i
 
-    def order(b):
+    def order(b: Polynomial) -> int:
         if b == 0:
             return 0
         b = b.copy()
@@ -119,7 +119,7 @@ def find_primitive_element(h, p, i):
         f = Polynomial(0, p)
         a = random.randint(1, i-1)
         for k in range(a):
-            f += random.randint(0, p-1)*Polynomial('x')**k
+            f += random.randint(0, p-1)*Polynomial('x', p)**k
     return f
 
 

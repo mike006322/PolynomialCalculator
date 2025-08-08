@@ -1,4 +1,9 @@
-def solve(polynomial):
+from typing import Any, List, Sequence, Tuple, Union
+
+Number = Union[int, float, complex]
+
+
+def solve(polynomial) -> Union[str, Number, Sequence[Number]]:
     """
     input is polynomial
     if more than one variable, returns 'too many variables'
@@ -23,7 +28,7 @@ def solve(polynomial):
             return Durand_Kerner(polynomial)
 
 
-def quadratic_formula(polynomial):
+def quadratic_formula(polynomial) -> Union[Number, Tuple[Number, Number]]:
     """
     input is single-variable polynomial of degree 2
     returns zeros
@@ -47,29 +52,29 @@ def quadratic_formula(polynomial):
     return ans1, ans2
 
 
-def isclose(a, b, rel_tol=1e-09, abs_tol=0.0001):
+def isclose(a: Number, b: Number, rel_tol: float = 1e-09, abs_tol: float = 0.0001) -> bool:
     """
     returns boolean whether abs(a-b) is less than abs_total or rel_total*max(a, b)
     """
     return abs(a-b) <= max(rel_tol * max(abs(a), abs(b)), abs_tol)
 
 
-def Durand_Kerner(f):
+def Durand_Kerner(f) -> List[complex]:
     """
     input polynomial
     returns numerical approximation of all complex roots
     """
-    roots = []
+    roots: List[complex] = []
     for i in range(f.degree()):
         roots.append((0.4 + 0.9j)**i)
-    diff = 1
-    diff_temp = 0
+    diff: float = 1
+    diff_temp: float = 0
 
-    def iterate():
+    def iterate() -> None:
         nonlocal roots
         new_roots = roots[:]
         for i in range(len(roots)):
-            q = 1
+            q: complex = 1
             for j, root in enumerate(roots):
                 if j != i:
                     q *= roots[i] - root

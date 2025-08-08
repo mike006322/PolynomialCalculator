@@ -10,23 +10,28 @@ import math
 from algebra.gram_schmidt_numpy import gram_schmidt
 import scipy
 from algebra.lll import lll_reduction
+from typing import List, Sequence, Union, Any
+
+Number = Union[int, float, complex]
+Vector = Sequence[Number]
+Matrix = Sequence[Sequence[Number]]
 
 
-def floor_ceil(number):
+def floor_ceil(number: Number) -> int:
     if number >= 0:
-        return math.floor(number)
+        return math.floor(number)  # type: ignore[return-value]
     else:
-        return math.ceil(number)
+        return math.ceil(number)  # type: ignore[return-value]
 
 
 class Node:
 
-    def __init__(self, vector, level, lam):
+    def __init__(self, vector: Any, level: int, lam: Number) -> None:
         self.vector = vector
         self.level = level
         self.lam = lam  # lambda
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self.vector)
 
 
@@ -70,7 +75,7 @@ class Node:
 
 
 @log
-def find_vectors_less_than(b, c):
+def find_vectors_less_than(b: np.ndarray, c: Number):
     """
     b input matrix, lattice basis where the COLUMNS are basis vectors
     c = upper bound on length of lattices
@@ -97,14 +102,14 @@ def find_vectors_less_than(b, c):
     for i in range(N):
         dd[i][i] = u[i][i]
     u = np.linalg.inv(dd) @ u
-    result_old = [[]]
+    result_old: List[List[Number]] = [[]]
     for k in reversed(range(M)):
-        result_new = []
+        result_new: List[List[Number]] = []
         # print('len(result_old), ', len(result_old))
         i = 0
         for r in result_old:
 
-            xvalue = []
+            xvalue: List[Number] = []
             counter = 0
             while counter <= k:
                 xvalue.append(0)
@@ -130,14 +135,14 @@ def find_vectors_less_than(b, c):
                     result_new = result_new + [xr]
             i += 1
         result_old = result_new
-    res = []
+    res: List[np.ndarray] = []
     for x in result_new:
         x = np.array(x)
         res.append(b.dot(x))
 
     return res
 
-def fincke_pohst_with_lll_preprocessing(B, C):
+def fincke_pohst_with_lll_preprocessing(B: np.ndarray, C: Number) -> None:
     """
     inputs: basis B, upper bound C
     output:  All vectors of squared length ≤ C in the lattice L spanned by the columns of B.
@@ -173,7 +178,7 @@ def fincke_pohst_with_lll_preprocessing(B, C):
 
 
 
-def test():
+def test() -> None:
     t = [[0, 1, 0],
          [1, 0, 1],
          [-1, 0, 2]]

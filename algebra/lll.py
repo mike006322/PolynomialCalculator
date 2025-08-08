@@ -1,4 +1,10 @@
-def lll_reduction(basis, delta=0.75):
+from typing import Sequence, List
+
+Number = float  # Internally coerced to float in implementation
+Vector = Sequence[Number]
+Matrix = Sequence[Sequence[Number]]
+
+def lll_reduction(basis: Matrix, delta: float = 0.75) -> List[List[Number]]:
     import numpy as np
     B = [np.array(list(map(float, v))) for v in basis]
     n = len(B)

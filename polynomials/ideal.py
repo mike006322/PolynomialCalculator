@@ -1,14 +1,18 @@
+from typing import Any, Dict, Iterable, List, Optional, Set, Tuple, Union
 from polynomials.polynomial import Polynomial, lcm, division_algorithm
 from polynomials.primitives.polycalc_numbers import Integer, Rational
 from itertools import combinations
 
+# Numeric types used in solutions/coefficients
+NumberLike = Union[Integer, Rational, int, float]
+
 
 class Ideal:
 
-    def __init__(self, *polynomials):
-        self.polynomials = polynomials
+    def __init__(self, *polynomials: Polynomial) -> None:
+        self.polynomials: Tuple[Polynomial, ...] = polynomials
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         """
         Two ideals are equal if they have the same Groebner basis up to constant multiple
         """
@@ -18,17 +22,17 @@ class Ideal:
                 return False
         return True
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def __str__(self):
+    def __str__(self) -> str:
         res = '<'
         for p in self.polynomials:
             res += str(p) + ', '
         return res[:-2] + '>'
 
     @staticmethod
-    def s_polynomial(f, g):
+    def s_polynomial(f: Polynomial, g: Polynomial) -> Polynomial:
         """
         S(f, g) = (x^gamma / LT(f)) * f - (x^gamma / LT(g)) * g
         x^gamma = least_common_multiple(leading_monomial(f), leading_monomial(g))
@@ -36,13 +40,13 @@ class Ideal:
         return (lcm(f.LT(), g.LT()) / f.LT()) * f - (lcm(f.LT(), g.LT()) / g.LT()) * g
 
     @staticmethod
-    def minimize(G):
+    def minimize(G: Iterable[Polynomial]) -> List[Polynomial]:
         """
         LC(p) = 1 for all p ∈ G
         For all p ∈ G, no monomial of p lies in <LT(G −{p})>
         """
         res = list(G)
-        extra = list()
+        extra: List[Polynomial] = list()
         for p in res:
             for term in p.terms():
                 for q in res:
@@ -55,7 +59,7 @@ class Ideal:
         return res
 
     @staticmethod
-    def reduce(G):
+    def reduce(G: Iterable[Polynomial]) -> List[Polynomial]:
         """
         input minimum basis for G
         output reduced basis
@@ -72,13 +76,13 @@ class Ideal:
                 res = [h] + res
         return res
 
-    def groebner_basis(self):
+    def groebner_basis(self) -> List[Polynomial]:
         """
         returns reduced groebner basis
         """
-        B = set(combinations(range(len(self.polynomials)), 2))
+        B: Set[Tuple[int, int]] = set(combinations(range(len(self.polynomials)), 2))
         G = Ideal.reduce(list(self.polynomials))
-        F = list(self.polynomials)
+        F: List[Optional[Polynomial]] = list(self.polynomials)
         # test if this modifies self.polynomials
         # polynomials are indexed 0 to s
         s = len(self.polynomials) - 1
@@ -105,7 +109,7 @@ class Ideal:
                     B = B.union(set(combinations(range(t - 1), 2)))
         return G
 
-    def criterion(self, i, j, B):
+    def criterion(self, i: int, j: int, B: Set[Tuple[int, int]]) -> bool:
         """
         # Criterion( fi, f j, B) is true provided that there is some k not in {i, j}
         # for which the pairs (i,k) and (j,k) are not in B and LT(fk) divides LCM(LT(fi), LT(fj)).
@@ -134,7 +138,7 @@ class Ideal:
     # 3. Evaluate and extend solution
 
     @staticmethod
-    def solvability_criteria(groebner_basis, variables):
+    def solvability_criteria(groebner_basis: Iterable[Polynomial], variables: Iterable[str]) -> bool:
         """
         returns boolean whether system has finite number of solutions
         """
@@ -149,11 +153,15 @@ class Ideal:
         return True
 
     @staticmethod
-    def find_solutions(groebner_basis, zeroes, solution=None):
+    def find_solutions(
+        groebner_basis: Iterable[Polynomial],
+        zeroes: Set[frozenset],
+        solution: Optional[Dict[str, NumberLike]] = None,
+    ) -> None:
         if solution:
             # key could be Variable type, so convert to string which is necessary for **
             solution = {str(key): value for key, value in solution.items()}
-            new_groebner_basis = []
+            new_groebner_basis: List[Polynomial] = []
             for g in groebner_basis:
                 h = g.copy()(**solution)
                 if type(h) == Polynomial:
@@ -193,18 +201,18 @@ class Ideal:
                         Ideal.find_solutions(groebner_basis, zeroes, solution)
                     break
 
-    def solve_system(self):
+    def solve_system(self) -> str:
         """
         If finite solutions exist, output solutions
         Otherwise output "finite solutions don't exit"
         """
-        variables = set()
+        variables: Set[str] = set()
         for p in self.polynomials:
             variables = variables.union(p.variables)
-        variables = sorted(list(variables))  # lex ordering
+        variables_list = sorted(list(variables))  # lex ordering
         groebner_basis = self.groebner_basis()
-        zeroes = set()
-        if not Ideal.solvability_criteria(groebner_basis, variables):
+        zeroes: Set[frozenset] = set()
+        if not Ideal.solvability_criteria(groebner_basis, variables_list):
             return "finite solutions don't exit"
         Ideal.find_solutions(groebner_basis, zeroes)
         output_string = str(len(zeroes)) + " solutions: \n"
@@ -218,35 +226,35 @@ class Ideal:
         output_string = output_string[:-2]
         return output_string
 
-    def solve_system_structured(self):
+    def solve_system_structured(self) -> Optional[List[Dict[str, NumberLike]]]:
         """Return solutions as a structured list of dictionaries.
         Each dict maps variable name (str) to a numeric value (Integer/Rational/int/float).
         If the system does not have finitely many solutions, return None.
         """
-        variables = set()
+        variables: Set[str] = set()
         for p in self.polynomials:
             variables = variables.union(p.variables)
-        variables = sorted(list(variables))  # lex ordering
+        variables_list = sorted(list(variables))  # lex ordering
         groebner_basis = self.groebner_basis()
-        zeroes = set()
-        if not Ideal.solvability_criteria(groebner_basis, variables):
+        zeroes: Set[frozenset] = set()
+        if not Ideal.solvability_criteria(groebner_basis, variables_list):
             return None
         Ideal.find_solutions(groebner_basis, zeroes)
-        solutions = []
+        solutions: List[Dict[str, NumberLike]] = []
         for zero in zeroes:
             as_dict = dict(zero)
             # Ensure stable key order; keep exact types
-            clean = {}
+            clean: Dict[str, NumberLike] = {}
             for k in sorted(as_dict.keys()):
                 v = as_dict[k]
-                clean[str(k)] = v
+                clean[str(k)] = v  # type: ignore[assignment]
             solutions.append(clean)
         # Sort list of solutions deterministically using float as key only
-        def key_fn(d):
-            def to_float(x):
+        def key_fn(d: Dict[str, NumberLike]):
+            def to_float(x: NumberLike) -> float:
                 if isinstance(x, (Integer, Rational)):
                     return float(x)
                 return float(x)
-            return tuple(to_float(d.get(k)) for k in variables)
-        solutions.sort(key=key_fn)
+            return tuple(to_float(d.get(k)) for k in variables_list)
+        solutions.sort(key=key_fn)  # type: ignore[arg-type]
         return solutions

@@ -2,15 +2,19 @@ from polynomials.primitives.matrix import Matrix
 from algebra.lll import lll_reduction
 from algebra.norms import euclidean_norm
 from polynomials.display import format_number
+from typing import Sequence, Union, List
+
+Number = Union[int, float, complex]
+MatrixLike = Sequence[Sequence[Number]]
 
 
 class Lattice:
 
-    def __init__(self, matrix):
+    def __init__(self, matrix: MatrixLike) -> None:
         self.matrix = Matrix(matrix)
 
     @property
-    def center_density(self):
+    def center_density(self) -> float:
         # logging.info('Calculating center density of \n' + str(self))
         b = Matrix(lll_reduction(self.matrix, .75))  # LLL basis reduction
         # logging.debug('LLL reduced matrix: \n' + str(b))
@@ -30,10 +34,10 @@ class Lattice:
         # logging.debug(str(r**d / det_bb))
         return float(r ** d / det_bb)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self.matrix)
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.matrix)
 
 

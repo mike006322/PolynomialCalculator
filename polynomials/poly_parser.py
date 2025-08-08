@@ -41,6 +41,7 @@ To make a polynomial do a depth first traversal of the tree.
 """
 
 import os
+from typing import List, Any, Union, Optional
 
 _DEBUG = os.environ.get("POLYCALC_TEST_DEBUG") in {"1", "true", "True"}
 
@@ -55,7 +56,7 @@ class InputError(Exception):
         super().__init__(msg)
 
 
-def find_corresponding_right_parenthesis(s, i):
+def find_corresponding_right_parenthesis(s: str, i: int) -> int:
     """
     input string, s, and index of left parenthesis, i
     returns index of corresponding right parenthesis
@@ -72,7 +73,7 @@ def find_corresponding_right_parenthesis(s, i):
     raise InputError
 
 
-def parse_function(function_string):
+def parse_function(function_string: str) -> List[Union[str, list]]:
     """
     returns the function string but as a list of tuples with variables and numbers labeled
     parenthesis are a list of nested parse function
@@ -140,7 +141,7 @@ def parse_function(function_string):
     return res
 
 
-def handle_negative_inputs(token_list):
+def handle_negative_inputs(token_list: List[Union[str, list]]) -> List[Union[str, list]]:
     dont_print_next = False
     token_list_handling_negatives = []
     for i, char in enumerate(token_list):
@@ -166,7 +167,7 @@ def handle_negative_inputs(token_list):
     return token_list_handling_negatives
 
 
-def order_prefix(token_list):
+def order_prefix(token_list: List[Union[str, list]]) -> List[Union[str, list]]:
     """
     puts the operations in prefix order
     2+4*3 -> +2*4,3
@@ -183,7 +184,7 @@ def order_prefix(token_list):
     return res
 
 
-def unpack_token_list(token_list, res):
+def unpack_token_list(token_list: List[Any], res: List[Any]) -> None:
     """
     removes nested lists from token list
     """
@@ -194,12 +195,12 @@ def unpack_token_list(token_list, res):
             res.append(token_list[i])
 
 
-def swap_positions(l, index_1, index_2):
+def swap_positions(l: List[Any], index_1: int, index_2: int) -> List[Any]:
     l[index_1], l[index_2] = l[index_2], l[index_1]
     return l
 
 
-def add_missing_multiply(token_list):
+def add_missing_multiply(token_list: List[Union[str, list]]) -> List[Union[str, list]]:
     """
     pre-processing step, if there is any variable adjacent to a number, add a '*'
     """
@@ -219,7 +220,7 @@ def add_missing_multiply(token_list):
     return res
 
 
-def group_operations(token_list):
+def group_operations(token_list: List[Union[str, list]]) -> List[Union[str, list]]:
     """
     puts operations into their own parenthesis groups
     """
@@ -255,7 +256,7 @@ def group_operations(token_list):
                 break
 
 
-def order_parenthesis(token_list):
+def order_parenthesis(token_list: List[Union[str, list]]) -> None:
     """
     place parenthesis by going in PEMDAS order
     """
@@ -279,16 +280,16 @@ def order_parenthesis(token_list):
 
 
 class ExpressionTree:
-    def __init__(self, value):
-        self.value = value
-        self.left = None
-        self.right = None
+    def __init__(self, value: Any):
+        self.value: Any = value
+        self.left: Optional['ExpressionTree'] = None
+        self.right: Optional['ExpressionTree'] = None
 
-    def has_children(self):
-        return self.left or self.right
+    def has_children(self) -> bool:
+        return bool(self.left or self.right)
 
-    def get_children(self):
-        res = []
+    def get_children(self) -> List['ExpressionTree']:
+        res: List['ExpressionTree'] = []
         if self.left:
             res.append(self.left)
         if self.right:
@@ -296,7 +297,7 @@ class ExpressionTree:
         return res
 
 
-def construct_expression_tree(prefix_ordered_items):
+def construct_expression_tree(prefix_ordered_items: List[Any]) -> 'ExpressionTree':
     """
     0. Make first node
 
@@ -335,7 +336,7 @@ def construct_expression_tree(prefix_ordered_items):
     return root
 
 
-def decide_operation(left, right, operation):
+def decide_operation(left, right, operation: str):
     """
     input operations is as string representing a built-in operation
     """

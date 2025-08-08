@@ -8,6 +8,7 @@ and algebraic operations.
 
 import argparse
 import sys
+from typing import List, Optional
 
 # Lazily resolve package version without importing the top-level package
 # Prefer importlib.metadata when installed; fallback to local version module.
@@ -52,7 +53,7 @@ def _get_version() -> str:
 # Early parse of version and display flags
 from polynomials.display import set_display_mode, get_display_mode, format_number
 
-def _early_handle_global_flags(argv):
+def _early_handle_global_flags(argv: List[str]) -> Optional[int]:
     # --version fast-path
     if "--version" in argv or "-V" in argv:
         print(f"polycalc {_get_version()}")
@@ -81,9 +82,9 @@ def _early_handle_global_flags(argv):
     return None
 
 
-def main():
+def main() -> int:
     """Main entry point for the polycalc command-line tool."""
-    argv = sys.argv[1:]
+    argv: List[str] = sys.argv[1:]
     early = _early_handle_global_flags(argv)
     if isinstance(early, int):
         return early

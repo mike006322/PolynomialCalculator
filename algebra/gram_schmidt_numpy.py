@@ -1,7 +1,8 @@
 import numpy as np
+from typing import Tuple
 
 
-def gram_schmidt(matrix):
+def gram_schmidt(matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """
     Orthogonalize a set of vectors stored as the rows of matrix
     returns orthogonal basis and gram schmidt coefficients
