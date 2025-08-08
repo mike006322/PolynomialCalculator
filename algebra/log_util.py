@@ -1,9 +1,12 @@
 import logging
 from time import time
+from typing import Any, Callable, TypeVar, cast
+
+T = TypeVar("T")
 
 
-def log(f, show_input=True, show_output=True):
-    def new_f(*args, **kwargs):
+def log(f: Callable[..., T], show_input: bool = True, show_output: bool = True) -> Callable[..., T]:
+    def new_f(*args: Any, **kwargs: Any) -> T:
         if show_input:
             logging.info('Beginning function ' + f.__name__ + ', Input: \n' + str(args) + str(kwargs))
         else:
@@ -16,7 +19,7 @@ def log(f, show_input=True, show_output=True):
             logging.info('Ending function ' + f.__name__ + ' in ' + str(elapsed) + ', Output: \n' + str(res))
         else:
             logging.info('Ending function ' + f.__name__ + ' in ' + str(elapsed))
-        return res
+        return cast(T, res)
 
     return new_f
 

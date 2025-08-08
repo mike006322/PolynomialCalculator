@@ -1,6 +1,11 @@
 # This module defines number classes so that numbers can be manipulated and presented symbolically
+from __future__ import annotations
+from typing import Any, Optional, Union
 
 from polynomials.primitives.vector import Vector
+
+
+NumberLike = Union[int, float, "Integer", "Rational"]
 
 
 class Integer:
@@ -9,74 +14,69 @@ class Integer:
     division of integers that don't share common divisors yields a Rational number
     """
 
-    def __init__(self, i):
+    def __init__(self, i: Union[int, float, "Integer"]) -> None:
         self.value = int(i)
 
-    def __int__(self):
+    def __int__(self) -> int:
         return self.value
 
-    def __float__(self):
+    def __float__(self) -> float:
         return float(self.value)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:  # noqa: C901 keep legacy branching
         if type(other) == Integer:
-            if self.value == other.value:
-                return True
-            else:
-                return False
+            return self.value == other.value
         elif type(other) == Rational:
-            if self.value == other.value():
-                return True
-            else:
-                return False
+            return self.value == other.value()
         elif type(other) == int:
             return self.value == other
         else:
-            if int(self) == other:
-                return True
-            else:
+            try:
+                return int(self) == other
+            except Exception:
                 return False
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return not self == 0
 
-    def __ne__(self, other):
+    def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
 
-    def __lt__(self, other):
+    def __lt__(self, other: Union[int, float, "Integer"]) -> bool:
         if type(other) == Integer:
             return self.value < other.value
         if type(other) in {int, float}:
             return self.value < other
+        return NotImplemented  # type: ignore[return-value]
 
-    def __le__(self, other):
+    def __le__(self, other: Union[int, "Integer"]) -> bool:
         if type(other) == Integer:
             return self.value <= other.value
         if type(other) == int:
             return self.value <= other
+        return NotImplemented  # type: ignore[return-value]
 
-    def __gt__(self, other):
+    def __gt__(self, other: Union[int, float, "Integer"]) -> bool:
         if type(other) == Integer:
             return self.value > other.value
         if type(other) in {int, float}:
             return self.value > other
+        return NotImplemented  # type: ignore[return-value]
 
-    def __ge__(self, other):
+    def __ge__(self, other: Union[int, "Integer"]) -> bool:
         if type(other) == Integer:
             return self.value >= other.value
         if type(other) == int:
             return self.value >= other
+        return NotImplemented  # type: ignore[return-value]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return str(self.value)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self.value)
 
-    def __bool__(self):
-        return not self == 0
-
-    def __add__(self, other):
+    def __add__(self, other: Any):
         if type(other) == Integer:
             return Integer(self.value + other.value)
         if type(other) == int:
@@ -86,7 +86,7 @@ class Integer:
         else:
             return self.value + other
 
-    def __radd__(self, other):
+    def __radd__(self, other: Any):
         if type(other) == Integer:
             return Integer(self.value + other.value)
         if type(other) == int:
@@ -96,21 +96,21 @@ class Integer:
         else:
             return self.value + other
 
-    def __sub__(self, other):
+    def __sub__(self, other: Any):
         return self + -other
 
-    def __rsub__(self, other):
+    def __rsub__(self, other: Any):
         return -self + other
 
-    def __abs__(self):
+    def __abs__(self) -> "Integer":
         if self.value < 0:
             return Integer(-self)
         return self
 
-    def __neg__(self):
+    def __neg__(self) -> "Integer":
         return Integer(-self.value)
 
-    def __mul__(self, other):
+    def __mul__(self, other: Any):
         if type(other) == int:
             return Integer(self.value * other)
         if type(other) == complex:
@@ -126,10 +126,10 @@ class Integer:
         else:
             return self.value * other
 
-    def __rmul__(self, other):
+    def __rmul__(self, other: Any):
         return self * other
 
-    def __pow__(self, power, modulo=None):
+    def __pow__(self, power, modulo=None):  # type: ignore[override]
         if type(power) == Integer:
             return Integer(self.value ** int(power))
         if type(self.value ** power) == int:
@@ -137,19 +137,20 @@ class Integer:
         else:
             return self.value ** power
 
-    def __rpow__(self, other):
+    def __rpow__(self, other: Any):
         return other ** self.value
 
-    def __mod__(self, other):
+    def __mod__(self, other: Union[int, "Integer"]):
         if type(other) == Integer:
             return Integer(self.value % other.value)
         elif type(other) == int:
             return Integer(self.value % other)
+        return NotImplemented  # type: ignore[return-value]
 
-    def __floordiv__(self, other):
+    def __floordiv__(self, other: "Integer") -> "Integer":
         return Integer(self.value // other.value)
 
-    def __truediv__(self, other):
+    def __truediv__(self, other: Any):
         if type(other) == Integer:
             if self.value % other.value == 0:
                 return self // other
@@ -160,7 +161,7 @@ class Integer:
         else:
             return self.value / other
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other: Any):
         return other / self.value
 
 
@@ -170,7 +171,7 @@ class Rational:
     """
     __slots__ = ('numerator', 'denominator')
 
-    def __init__(self, a, b=None):
+    def __init__(self, a: Any, b: Optional[Any] = None) -> None:
         if type(a) == Rational:
             if not b:
                 self.numerator = a.numerator
@@ -213,7 +214,7 @@ class Rational:
             Rational.normalize(self)
 
     @staticmethod
-    def gcd(a, b):
+    def gcd(a: Integer, b: Integer) -> Integer:
         if a >= b:
             r = a % b
             while r != 0:
@@ -225,7 +226,7 @@ class Rational:
             return Rational.gcd(b, a)
 
     @staticmethod
-    def normalize(q):
+    def normalize(q: "Rational") -> None:
         if q.numerator != 0:
             g = Rational.gcd(q.numerator, q.denominator)
             q.numerator = q.numerator // g
@@ -234,53 +235,45 @@ class Rational:
                 q.denominator *= Integer(-1)
                 q.numerator *= Integer(-1)
 
-    def value(self):
+    def value(self) -> float:
         return self.numerator.value / self.denominator.value
 
-    def __abs__(self):
+    def __abs__(self) -> "Rational":
         if self.numerator < 0:
             return -self
         else:
             return self
 
-    def __float__(self):
+    def __float__(self) -> float:
         return self.numerator.value / self.denominator.value
 
-    def __int__(self):
+    def __int__(self) -> int:
         return int(self.numerator / self.denominator)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         if type(other) == Rational:
             if self.numerator == 0:
-                if other.numerator == 0:
-                    return True
-                return False
-            if self.numerator == other.numerator and self.denominator == other.denominator:
-                return True
-            else:
-                return False
+                return other.numerator == 0
+            return self.numerator == other.numerator and self.denominator == other.denominator
         if type(other) == Integer:
-            if self.value() == other.value:
-                return True
-            else:
-                return False
+            return self.value() == other.value
         if type(other) in {float, int}:
             return self == Rational(other)
         else:
-            if self.value() == other:
-                return True
-            else:
+            try:
+                return self.value() == other
+            except Exception:
                 return False
 
-    def __str__(self):
+    def __str__(self) -> str:
         if self.denominator == 1 or self.numerator == 0:
             return str(self.numerator)
         return str(self.numerator) + '/' + str(self.denominator)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return str(self)
 
-    def __mul__(self, other):
+    def __mul__(self, other: Any):
         if type(other) == Rational:
             return Rational(self.numerator * other.numerator, self.denominator * other.denominator)
         if type(other) == Integer:
@@ -294,10 +287,10 @@ class Rational:
         else:
             return self.value() * other
 
-    def __rmul__(self, other):
+    def __rmul__(self, other: Any):
         return self * other
 
-    def __truediv__(self, other):
+    def __truediv__(self, other: Any):
         if type(other) == Rational:
             return Rational(self.numerator * other.denominator, self.denominator * other.numerator)
         if type(other) == Integer:
@@ -307,76 +300,78 @@ class Rational:
         else:
             return self.value() / other
 
-    def __rtruediv__(self, other):
+    def __rtruediv__(self, other: Any):
         return Rational(other) / self
 
-    def __floordiv__(self, other):
+    def __floordiv__(self, other: Any):
         if type(other) in {float, int, Integer}:
             return self // Rational(other)
         c = self / other
         return Rational(c.numerator // c.denominator)
 
-    def __rfloordiv__(self, other):
+    def __rfloordiv__(self, other: Any):
         return Rational(other) // self
 
-    def __add__(self, other):
+    def __add__(self, other: Any):
         if type(other) == Rational:
             return Rational(self.numerator * other.denominator + other.numerator * self.denominator,
                             self.denominator * other.denominator)
         else:
             return self + Rational(other)
 
-    def __radd__(self, other):
+    def __radd__(self, other: Any):
         return self + Rational(other)
 
-    def __sub__(self, other):
+    def __sub__(self, other: Any):
         if type(other) == Rational:
             return Rational(self.numerator * other.denominator - other.numerator * self.denominator,
                             self.denominator * other.denominator)
         else:
             return self - Rational(other)
 
-    def __rsub__(self, other):
+    def __rsub__(self, other: Any):
         return -(self - other)
 
-    def __neg__(self):
+    def __neg__(self) -> "Rational":
         return Rational(-self.numerator, self.denominator)
 
-    def __pow__(self, power, modulo=None):
+    def __pow__(self, power: int, modulo=None):  # type: ignore[override]
         return Rational(self.numerator ** power, self.denominator ** power)
 
-    def __gt__(self, other):
+    def __gt__(self, other: Union[int, float, "Rational"]) -> bool:
         if type(other) == Rational:
             return self.numerator * other.denominator > other.numerator * self.denominator
         if type(other) == int:
             return self.numerator > other * self.denominator
         if type(other) == float:
             return self > Rational(other)
+        return NotImplemented  # type: ignore[return-value]
 
-    def __lt__(self, other):
+    def __lt__(self, other: Union[int, float, "Rational"]) -> bool:
         if type(other) == Rational:
             return self.numerator * other.denominator < other.numerator * self.denominator
         if type(other) in {int, float}:
             return self.numerator < other * self.denominator
+        return NotImplemented  # type: ignore[return-value]
 
-    def __ge__(self, other):
-        return self == other or self > other
+    def __ge__(self, other: Union[int, float, "Rational"]) -> bool:
+        return bool(self == other or self > other)
 
-    def __le__(self, other):
-        return self == other or self < other
+    def __le__(self, other: Union[int, float, "Rational"]) -> bool:
+        return bool(self == other or self < other)
 
-    def __round__(self):
+    def __round__(self) -> Integer:
         part_less_than_one = (self.numerator % self.denominator) / self.denominator
         if part_less_than_one <= 0.5:
             return Integer(self.numerator // self.denominator)
         else:
             return Integer(self.numerator // self.denominator) + 1
 
-    def __mod__(self, other):
+    def __mod__(self, other: Any):
         t = self // other
         return self - t * other
 
-    def __rmod__(self, other):
+    def __rmod__(self, other: Any):
         return Rational(other) % self
 
 
