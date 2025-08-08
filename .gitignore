@@ -18,3 +18,9 @@ env/
 
 # Planning documents (local-only notes, do not track)
 /DEV_IMPROVEMENTS.md
+
+# Local benchmark artifacts
+.benchmarks/
+
+# Local git worktrees used for baseline runs
+.worktrees/
