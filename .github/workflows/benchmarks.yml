@@ -1,0 +1,41 @@
+name: Benchmarks
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 6 * * 1'  # Mondays at 06:00 UTC
+
+jobs:
+  benchmark:
+    name: Benchmarks (py3.12 • ubuntu-latest)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies (dev)
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Run benchmarks
+        run: |
+          mkdir -p bench-artifacts
+          # Save a named benchmark run and also export JSON if supported
+          python -m pytest -q benchmarks --benchmark-only --benchmark-save=ci_run
+          # Attempt JSON export; ignore failure if plugin lacks this flag
+          python -m pytest -q benchmarks --benchmark-only --benchmark-json=bench-artifacts/benchmarks.json || true
+
+      - name: Upload benchmark artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-results
+          path: |
+            ./.benchmarks/
+            bench-artifacts/
+          if-no-files-found: warn

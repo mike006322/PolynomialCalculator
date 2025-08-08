@@ -221,6 +221,10 @@ Developer tooling:
 - Pre-commit hooks: install with `pip install pre-commit` then `pre-commit install`
 - CI: GitHub Actions runs tests on Python 3.10–3.12 across Windows/Linux/macOS
 
+Performance benchmarking:
+- See docs/SPEED_GUIDE.md for how we document speed changes.
+- Benchmarks live in benchmarks/ and use pytest-benchmark.
+
 
 ### Similar projects:
 - [SAGE](http://doc.sagemath.org/)
