@@ -341,9 +341,20 @@ def main() -> int:
             polys = [Polynomial(p) for p in args.polys]
             I = Ideal(*polys)
             G = I.groebner_basis()
-            print("Groebner basis:")
-            for g in G:
-                print(f"  {g}")
+            if args.json:
+                payload = {
+                    "command": "groebner",
+                    "polys": args.polys,
+                    "order": args.order,
+                    "status": "ok",
+                    "basis": [str(g) for g in G],
+                    "count": len(G),
+                }
+                print(json.dumps(payload))
+            else:
+                print("Groebner basis:")
+                for g in G:
+                    print(f"  {g}")
                 
         elif args.command == "solve-system":
             from polynomials.polynomial import Polynomial

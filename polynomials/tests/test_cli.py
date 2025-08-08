@@ -1,6 +1,7 @@
 import sys
 import subprocess
 import unittest
+import json
 
 
 def run_cli(args):
@@ -36,6 +37,34 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn('1 solutions:', out)
         self.assertIn('x = 1.0', out)  # default may be float prior to display mode flags
+
+    def test_json_solve(self):
+        code, out, err = run_cli(['--json', 'solve', 'x^2-2', 'x'])
+        self.assertEqual(code, 0)
+        payload = json.loads(out)
+        self.assertEqual(payload.get('command'), 'solve')
+        self.assertEqual(payload.get('status'), 'ok')
+        self.assertIsInstance(payload.get('solutions'), list)
+        self.assertEqual(payload.get('count'), len(payload.get('solutions')))
+
+    def test_json_solve_system(self):
+        code, out, err = run_cli(['--json', 'solve-system', 'x-1', 'y-2'])
+        self.assertEqual(code, 0)
+        payload = json.loads(out)
+        self.assertEqual(payload.get('command'), 'solve-system')
+        self.assertIn(payload.get('status'), ['ok', 'no_solutions', 'undetermined'])
+        if payload.get('status') == 'ok':
+            self.assertEqual(payload.get('count'), len(payload.get('solutions')))
+            self.assertIsInstance(payload.get('solutions'), list)
+            self.assertTrue(all(isinstance(s, dict) for s in payload.get('solutions')))
+
+    def test_json_groebner(self):
+        code, out, err = run_cli(['--json', 'groebner', 'x^2+y^2-1', 'x-y', '--order', 'grevlex'])
+        self.assertEqual(code, 0)
+        payload = json.loads(out)
+        self.assertEqual(payload.get('command'), 'groebner')
+        self.assertEqual(payload.get('status'), 'ok')
+        self.assertIsInstance(payload.get('basis'), list)
 
     def test_numeric_output_flags_solve_system(self):
         # Rational mode: integers should not have .0

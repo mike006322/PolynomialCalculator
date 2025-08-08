@@ -30,6 +30,7 @@ Global options:
 - Convenience flags: `--float`, `--rational`
 - Logging: `--verbose` for debug logs, `--quiet` to show errors only
 - Machine-readable: `--json` to emit JSON for `solve` and `solve-system`
+  (also supported for `groebner`)
 
 Use `polycalc --help` or `polycalc <command> --help` for detailed usage information.
 
@@ -123,7 +124,7 @@ polycalc --float solve-system "x-1" "y-2"
 ```
 
 #### JSON output
-Add `--json` to `solve` or `solve-system` for structured output.
+Add `--json` to `solve`, `solve-system`, or `groebner` for structured output.
 
 Examples:
 ```bash
@@ -145,6 +146,15 @@ Outputs:
 On errors, JSON mode returns:
 ```json
 { "status": "error", "error": "<message>" }
+```
+
+Groebner example:
+```bash
+polycalc --json groebner "x^2+y^2-1" "x-y" --order grevlex
+```
+Outputs:
+```json
+{ "command": "groebner", "polys": ["x^2+y^2-1","x-y"], "order": "grevlex", "status": "ok", "basis": ["x - y", "2y^2 - 1"], "count": 2 }
 ```
 
 ### Logging and diagnostics
