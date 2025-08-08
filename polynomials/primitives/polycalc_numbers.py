@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any, Optional, Union
 
 from polynomials.primitives.vector import Vector
+import math
 
 NumberLike = Union[int, float, "Integer", "Rational"]
 
@@ -13,6 +14,8 @@ class Integer:
     Integer class represents members of ring of integers, Z
     division of integers that don't share common divisors yields a Rational number
     """
+
+    __slots__ = ("value",)
 
     def __init__(self, i: Union[int, float, "Integer"]) -> None:
         self.value = int(i)
@@ -37,7 +40,7 @@ class Integer:
                 return False
 
     def __bool__(self) -> bool:
-        return not self == 0
+        return self.value != 0
 
     def __ne__(self, other: Any) -> bool:
         return not self.__eq__(other)
@@ -130,6 +133,19 @@ class Integer:
         return self * other
 
     def __pow__(self, power, modulo=None):  # type: ignore[override]
+        # Small exponent fast paths
+        if isinstance(power, Integer):
+            p = int(power)
+        else:
+            p = power
+        if isinstance(p, int):
+            if p == 0:
+                return Integer(1)
+            if p == 1:
+                return Integer(self.value)
+            if p == 2:
+                return Integer(self.value * self.value)
+            # fall through for other integers
         if isinstance(power, Integer):
             return Integer(self.value ** int(power))
         res = self.value ** power
@@ -217,25 +233,22 @@ class Rational:
 
     @staticmethod
     def gcd(a: Integer, b: Integer) -> Integer:
-        if a >= b:
-            r = a % b
-            while r != 0:
-                a = b
-                b = r
-                r = a % b
-            return b
-        else:
-            return Rational.gcd(b, a)
+        # Fast path: use Python's highly optimized math.gcd on raw ints
+        return Integer(math.gcd(int(a), int(b)))
 
     @staticmethod
     def normalize(q: "Rational") -> None:
         if q.numerator != 0:
-            g = Rational.gcd(q.numerator, q.denominator)
-            q.numerator = q.numerator // g
-            q.denominator = q.denominator // g
-            if q.denominator < Integer(0):
-                q.denominator *= Integer(-1)
-                q.numerator *= Integer(-1)
+            n = int(q.numerator)
+            d = int(q.denominator)
+            g = math.gcd(abs(n), abs(d))
+            n //= g
+            d //= g
+            if d < 0:
+                n = -n
+                d = -d
+            q.numerator = Integer(n)
+            q.denominator = Integer(d)
 
     def value(self) -> float:
         return self.numerator.value / self.denominator.value
@@ -250,7 +263,13 @@ class Rational:
         return self.numerator.value / self.denominator.value
 
     def __int__(self) -> int:
-        return int(self.numerator / self.denominator)
+        # Truncate toward zero using integer arithmetic (no floats)
+        n = self.numerator.value
+        d = self.denominator.value
+        if d == 0:
+            raise ZeroDivisionError("division by zero in Rational.__int__")
+        q = abs(n) // abs(d)
+        return q if (n >= 0) == (d >= 0) else -q
 
     def __eq__(self, other: Any) -> bool:
         if isinstance(other, Rational):
@@ -276,7 +295,19 @@ class Rational:
         return str(self)
 
     def __mul__(self, other: Any):
+        # Quick zeros/ones
+        if isinstance(other, (int, float, Integer)):
+            if other == 0 or other == 0.0:
+                return Integer(0)
+            if other == 1 or other == 1.0:
+                return self
+            if other == -1 or other == -1.0:
+                return -self
         if isinstance(other, Rational):
+            if other.numerator == other.denominator:
+                return self
+            if other.numerator == 0:
+                return Integer(0)
             return Rational(self.numerator * other.numerator, self.denominator * other.denominator)
         if isinstance(other, Integer):
             return Rational(self.numerator * other, self.denominator)
@@ -293,7 +324,19 @@ class Rational:
         return self * other
 
     def __truediv__(self, other: Any):
+        # Quick zeros/ones
+        if isinstance(other, (int, float, Integer)):
+            if other == 1 or other == 1.0:
+                return self
+            if other == -1 or other == -1.0:
+                return -self
+            if other == 0 or other == 0.0:
+                raise ZeroDivisionError("division by zero")
         if isinstance(other, Rational):
+            if other.numerator == other.denominator:
+                return self
+            if other.numerator == 0:
+                raise ZeroDivisionError("division by zero")
             return Rational(self.numerator * other.denominator, self.denominator * other.numerator)
         if isinstance(other, Integer):
             return Rational(self.numerator, self.denominator * other)
