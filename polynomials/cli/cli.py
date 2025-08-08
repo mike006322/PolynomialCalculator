@@ -244,7 +244,7 @@ def main() -> int:
                 from algebra.construct_finite_field import ZechLogarithmTable
             except ImportError:
                 print(
-                    "Finite field features require optional dependencies. "
+                    "Error: Finite field features require optional dependencies. "
                     "Install extras: pip install 'PolynomialCalculator[algebra]'",
                     file=sys.stderr,
                 )
@@ -258,7 +258,7 @@ def main() -> int:
                 from algebra.construct_finite_field import random_monic
             except ImportError:
                 print(
-                    "Random monic requires optional dependencies. "
+                    "Error: Random monic requires optional dependencies. "
                     "Install extras: pip install 'PolynomialCalculator[algebra]'",
                     file=sys.stderr,
                 )
@@ -271,7 +271,7 @@ def main() -> int:
                 from algebra.construct_finite_field import find_irreducible
             except ImportError:
                 print(
-                    "Finding irreducibles requires optional dependencies. "
+                    "Error: Finding irreducibles requires optional dependencies. "
                     "Install extras: pip install 'PolynomialCalculator[algebra]'",
                     file=sys.stderr,
                 )

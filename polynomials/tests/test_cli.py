@@ -66,6 +66,15 @@ class TestCLI(unittest.TestCase):
         self.assertEqual(payload.get('status'), 'ok')
         self.assertIsInstance(payload.get('basis'), list)
 
+    def test_json_failure_invalid_poly(self):
+        # Provide an invalid polynomial to trigger runtime error in JSON mode
+        code, out, err = run_cli(['--json', 'solve', 'x^2+-', 'x'])
+        self.assertEqual(code, 1)
+        # Should still emit JSON payload about the error
+        payload = json.loads(out)
+        self.assertEqual(payload.get('status'), 'error')
+        self.assertIn('error', payload)
+
     def test_numeric_output_flags_solve_system(self):
         # Rational mode: integers should not have .0
         code, out, err = run_cli(['--rational', 'solve-system', 'x-1', 'y-2'])
