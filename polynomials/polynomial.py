@@ -8,7 +8,21 @@ from utils.dfs import dfs_post_order as dfs
 from polynomials.primitives.variable import Variable
 from numbers import Integral
 from polynomials.display import format_number
-from typing import Any, List, Tuple, Optional, Union, Iterable, Iterator, Dict, TypeAlias
+from typing import Any, List, Tuple, Optional, Union, Iterable, Iterator, Dict
+try:
+    from typing import TypeAlias  # type: ignore[attr-defined]
+except Exception:
+    try:
+        from typing_extensions import TypeAlias  # type: ignore
+    except Exception:
+        from typing import Any as _Any
+        TypeAlias = _Any  # type: ignore
+import logging
+import os
+
+# Module logger and debug gate via environment
+logger = logging.getLogger(__name__)
+_DEBUG = os.environ.get("POLYCALC_DEBUG") in {"1", "true", "True"}
 
 # Typing aliases
 NumberLike: TypeAlias = Union[int, float, complex, Integer, Rational]
@@ -677,7 +691,8 @@ def division_algorithm(input_poly: 'Polynomial', *others: 'Polynomial') -> Tuple
         return a, r
     while p != Polynomial(0):
         if steps > max_steps:
-            print("division_algorithm: exceeded max steps, possible infinite loop. p=", p)
+            if _DEBUG:
+                logger.debug("division_algorithm: exceeded max steps, possible infinite loop. p=%s", p)
             break
         prev_p = p.copy()
         i = 0
@@ -694,7 +709,8 @@ def division_algorithm(input_poly: 'Polynomial', *others: 'Polynomial') -> Tuple
             r += p_LT
             p -= p.LT()
         if p == prev_p:
-            print("division_algorithm: no progress, breaking to avoid infinite loop. p=", p)
+            if _DEBUG:
+                logger.debug("division_algorithm: no progress, breaking to avoid infinite loop. p=%s", p)
             break
         steps += 1
     for poly in a:
@@ -788,7 +804,8 @@ def gcd_singlevariate(a: 'Polynomial', b: 'Polynomial') -> 'Polynomial':
             return a
         while r != 0:
             if steps > max_steps:
-                print("gcd_singlevariate: exceeded max steps, possible infinite loop. a=", a, "b=", b, "r=", r)
+                if _DEBUG:
+                    logger.debug("gcd_singlevariate: exceeded max steps, possible infinite loop. a=%s b=%s r=%s", a, b, r)
                 break
             a = b
             b = r

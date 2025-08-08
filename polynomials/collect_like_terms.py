@@ -1,4 +1,14 @@
-from typing import List, Union, Dict, Tuple, Optional, TypeAlias, cast
+from typing import List, Union, Dict, Tuple, Optional, cast, Any
+try:
+    # Python 3.10+
+    from typing import TypeAlias  # type: ignore[attr-defined]
+except Exception:
+    try:
+        # Fallback for older Python if available
+        from typing_extensions import TypeAlias  # type: ignore
+    except Exception:
+        # Minimal runtime fallback; fine for non-type-checking contexts
+        TypeAlias = Any  # type: ignore
 
 # Type aliases for readability
 Coef: TypeAlias = Union[int, float, complex]

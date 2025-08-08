@@ -28,6 +28,7 @@ PolynomialCalculator provides a powerful command-line interface with the followi
 Global options:
 - `--numeric-output {float,rational}` to control numeric display (default: `float`)
 - Convenience flags: `--float`, `--rational`
+- Logging: `--verbose` for debug logs, `--quiet` to show errors only
 
 Use `polycalc --help` or `polycalc <command> --help` for detailed usage information.
 
@@ -119,6 +120,15 @@ polycalc --float solve-system "x-1" "y-2"
 1 solutions:
   [ x = 1.0, y = 2.0 ]
 ```
+
+### Logging and diagnostics
+
+- CLI logging:
+  - `--verbose` enables debug-level logs from internal modules.
+  - `--quiet` suppresses non-error output (only errors are shown).
+- Core debug tracing:
+  - Set environment variable `POLYCALC_DEBUG=1` to enable additional debug traces in some core algorithms (e.g., division algorithm and gcd).
+  - This is off by default and only emits when combined with a suitable logging level.
 
 ### Near-term goals:
 - implement faster gcd algorithm

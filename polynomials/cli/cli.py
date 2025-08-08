@@ -7,6 +7,7 @@ and algebraic operations.
 """
 
 import argparse
+import logging
 import sys
 from typing import List, Optional
 
@@ -98,6 +99,8 @@ def main() -> int:
     parser.add_argument("--numeric-output", choices=["rational", "float"], help="Numeric display mode")
     parser.add_argument("--float", action="store_true", help="Shortcut for --numeric-output float")
     parser.add_argument("--rational", action="store_true", help="Shortcut for --numeric-output rational")
+    parser.add_argument("--verbose", action="store_true", help="Enable verbose debug logging")
+    parser.add_argument("--quiet", action="store_true", help="Suppress non-error output")
 
     subparsers = parser.add_subparsers(dest="command", required=True)
 
@@ -210,6 +213,13 @@ def main() -> int:
         return e.code if isinstance(e.code, int) else 1
 
     try:
+        # Configure logging based on flags
+        if args.verbose:
+            logging.basicConfig(level=logging.DEBUG, format="%(levelname)s:%(name)s:%(message)s")
+        elif args.quiet:
+            logging.basicConfig(level=logging.ERROR, format="%(levelname)s:%(name)s:%(message)s")
+        else:
+            logging.basicConfig(level=logging.WARNING, format="%(levelname)s:%(name)s:%(message)s")
         if args.command == "finite_field":
             # Lazy import to avoid optional heavy deps at module import time
             try:

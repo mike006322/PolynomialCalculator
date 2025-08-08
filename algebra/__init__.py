@@ -16,6 +16,8 @@ Key Functions:
     weighted_frobenius_norm: Weighted Frobenius matrix norm
 """
 
+import logging
+
 # Import key functions for the public API
 try:
     from .lll import lll_reduction
@@ -27,5 +29,7 @@ try:
     ]
 except ImportError as e:
     # Handle missing dependencies gracefully
-    print(f"Warning: Some algebra functions not available: {e}")
+    logging.getLogger(__name__).warning(
+        "Some algebra functions not available: %s", e
+    )
     __all__ = []
