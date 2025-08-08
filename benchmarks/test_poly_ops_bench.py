@@ -2,7 +2,7 @@ import pytest
 
 import polynomials.orderings as ord
 from polynomials.collect_like_terms import collect_like_terms
-from polynomials.polynomial import Polynomial
+from polynomials.polynomial import Polynomial, division_algorithm
 
 
 def _rand_poly(deg: int, var: str = "x") -> Polynomial:
@@ -101,3 +101,65 @@ def test_orderings_grevl_benchmark(benchmark, n_terms, n_vars):
 
     res = benchmark(do_order)
     assert isinstance(res, list)
+
+
+# New scenarios to exercise LT caching and fast paths
+
+def _poly_from_tm(n_terms: int, n_vars: int) -> Polynomial:
+    tm = _synthetic_term_matrix(n_terms, n_vars)
+    # use header variables; convert header[0] placeholder to "constant"
+    tm[0][0] = "constant"
+    return Polynomial(tm)
+
+
+@pytest.mark.parametrize("n_terms,n_vars,repeats", [(500, 3, 50), (1000, 3, 50)])
+def test_lt_cache_benchmark(benchmark, n_terms, n_vars, repeats):
+    p = _poly_from_tm(n_terms, n_vars)
+
+    def do_many_lt():
+        lt = None
+        for _ in range(repeats):
+            lt = p.LT()
+        return lt
+
+    res = benchmark(do_many_lt)
+    assert isinstance(res, Polynomial)
+
+
+@pytest.mark.parametrize("deg", [50, 200])
+def test_add_zero_fastpath_benchmark(benchmark, deg):
+    p = _rand_poly(deg)
+    z = Polynomial(0)
+
+    def do_add_zero():
+        return p + z
+
+    res = benchmark(do_add_zero)
+    assert isinstance(res, Polynomial)
+
+
+@pytest.mark.parametrize("deg", [50, 200])
+def test_mul_constant_fastpath_benchmark(benchmark, deg):
+    p = _rand_poly(deg)
+
+    def do_mul_const():
+        return p * 2
+
+    res = benchmark(do_mul_const)
+    assert isinstance(res, Polynomial)
+
+
+@pytest.mark.parametrize("k,deg", [(5, 50), (10, 50)])
+def test_division_multi_divisors_benchmark(benchmark, k, deg):
+    # Many divisors increases LT checks; caching their LTs reduces repeated work
+    f = _rand_poly(deg)
+    divisors = [
+        _rand_poly(max(1, (i % max(1, deg // 3)) + 1)) for i in range(k)
+    ]
+
+    def do_division():
+        qs, r = division_algorithm(f, *divisors)
+        return r
+
+    res = benchmark(do_division)
+    assert isinstance(res, Polynomial)
