@@ -19,7 +19,6 @@ Functions:
     lcm: Least common multiple of polynomials
 """
 
-from .collect_like_terms import collect_like_terms
 from .formulas import solve
 from .ideal import Ideal
 from .orderings import graded_lex, order_grevlex, order_lex
@@ -36,5 +35,4 @@ __all__ = [
     "order_lex",
     "graded_lex",
     "order_grevlex",
-    "collect_like_terms",
 ]

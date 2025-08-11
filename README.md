@@ -161,7 +161,7 @@ Outputs:
 ### Logging and diagnostics
 
 - CLI logging:
-  - `--verbose` enables debug-level logs from internal modules.
+  - `--verbose` enables debug-level logs for core polynomial and algebra operations.
   - `--quiet` suppresses non-error output (only errors are shown).
 - Core debug tracing:
   - Set environment variable `POLYCALC_DEBUG=1` to enable additional debug traces in some core algorithms (e.g., division algorithm and gcd).

@@ -1,7 +1,5 @@
 import pytest
 
-import polynomials.orderings as ord
-from polynomials.collect_like_terms import collect_like_terms
 from polynomials.polynomial import Polynomial, division_algorithm
 
 
@@ -69,61 +67,7 @@ def test_division_algorithm_like_benchmark(benchmark, deg):
     assert isinstance(res, Polynomial)
 
 
-def _synthetic_term_matrix(n_terms: int, n_vars: int):
-    # Header: variable names as x1, x2, ...
-    header = [" "] + [f"x{i+1}" for i in range(n_vars)]
-    data = []
-    for i in range(n_terms):
-        coef = (i * 13) % 7 + 1
-        exps = [((i + j * 3) % 5) for j in range(n_vars)]
-        data.append([coef] + exps)
-    return [header] + data
-
-
-@pytest.mark.parametrize("n_terms,n_vars", [(200, 1), (200, 3), (1000, 3)])
-def test_collect_like_terms_benchmark(benchmark, n_terms, n_vars):
-    tm = _synthetic_term_matrix(n_terms, n_vars)
-
-    def do_collect():
-        return collect_like_terms(tm, preserve_header=True)
-
-    res = benchmark(do_collect)
-    assert isinstance(res, list)
-    assert len(res) > 0
-
-
-@pytest.mark.parametrize("n_terms,n_vars", [(200, 1), (200, 3), (1000, 3)])
-def test_orderings_grevl_benchmark(benchmark, n_terms, n_vars):
-    tm = _synthetic_term_matrix(n_terms, n_vars)
-
-    def do_order():
-        return ord.grev_lex(tm)
-
-    res = benchmark(do_order)
-    assert isinstance(res, list)
-
-
-# New scenarios to exercise LT caching and fast paths
-
-def _poly_from_tm(n_terms: int, n_vars: int) -> Polynomial:
-    tm = _synthetic_term_matrix(n_terms, n_vars)
-    # use header variables; convert header[0] placeholder to "constant"
-    tm[0][0] = "constant"
-    return Polynomial(tm)
-
-
-@pytest.mark.parametrize("n_terms,n_vars,repeats", [(500, 3, 50), (1000, 3, 50)])
-def test_lt_cache_benchmark(benchmark, n_terms, n_vars, repeats):
-    p = _poly_from_tm(n_terms, n_vars)
-
-    def do_many_lt():
-        lt = None
-        for _ in range(repeats):
-            lt = p.LT()
-        return lt
-
-    res = benchmark(do_many_lt)
-    assert isinstance(res, Polynomial)
+# Removed legacy term-matrix based benchmarks (_synthetic_term_matrix, orderings grev_lex, and LT cache via _poly_from_tm) as term matrices are deprecated.
 
 
 @pytest.mark.parametrize("deg", [50, 200])

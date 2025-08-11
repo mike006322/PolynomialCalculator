@@ -43,9 +43,9 @@ class TestIdeal(unittest.TestCase):
         h = Polynomial("x^5y + y^2")
         G = [f, g, h]
         res = [
-            Polynomial([["constant", "x", "y"], [-0.3333333333333333, 1, 2], [1.0, 0, 2]]),
-            Polynomial([["constant", "x", "y"], [3.0, 4, 1], [1.0, 0, 2]]),
-            Polynomial([["constant", "x", "y"], [1.0, 3, 2], [-1.0, 2, 3], [1.0, 1, 0]]),
+            Polynomial("-0.3333333333333333xy^2 + y^2"),
+            Polynomial("3x^4y + y^2"),
+            Polynomial("x^3y^2 - x^2y^3 + x"),
         ]
         self.assertEqual(Ideal.reduce(G), res)
 

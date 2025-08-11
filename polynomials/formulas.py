@@ -2,30 +2,99 @@ from typing import List, Sequence, Tuple, Union
 
 Number = Union[int, float, complex]
 
+__all__ = [
+    "solve",
+    "quadratic_formula",
+    "isclose",
+    "Durand_Kerner",
+]
+
 
 def solve(polynomial) -> Union[str, Number, Sequence[Number]]:
+    """Solve a univariate polynomial using its sparse representation.
+
+    Returns:
+        - "too many variables" for multivariate input
+        - Numeric root(s) or list of complex approximations for higher degree.
     """
-    input is polynomial
-    if more than one variable, returns 'too many variables'
-    looks for formula to apply to coefficients
-    returns solution or 'I cannot solve yet...'
-    """
-    if len(polynomial.term_matrix[0]) > 2:
+    active_vars = polynomial.variables
+    if len(active_vars) > 1:
         return "too many variables"
-    elif len(polynomial.term_matrix[0]) == 1:
-        return polynomial.term_matrix[1][0]
-    elif len(polynomial.term_matrix[0]) == 2:
-        degree = polynomial.term_matrix[1][1]
-        if degree == 1:
-            if len(polynomial.term_matrix) == 2:
-                return 0
-            else:
-                return -polynomial.term_matrix[2][0] / polynomial.term_matrix[1][0]
-        if degree == 2:
-            ans = quadratic_formula(polynomial)
-            return ans
-        if degree > 2:
-            return Durand_Kerner(polynomial)
+    # Constant polynomial (no active variable)
+    if not active_vars:
+        if not polynomial.terms:
+            return 0
+        if len(polynomial.terms) == 1:
+            (m0, c0), = polynomial.terms.items()
+            if all(e == 0 for e in m0.exps):
+                return c0
+        return 0
+    var = active_vars[0]
+    # Build coefficient list from sparse terms: list of (coeff, exponent)
+    coeff_rows: List[Tuple[Number, int]] = []
+    for m, c in polynomial.terms.items():
+        if var in m.vars:
+            idx = m.vars.index(var)
+            exp = m.exps[idx]
+        else:
+            exp = 0
+        if c != 0:
+            coeff_rows.append((c, exp))
+    if not coeff_rows:
+        coeff_rows.append((0.0, 0))
+    coeff_rows.sort(key=lambda t: t[1], reverse=True)
+    degree = coeff_rows[0][1]
+
+    if degree == 0:
+        # Constant after all (e.g., all variable terms canceled)
+        return coeff_rows[0][0]
+
+    if degree == 1:
+        a = None
+        b = 0
+        for c, e in coeff_rows:
+            if e == 1:
+                a = c
+            elif e == 0:
+                b = c
+        if a is None or a == 0:
+            return 0
+        root = -b / a
+        try:
+            if float(root).is_integer():
+                return int(root)
+        except Exception:  # pragma: no cover - defensive
+            pass
+        return root
+
+    if degree == 2:
+        # Reconstruct minimal pseudo term_matrix for quadratic_formula compatibility
+        a = b = c0 = 0
+        for coeff, exp in coeff_rows:
+            if exp == 2:
+                a = coeff
+            elif exp == 1:
+                b = coeff
+            elif exp == 0:
+                c0 = coeff
+        class _Wrapper:  # pragma: no cover - simple container
+            term_matrix = [["constant", var]] + [[a, 2], [b, 1], [c0, 0]]
+        return quadratic_formula(_Wrapper)  # type: ignore[arg-type]
+
+    if degree > 2:
+        # Wrapper for Durand-Kerner expecting degree() and __call__
+        class _Wrapper2:  # pragma: no cover - iterative numeric method
+            def degree(self):
+                return degree
+            def __call__(self, x):
+                res: Number = 0
+                for coeff, exp in coeff_rows:
+                    res += coeff * (x ** exp)  # type: ignore[operator]
+                return res
+        return Durand_Kerner(_Wrapper2())
+
+    # Fallback (shouldn't reach here)
+    return 0
 
 
 def quadratic_formula(polynomial) -> Union[Number, Tuple[Number, Number]]:
@@ -57,8 +126,9 @@ def quadratic_formula(polynomial) -> Union[Number, Tuple[Number, Number]]:
             polynomial.term_matrix[2][0],
             polynomial.term_matrix[3][0],
         )
-    ans1 = (-b + (b**2 - 4 * a * c) ** 0.5) / 2 * a
-    ans2 = (-b - (b**2 - 4 * a * c) ** 0.5) / 2 * a
+    denom = 2 * a
+    ans1 = (-b + (b**2 - 4 * a * c) ** 0.5) / denom
+    ans2 = (-b - (b**2 - 4 * a * c) ** 0.5) / denom
     if ans1 == ans2:
         return ans1
     return ans1, ans2

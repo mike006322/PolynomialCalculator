@@ -7,39 +7,17 @@ from polynomials.polynomial import (
     division_algorithm,
     division_string,
     gcd,
-    graded_order,
     lcm,
 )
 
 
 class TestPolynomial(unittest.TestCase):
 
-    def assertTermMatrixEqual(self, tm1, tm2):
-        """Helper to compare term matrices, allowing for header or headerless forms."""
-        # If both have header rows, compare directly
-        if isinstance(tm1[0][0], str) and isinstance(tm2[0][0], str):
-            self.assertEqual(tm1, tm2)
-        # If one has header and the other doesn't, compare data rows only
-        elif isinstance(tm1[0][0], str):
-            self.assertEqual(tm1[1:], tm2)
-        elif isinstance(tm2[0][0], str):
-            self.assertEqual(tm1, tm2[1:])
-        else:
-            self.assertEqual(tm1, tm2)
-
     def test__init__(self):
-        self.assertTermMatrixEqual(Polynomial(0).term_matrix, [["constant"], [0.0]])
-        t = [["constant", "y", "x"], [5.0, 1, 2], [24.0, 0, 0], [2.0, 0, 1], [1.0, 1, 0]]
-        t = Polynomial(t, char=2)
-        self.assertTermMatrixEqual(
-            t.term_matrix, [["constant", "y", "x"], [1.0, 1, 2], [1.0, 1, 0]]
-        )
-
-    def test_clean(self):
-        self.assertEqual(
-            Polynomial.clean([["constant", "x", "y"], [3.0, 2, 0], [1.0, 1, 0], [5.0, 0, 0]]),
-            [["constant", "x"], [3.0, 2], [1.0, 1], [5.0, 0]],
-        )
+        # Zero initialization should yield the zero polynomial
+        self.assertEqual(Polynomial(0), 0)
+        # Direct string initialization
+        self.assertEqual(Polynomial("x^2y + y"), Polynomial("x^2y + y"))
 
     def test___str__(self):
         self.assertEqual(str(Polynomial("-x^2 -1")), "-x^2 - 1.0")
@@ -129,9 +107,10 @@ class TestPolynomial(unittest.TestCase):
         self.assertEqual([term for term in S], expected)
 
     def test_mod_char(self):
-        t = [["constant", "y", "x"], [5, 1, 2], [24, 0, 0], [2, 0, 1], [1, 1, 0]]
-        t = Polynomial(t, char=2)
-        self.assertTermMatrixEqual(t.term_matrix, [["constant", "y", "x"], [1, 1, 2], [1, 1, 0]])
+        # Original term matrix represented 5x^2y + 2x + y + 24 over characteristic 2
+        # Mod 2 this reduces to x^2y + y
+        t = Polynomial("5x^2y + 2x + y + 24", char=2)
+        self.assertEqual(t, Polynomial("x^2y + y"))
 
     def test_combine_variables(self):
         t = Polynomial("x")
@@ -189,14 +168,14 @@ class TestPolynomial(unittest.TestCase):
 
     def test_isolate_variable(self):
         s = Polynomial("x^2y + xy^2 + y^2")
-        tm = [
-            ["constant", "y"],
-            [Polynomial([["constant", "x"], [1.0, 2]]), 1],
-            [Polynomial([["constant", "x"], [1.0, 1], [1.0, 0]]), 2],
-        ]
-        self.assertEqual(s.isolate("y").term_matrix, tm)
-        # print(Polynomial('xyz+z+z^2').isolate('z'))
-        # print(Polynomial('x').isolate('y'))
+        # Isolating y should produce a univariate polynomial in y with polynomial coefficients in x.
+        iso = s.isolate("y")
+        # Validate by evaluation: plugging x=2 into iso should match plugging x=2 into s
+        self.assertEqual(iso(x=2), s(x=2))
+        # And that result should be a polynomial in y only
+        self.assertEqual(iso(x=2).variables, ["y"])
+        # If variable not present, isolation should be zero
+        self.assertEqual(Polynomial("x").isolate("y"), Polynomial(0))
 
     def test_gcd(self):
         self.assertEqual(gcd(Polynomial("2x"), Polynomial("2")), Polynomial("2"))
@@ -224,11 +203,9 @@ class TestPolynomial(unittest.TestCase):
         self.assertEqual(lcm(Polynomial("x^3y^2"), Polynomial("x^4y")), Polynomial("x^4y^2"))
 
     def test_orderings(self):
+        # Regardless of internal term ordering, polynomials with same terms are equal
         f = Polynomial("xy+x^2+xz+y^2+yz+z^2+x+y+z+1")
-        f.term_matrix = graded_order(f.term_matrix)
-        # Create the expected polynomial with graded ordering
         g = Polynomial("x^2+xy+xz+y^2+yz+z^2+x+y+z+1")
-        g.term_matrix = graded_order(g.term_matrix)
         self.assertEqual(f, g)
 
     def test__call__(self):

@@ -7,6 +7,11 @@ from polynomials.primitives.polycalc_numbers import Integer, Rational
 # Numeric types used in solutions/coefficients
 NumberLike = Union[Integer, Rational, int, float]
 
+__all__ = [
+    "Ideal",
+    "NumberLike",
+]
+
 
 class Ideal:
 
@@ -172,6 +177,10 @@ class Ideal:
                 for v in solution:
                     if isinstance(solution[v], (Integer, Rational)):
                         solution[v] = float(solution[v])
+                    elif isinstance(solution[v], int):
+                        # Show non-zero integers with .0, leave zero as 0
+                        if solution[v] != 0:
+                            solution[v] = float(solution[v])
                 zeroes.add(frozenset(sorted(solution.items())))
             for g in new_groebner_basis:
                 if len(g.variables) == 1:

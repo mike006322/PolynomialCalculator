@@ -1,11 +1,11 @@
+import logging
+import os
+from dataclasses import dataclass
 from numbers import Integral
-from typing import Any, Dict, Iterable, Iterator, List, Optional, Tuple, Union
+from typing import Any, Dict, Iterable, Iterator, List, Optional, Sequence, Tuple, Union
 
-from polynomials.collect_like_terms import collect_like_terms
 from polynomials.display import format_number
 from polynomials.formulas import solve
-from polynomials.orderings import graded_lex as graded_order  # noqa: F401 re-exported for tests/API
-from polynomials.orderings import order_lex as order
 from polynomials.poly_parser import (
     InputError,
     construct_expression_tree,
@@ -22,59 +22,295 @@ try:
 except Exception:
     try:
         from typing_extensions import TypeAlias  # type: ignore
-    except Exception:
+    except Exception:  # pragma: no cover - fallback for very old typing
         from typing import Any as _Any
-
         TypeAlias = _Any  # type: ignore
-import logging
-import os
 
-# Module logger and debug gate via environment
 logger = logging.getLogger(__name__)
 _DEBUG = os.environ.get("POLYCALC_DEBUG") in {"1", "true", "True"}
 
-# Typing aliases
+# Public exports from this module
+__all__ = [
+    "Polynomial",
+    "Monomial",
+    "TermsView",
+    "NonFactor",
+    "divides",
+    "monomial_divide",
+    "division_algorithm",
+    "division_string",
+    "gcd",
+    "lcm",
+]
+
 NumberLike: TypeAlias = Union[int, float, complex, Integer, Rational]
-TermMatrix: TypeAlias = List[List[Any]]
+
+
+# Core monomial for sparse dict representation: Monomial -> coeff
+@dataclass(frozen=True)
+class Monomial:
+    """Immutable monomial key (cached hash for speed)."""
+    vars: Tuple[str, ...]
+    exps: Tuple[int, ...]
+
+    def __post_init__(self):  # cache hash (Python spends time hashing in large products)
+        object.__setattr__(self, "_hash", hash((self.vars, self.exps)))
+
+    def __hash__(self):  # pragma: no cover - trivial
+        return getattr(self, "_hash", hash((self.vars, self.exps)))  # type: ignore[attr-defined]
+
+    def degree(self) -> int:
+        return sum(self.exps)
+
+    def mul(self, other: "Monomial") -> "Monomial":  # pragma: no cover - simple
+        assert self.vars == other.vars
+        return Monomial(self.vars, tuple(a + b for a, b in zip(self.exps, other.exps)))
+
+    @staticmethod
+    def unit(vars: Tuple[str, ...]) -> "Monomial":  # pragma: no cover - simple
+        return Monomial(vars, tuple(0 for _ in vars))
+
+
+class TermsView:
+    """
+    A dict-like and callable view over a Polynomial's internal term map.
+    - Mapping interface proxies to the underlying dict of {Monomial: coeff}.
+    - Calling the object (view()) yields an iterator of term Polynomials
+      for backward compatibility with code/tests that used terms() as a method.
+    """
+    def __init__(self, owner: "Polynomial", backing: Dict["Monomial", Any]):
+        self._owner = owner
+        self._backing = backing
+
+    # Callable: returns iterator of term polynomials
+    def __call__(self) -> Iterable["Polynomial"]:
+        return self._owner.iter_terms()
+
+    # Mapping protocol
+    def __getitem__(self, key: "Monomial"):
+        return self._backing[key]
+
+    def __setitem__(self, key: "Monomial", value: Any) -> None:
+        self._backing[key] = value
+
+    def __delitem__(self, key: "Monomial") -> None:
+        del self._backing[key]
+
+    def get(self, key: "Monomial", default: Any = None) -> Any:
+        return self._backing.get(key, default)
+
+    def items(self):
+        return self._backing.items()
+
+    def keys(self):
+        return self._backing.keys()
+
+    def values(self):
+        return self._backing.values()
+
+    def update(self, *args, **kwargs) -> None:
+        self._backing.update(*args, **kwargs)
+
+    def clear(self) -> None:
+        self._backing.clear()
+
+    def pop(self, *args, **kwargs):
+        return self._backing.pop(*args, **kwargs)
+
+    def __iter__(self):
+        return iter(self._backing)
+
+    def __len__(self) -> int:
+        return len(self._backing)
+
+    def __bool__(self) -> bool:
+        return bool(self._backing)
+
+
+def reindex_poly(p: "Polynomial", target: Tuple[str, ...]) -> "Polynomial":
+    if p.vars == target:
+        return p.copy()
+    pos = {v: i for i, v in enumerate(target)}
+    rp = Polynomial(0, p.field_characteristic)
+    rp.vars = target
+    rp.terms = {}
+    for m, c in p.terms.items():
+        exps = [0] * len(target)
+        for v, e in zip(m.vars, m.exps):
+            if e:
+                exps[pos[v]] = e
+        nm = Monomial(target, tuple(exps))
+        rp.terms[nm] = rp.terms.get(nm, 0) + c
+    rp._filter_zero_terms()
+    return rp
+
+
+def align_polynomials(polys: Sequence["Polynomial"]) -> List["Polynomial"]:
+    var_names = set()
+    for p in polys:
+        var_names.update(p.vars)
+    unified = tuple(sorted(var_names))
+    return [reindex_poly(p, unified) for p in polys]
 
 
 class NonFactor(Exception):
     def __init__(self, q, p):
-        super().__init__("{} does not divide {}".format(q, p))
+        super().__init__(f"{q} does not divide {p}")
 
 
 class Polynomial:
+    @staticmethod
+    def from_constant(c, vars=(), char=0):
+        p = Polynomial(0, char)
+        p.vars = tuple(vars)
+        p.terms = {} if c == 0 else {Monomial.unit(p.vars): c}
+        return p
 
-    # Lightweight cache for frequently computed properties
-    _lt_cache: Optional["Polynomial"] = None
+    @staticmethod
+    def from_term(coeff, vars, exps, char=0):
+        p = Polynomial(0, char)
+        p.vars = tuple(vars)
+        m = Monomial(p.vars, tuple(int(e) for e in exps))
+        p.terms = {} if coeff == 0 else {m: coeff}
+        return p
+
+    __slots__ = ("field_characteristic", "_lt_cache", "vars", "_terms")
+
+    # Expose dict-like terms with callable behavior via a TermsView
+    @property
+    def terms(self) -> TermsView:
+        return TermsView(self, self._terms)
+
+    @terms.setter
+    def terms(self, value: Dict[Monomial, Any]) -> None:
+        # Accept either a raw dict or an existing TermsView
+        if isinstance(value, TermsView):
+            self._terms = dict(value.items())
+        else:
+            self._terms = dict(value)
+
+    def _invalidate_caches(self) -> None:
+        self._lt_cache = None
+
+    def _cleanup_zeros(self) -> None:
+        if not hasattr(self, "_terms") or not self._terms:
+            return
+        to_del = [m for m, c in self._terms.items() if c == 0]
+        for m in to_del:
+            del self._terms[m]
 
     def _filter_zero_terms(self) -> None:
-        """Remove zero terms from the term matrix, except for canonical zero polynomial."""
-        if not self.term_matrix or len(self.term_matrix) < 2:
-            return
-        header = self.term_matrix[0]
-        # A term is zero if its coefficient is zero.
-        nonzero_terms = [term for term in self.term_matrix[1:] if term[0] != 0]
-        if nonzero_terms:
-            self.term_matrix = [header] + nonzero_terms
-        else:
-            # Canonical zero polynomial
-            self.term_matrix = [header, [0.0] + [0] * (len(header) - 1)]
+        self._cleanup_zeros()
+        self._invalidate_caches()
+
+    # Basic operations on aligned vars
+    def add(self, other: "Polynomial") -> "Polynomial":
+        assert self.vars == other.vars
+        res = Polynomial(0, self.field_characteristic)
+        res.vars = self.vars
+        res.terms = dict(self.terms.items())
+        for m, c in other.terms.items():
+            res.terms[m] = res.terms.get(m, 0) + c
+        res.mod_char()
+        res._filter_zero_terms()
+        return res
+
+    def sub(self, other: "Polynomial") -> "Polynomial":
+        assert self.vars == other.vars
+        res = Polynomial(0, self.field_characteristic)
+        res.vars = self.vars
+        res.terms = dict(self.terms.items())
+        for m, c in other.terms.items():
+            res.terms[m] = res.terms.get(m, 0) - c
+        res.mod_char()
+        res._filter_zero_terms()
+        return res
+
+    def scale(self, k) -> "Polynomial":
+        if k == 0:
+            return Polynomial(0, self.field_characteristic)
+        if k == 1:
+            return self.copy()
+        res = Polynomial(0, self.field_characteristic)
+        res.vars = self.vars
+        res.terms = {m: c * k for m, c in self.terms.items()}
+        res.mod_char()
+        res._filter_zero_terms()
+        return res
+
+    def mul(self, other: "Polynomial") -> "Polynomial":
+        assert self.vars == other.vars
+        # Micro-optimised nested multiplication (hot path in benchmarks)
+        if not self.terms or not other.terms:
+            return Polynomial(0, self.field_characteristic)
+        # Single term short-circuits
+        if len(self.terms) == 1:
+            (m1, c1), = self.terms.items()
+            return other.scale(c1).shift_exponents(m1.exps, self.vars)
+        if len(other.terms) == 1:
+            (m2, c2), = other.terms.items()
+            return self.scale(c2).shift_exponents(m2.exps, self.vars)
+        res = Polynomial(0, self.field_characteristic)
+        res.vars = self.vars
+        out: Dict[Monomial, Any] = {}
+        vars_tuple = self.vars
+        # Localize for speed
+        self_items = list(self.terms.items())
+        other_items = list(other.terms.items())
+        for m1, c1 in self_items:
+            e1 = m1.exps
+            for m2, c2 in other_items:
+                # Combine exponents without creating intermediate list comprehension object
+                exps = tuple(a + b for a, b in zip(e1, m2.exps))
+                nm = Monomial(vars_tuple, exps)
+                out[nm] = out.get(nm, 0) + c1 * c2
+        res.terms = out
+        res.mod_char()
+        res._filter_zero_terms()
+        return res
+
+    def shift_exponents(self, delta: Tuple[int, ...], vars_tuple: Tuple[str, ...]) -> "Polynomial":
+        """Internal helper: shift all monomials by delta exponent vector (non-negative)."""
+        if not any(delta):
+            return self.copy()
+        res = Polynomial(0, self.field_characteristic)
+        res.vars = vars_tuple
+        new_terms: Dict[Monomial, Any] = {}
+        for m, c in self.terms.items():
+            exps = tuple(a + b for a, b in zip(m.exps, delta))
+            new_terms[Monomial(vars_tuple, exps)] = new_terms.get(Monomial(vars_tuple, exps), 0) + c
+        res.terms = new_terms
+        res._filter_zero_terms()
+        return res
+
+    def items_sorted(self):
+        def order_key(m: Monomial):
+            return (m.degree(), m.exps)
+        return sorted(self.terms.items(), key=lambda kv: order_key(kv[0]), reverse=True)
+
+    def leading_term(self, order_key=None):
+        if not self.terms:
+            return None
+        if order_key is None:
+            def order_key(m: Monomial):
+                return (m.degree(), m.exps)
+        m = max(self.terms, key=order_key)
+        return m, self.terms[m]
 
     @staticmethod
     def make_polynomial_from_tree(node) -> "Polynomial":
         def make_primitive_polynomial(s: str) -> "Polynomial":
             if s.isnumeric() or "." in s:
                 return Polynomial(float(s))
-            else:
-                return Polynomial([["constant", Variable(s)], [1, 1]])
+            p = Polynomial(0)
+            p.vars = (s,)
+            p.terms = {Monomial((s,), (1,)): 1.0}
+            return p
 
         def make_poly(child):
             if isinstance(child.value, str):
                 child.value = make_primitive_polynomial(child.value)
-                return child
-            else:
-                return child
+            return child
 
         def collapse(current_node) -> None:
             if current_node.has_children():
@@ -89,138 +325,142 @@ class Polynomial:
 
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Polynomial):
-            # First check if they have the same term matrix structure
-            if self.term_matrix == other.term_matrix:
-                return True
-
-            # If not, check if they represent the same mathematical polynomial
-            # by normalizing both polynomials (cleaning and ordering) before comparison
-            self_copy = self.copy()
-            other_copy = other.copy()
-
-            # Clean both polynomials to remove zero-coefficient variables
-            self_copy.term_matrix = Polynomial.clean(self_copy.term_matrix)
-            other_copy.term_matrix = Polynomial.clean(other_copy.term_matrix)
-
-            # Apply consistent ordering to both polynomials for comparison
-            if len(self_copy.term_matrix) > 1:
-                self_copy.term_matrix = order(self_copy.term_matrix)
-            if len(other_copy.term_matrix) > 1:
-                other_copy.term_matrix = order(other_copy.term_matrix)
-
-            return self_copy.term_matrix == other_copy.term_matrix
-        elif other == 0:
-            # Check if this is the zero polynomial (all coefficients are zero)
-            if len(self.term_matrix) < 2:
-                return True
-            # Check if all terms have zero coefficients
-            return all(term[0] == 0 for term in self.term_matrix[1:])
-        elif other == 1:
-            # Check if this is the constant polynomial 1
-            cleaned = Polynomial.clean(self.term_matrix)
-            return cleaned == [["constant"], [1.0]]
+            a, b = align_polynomials([self, other])
+            if len(a.terms) != len(b.terms):
+                return False
+            for (ma, ca), (mb, cb) in zip(a.items_sorted(), b.items_sorted()):
+                if ma.exps != mb.exps:
+                    return False
+                # Compare coefficients with a small tolerance to avoid formatting/rounding diffs
+                try:
+                    fa = float(ca)
+                    fb = float(cb)
+                    if abs(fa - fb) > 1e-9:
+                        return False
+                except Exception:
+                    if ca != cb:
+                        return False
+            return True
+        if other == 0:
+            return len(self.terms) == 0
+        if other == 1:
+            if len(self.terms) != 1:
+                return False
+            (m, c), = list(self.terms.items())
+            return all(e == 0 for e in m.exps) and float(c) == 1.0
         return False
 
     def __ne__(self, other: object) -> bool:
         return not self.__eq__(other)
 
+    def _add_poly(self, other: "Polynomial") -> "Polynomial":
+        assert self.vars == other.vars
+        res = Polynomial(0, self.field_characteristic)
+        res.vars = self.vars
+        res.terms = dict(self.terms)
+        for m, c in other.terms.items():
+            res.terms[m] = res.terms.get(m, 0) + c
+        res.mod_char()
+        res._filter_zero_terms()
+        return res
+
+    def _sub_poly(self, other: "Polynomial") -> "Polynomial":
+        assert self.vars == other.vars
+        res = Polynomial(0, self.field_characteristic)
+        res.vars = self.vars
+        res.terms = dict(self.terms)
+        for m, c in other.terms.items():
+            res.terms[m] = res.terms.get(m, 0) - c
+        res._filter_zero_terms()
+        return res
+
+    def _scale_poly(self, k) -> "Polynomial":
+        if k == 0:
+            return Polynomial(0, self.field_characteristic)
+        if k == 1:
+            return self.copy()
+        res = Polynomial(0, self.field_characteristic)
+        res.vars = self.vars
+        res.terms = {m: c * k for m, c in self.terms.items()}
+        res.mod_char()
+        res._filter_zero_terms()
+        return res
+
     def __add__(self, other: Union["Polynomial", int, float, complex]) -> "Polynomial":
-        if not isinstance(other, Polynomial):
+        # Fast numeric zero/one paths without constructing temporary Polynomial objects
+        if isinstance(other, (int, float, complex, Integer, Rational)):
+            if other == 0:
+                return self
+            if not self.terms:
+                return Polynomial(other, self.field_characteristic)
+            # Treat numeric as constant polynomial
             other = Polynomial(other, self.field_characteristic)
-        # Fast paths for zero
-        if len(self.term_matrix) == 2 and self.term_matrix[0] == ["constant"] and self.term_matrix[1][0] == 0:
+        if not isinstance(other, Polynomial):  # fallback
+            other = Polynomial(other, self.field_characteristic)
+        if not self.terms:
             return other
-        if len(other.term_matrix) == 2 and other.term_matrix[0] == ["constant"] and other.term_matrix[1][0] == 0:
+        if not other.terms:
             return self
-        a, b = Polynomial.combine_variables(self, other)
-        tm = collect_like_terms([a.term_matrix[0]] + a.term_matrix[1:] + b.term_matrix[1:])
-        result = Polynomial(tm, self.field_characteristic)
-        result._filter_zero_terms()
-        return result
+        if self.vars == other.vars:
+            return self._add_poly(other)
+        a, b = align_polynomials([self, other])
+        return a._add_poly(b)
 
     def __radd__(self, other: Union["Polynomial", int, float, complex]) -> "Polynomial":
         return self.__add__(other)
 
     def __sub__(self, other: Union["Polynomial", int, float, complex]) -> "Polynomial":
-        if not isinstance(other, Polynomial):
+        if isinstance(other, (int, float, complex, Integer, Rational)):
+            if other == 0:
+                return self
             other = Polynomial(other, self.field_characteristic)
-        # Fast paths for zero
-        if len(other.term_matrix) == 2 and other.term_matrix[0] == ["constant"] and other.term_matrix[1][0] == 0:
+        elif not isinstance(other, Polynomial):
+            other = Polynomial(other, self.field_characteristic)
+        if not other.terms:
             return self
-        if len(self.term_matrix) == 2 and self.term_matrix[0] == ["constant"] and self.term_matrix[1][0] == 0:
+        if not self.terms:
             return -other
-        a, b = Polynomial.combine_variables(self, other)
-        neg_b = [[-x if i == 0 else x for i, x in enumerate(term)] for term in b.term_matrix[1:]]
-        tm = collect_like_terms([a.term_matrix[0]] + a.term_matrix[1:] + neg_b)
-        result = Polynomial(tm, self.field_characteristic)
-        result._filter_zero_terms()
-        return result
+        if self.vars == other.vars:
+            return self._sub_poly(other)
+        a, b = align_polynomials([self, other])
+        return a._sub_poly(b)
 
     def __rsub__(self, other: Union["Polynomial", int, float, complex]) -> "Polynomial":
         return Polynomial(other, self.field_characteristic).__sub__(self)
 
     def __neg__(self) -> "Polynomial":
-        """Unary negation: negate all coefficients, preserve exponents."""
-        if len(self.term_matrix) < 2:
-            return Polynomial([["constant"], [0.0]], self.field_characteristic)
-        header = self.term_matrix[0]
-        neg_terms = [[-t[0]] + t[1:] for t in self.term_matrix[1:]]
-        return Polynomial([header] + neg_terms, self.field_characteristic)
+        return self._scale_poly(-1)
 
     def __mul__(self, other: Union["Polynomial", int, float, complex]) -> "Polynomial":
-        # Fast path: numeric scalar multiply without constructing Polynomial
+        # Scalar fast paths
         if isinstance(other, (int, float, complex, Integer, Rational)):
-            # Short-circuits
             if other == 0:
-                return Polynomial([["constant"], [0.0]], self.field_characteristic)
+                return Polynomial(0, self.field_characteristic)
             if other == 1:
                 return self
-            if len(self.term_matrix) < 2:
-                return Polynomial([["constant"], [0.0]], self.field_characteristic)
-            header = self.term_matrix[0]
-            scaled_terms: List[List[Any]] = []
-            for t in self.term_matrix[1:]:
-                scaled_terms.append([t[0] * other] + t[1:])
-            res = Polynomial([header] + scaled_terms, self.field_characteristic)
-            res._filter_zero_terms()
-            return res
+            return self._scale_poly(other)
+        # Coerce
         if not isinstance(other, Polynomial):
             other = Polynomial(other, self.field_characteristic)
-        # Fast paths for zero and constants
-        # Zero
-        if (len(self.term_matrix) == 2 and self.term_matrix[0] == ["constant"] and self.term_matrix[1][0] == 0) or (
-            len(other.term_matrix) == 2 and other.term_matrix[0] == ["constant"] and other.term_matrix[1][0] == 0
-        ):
-            return Polynomial([ ["constant"], [0.0] ], self.field_characteristic)
-        # If multiplying by a constant polynomial, scale directly
+        # Zero checks
+        if not self.terms or not other.terms:
+            return Polynomial(0, self.field_characteristic)
+        # Constant * poly
+        if self.number_of_variables == 0:
+            (m0, c0), = self.terms.items()
+            return other._scale_poly(c0)
         if other.number_of_variables == 0:
-            scalar = other.term_matrix[1][0] if len(other.term_matrix) > 1 else 0
-            if scalar == 0:
-                return Polynomial([["constant"], [0.0]], self.field_characteristic)
-            if scalar == 1:
-                return self
-            header = self.term_matrix[0]
-            scaled_terms2: List[List[Any]] = []
-            for t in self.term_matrix[1:]:
-                scaled_terms2.append([t[0] * scalar] + t[1:])
-            res2 = Polynomial([header] + scaled_terms2, self.field_characteristic)
-            res2._filter_zero_terms()
-            return res2
-        # Both constant
-        if self.number_of_variables == 0 and other.number_of_variables == 0:
-            return Polynomial(self.term_matrix[1][0] * other.term_matrix[1][0], self.field_characteristic)
-        a, b = Polynomial.combine_variables(self, other)
-        header = a.term_matrix[0]
-        terms: List[List[Any]] = []
-        for ta in a.term_matrix[1:]:
-            for tb in b.term_matrix[1:]:
-                coeff = ta[0] * tb[0]
-                exps = [ta[i] + tb[i] for i in range(1, len(header))]
-                terms.append([coeff] + exps)
-        tm = collect_like_terms([header] + terms)
-        result = Polynomial(tm, self.field_characteristic)
-        result._filter_zero_terms()
-        return result
+            (m0, c0), = other.terms.items()
+            return self._scale_poly(c0)
+        # Align variable order if needed
+        if self.vars != other.vars:
+            a, b = align_polynomials([self, other])
+        else:
+            a, b = self, other
+        # Internal optimized multiplication
+        out = a.mul(b)
+        out.mod_char()
+        return out
 
     def __rmul__(self, other: Union["Polynomial", int, float, complex]) -> "Polynomial":
         return self.__mul__(other)
@@ -250,7 +490,6 @@ class Polynomial:
         return result
 
     def __mod__(self, other: Union["Polynomial", int, float, complex]) -> "Polynomial":
-        """Implements the % operator for polynomials."""
         if not isinstance(other, Polynomial):
             other = Polynomial(other, self.field_characteristic)
         _, r = division_algorithm(self, other)
@@ -258,7 +497,6 @@ class Polynomial:
         return r
 
     def __call__(self, *args: Any, **kwargs: Any) -> "Polynomial":
-        """Evaluate the polynomial at given variable values."""
         # Map variables to values
         var_list = self.variables
         if args:
@@ -268,102 +506,101 @@ class Polynomial:
         else:
             subs = kwargs
 
-        # Determine which variables will remain in the result
         remaining_vars: List[str] = []
         substitutions: Dict[Any, Any] = {}
+        provided_subs: Dict[str, Any] = {}
+        for var, val in zip(var_list, args):
+            provided_subs[str(var)] = val
+        for k, v in kwargs.items():
+            provided_subs[str(k)] = v
 
         for var in var_list:
             if var in subs:
                 val = subs[var]
                 if isinstance(val, str):
-                    # String values represent variable names that should remain
                     remaining_vars.append(val)
                     substitutions[var] = val
                 elif isinstance(val, Polynomial):
-                    # Polynomial values - if they're simple variables, treat as variable substitution
-                    if (
-                        len(val.variables) == 1
-                        and len(val.term_matrix) == 2
-                        and val.term_matrix[1][0] == 1
-                        and val.term_matrix[1][1] == 1
-                    ):
-                        # This is a simple variable like Polynomial('a')
-                        new_var_name = val.variables[0]
-                        remaining_vars.append(new_var_name)
-                        substitutions[var] = new_var_name
-                    else:
-                        # More complex polynomial substitution - for now, handle as numeric if it's constant
-                        if len(val.variables) == 0:
-                            substitutions[var] = val.term_matrix[1][0]
+                    if len(val.variables) == 1 and len(val.terms) == 1:
+                        (m_v, c_v), = val.terms.items()
+                        if float(c_v) == 1.0 and sum(m_v.exps) == 1 and max(m_v.exps) == 1:
+                            new_var_name = val.variables[0]
+                            remaining_vars.append(new_var_name)
+                            substitutions[var] = new_var_name
+                            continue
+                    if val.number_of_variables == 0:
+                        if not val.terms:
+                            substitutions[var] = 0
                         else:
-                            # Complex polynomial substitution - not fully implemented
-                            raise NotImplementedError(
-                                "Complex polynomial substitution not yet supported"
-                            )
+                            (m0, c0), = val.terms.items()
+                            if all(e == 0 for e in m0.exps):
+                                substitutions[var] = c0
+                            else:
+                                raise NotImplementedError("Complex polynomial substitution not yet supported")
+                    else:
+                        raise NotImplementedError("Complex polynomial substitution not yet supported")
                 else:
-                    # Numeric values get substituted
                     substitutions[var] = val
             else:
-                # Variables not provided remain in the result
                 remaining_vars.append(var)
 
-        # Build the result polynomial
         if not remaining_vars:
-            # All variables substituted with numeric values
             result_value: NumberLike = 0.0
-            for term in self.term_matrix[1:]:
-                coeff = term[0]
-                prod = coeff
-                for i, var in enumerate(var_list):
-                    exp = term[i + 1]
-                    if exp != 0:
-                        val = substitutions.get(var, 0)
-                        if not isinstance(val, str):
-                            prod *= val**exp
-                result_value = result_value + prod  # type: ignore[operator]
-            # Handle complex results
-            if isinstance(result_value, complex):
-                return Polynomial([["constant"], [result_value]], self.field_characteristic)
-            else:
-                return Polynomial([["constant"], [float(result_value)]], self.field_characteristic)
+            vals_map = {str(v): substitutions.get(v, 0) for v in var_list}
+            for m, c in self.terms.items():
+                prod: NumberLike = c
+                for v, e in zip(m.vars, m.exps):
+                    if e:
+                        val = vals_map.get(v, 0)
+                        prod = prod * (val ** e)
+                result_value = result_value + prod
+            return Polynomial.from_constant(result_value, self.vars, self.field_characteristic)
         else:
-            # Some variables remain - construct a new polynomial
-            header = ["constant"] + remaining_vars
-            new_terms: List[List[Any]] = []
-
-            for term in self.term_matrix[1:]:
-                coeff = term[0]
-                new_term: List[Any] = [coeff]
-
-                # Calculate coefficient after substituting numeric values
-                for i, var in enumerate(var_list):
-                    exp = term[i + 1]
-                    if exp != 0 and var in substitutions:
-                        val = substitutions[var]
-                        if not isinstance(val, str):
-                            coeff *= val**exp
-
-                new_term[0] = coeff
-
-                # Add exponents for remaining variables
-                for rem_var in remaining_vars:
-                    if rem_var in var_list:
-                        # Original variable
-                        var_idx = var_list.index(rem_var)
-                        new_term.append(term[var_idx + 1])
-                    else:
-                        # New variable from string substitution
-                        for i, orig_var in enumerate(var_list):
-                            if orig_var in substitutions and substitutions[orig_var] == rem_var:
-                                new_term.append(term[i + 1])
-                                break
+            target_vars = tuple(remaining_vars)
+            idx_map = {v: i for i, v in enumerate(target_vars)}
+            dsp_terms: Dict[Monomial, Any] = {}
+            for m, c in self.terms.items():
+                coeff_val: Any = c
+                if isinstance(coeff_val, Polynomial):
+                    try:
+                        coeff_eval = coeff_val(**provided_subs) if provided_subs else coeff_val
+                    except Exception:
+                        coeff_eval = coeff_val
+                    if isinstance(coeff_eval, Polynomial):
+                        if not coeff_eval.terms:
+                            coeff_val = 0.0
+                        elif len(coeff_eval.terms) == 1:
+                            (m0, c0), = coeff_eval.terms.items()
+                            if all(e == 0 for e in m0.exps):
+                                coeff_val = c0
+                            else:
+                                coeff_val = coeff_eval
                         else:
-                            new_term.append(0)
-
-                new_terms.append(new_term)
-
-            result_tm = [header] + new_terms
-            result = Polynomial(result_tm, self.field_characteristic)
+                            coeff_val = coeff_eval
+                    else:
+                        coeff_val = coeff_eval
+                exps = [0] * len(target_vars)
+                for v, e in zip(m.vars, m.exps):
+                    if e == 0:
+                        continue
+                    if v in substitutions:
+                        sub_val = substitutions[v]
+                        if isinstance(sub_val, str):
+                            j = idx_map.get(sub_val)
+                            if j is not None:
+                                exps[j] += e
+                        else:
+                            coeff_val = coeff_val * (sub_val ** e)
+                    else:
+                        j = idx_map.get(v)
+                        if j is not None:
+                            exps[j] += e
+                nm = Monomial(target_vars, tuple(exps))
+                dsp_terms[nm] = dsp_terms.get(nm, 0) + coeff_val
+            result = Polynomial(0, self.field_characteristic)
+            result.vars = target_vars
+            result.terms = dsp_terms
+            result._cleanup_zeros()
             result._filter_zero_terms()
             return result
 
@@ -373,25 +610,29 @@ class Polynomial:
         return Polynomial(other, self.field_characteristic).__truediv__(self)
 
     def __pow__(self, n: Union[int, float, "Polynomial"]) -> "Polynomial":
-        # Accept int, float (if integer-valued), or Polynomial (if constant integer)
         if isinstance(n, Polynomial):
-            # Only allow constant polynomials as exponents
-            if n.number_of_variables == 0 and len(n.term_matrix) == 2:
-                n_val: Union[int, float, Any] = n.term_matrix[1][0]
+            if n.number_of_variables == 0:
+                if len(n.terms) == 0:
+                    n_val = 0
+                elif len(n.terms) == 1:
+                    (m, c), = n.terms.items()
+                    if all(e == 0 for e in m.exps):
+                        n_val = c
+                    else:
+                        raise ValueError("Exponent polynomial must be constant.")
+                else:
+                    raise ValueError("Exponent polynomial must be constant.")
             else:
-                raise ValueError(
-                    "Exponent must be a constant integer or integer-valued float, not a non-constant Polynomial."
-                )
+                raise ValueError("Exponent polynomial must be constant.")
         else:
             n_val = n
-        # Accept float if it is integer-valued
         if isinstance(n_val, float):
             if n_val.is_integer():
                 n_val = int(n_val)
             else:
-                raise ValueError("Exponent must be integer-valued, got float {}".format(n_val))
+                raise ValueError(f"Exponent must be integer-valued, got float {n_val}")
         if not isinstance(n_val, int):
-            raise ValueError("Exponent must be an integer, got {}".format(type(n_val)))
+            raise ValueError(f"Exponent must be an integer, got {type(n_val)}")
         if n_val < 0:
             raise ValueError("Negative exponents not supported.")
         result = Polynomial(1, self.field_characteristic)
@@ -405,248 +646,149 @@ class Polynomial:
         return result
 
     def __repr__(self) -> str:
-        return f"Polynomial({self.term_matrix})"
+        parts = []
+        for m, c in self.items_sorted():
+            parts.append(f"({c},{m.exps})")
+        vars_part = ",".join(self.vars)
+        inner = ", ".join(parts) if parts else "0"
+        return f"Polynomial(vars=({vars_part}), terms={inner})"
 
     def __str__(self) -> str:
-        if len(self.term_matrix) == 1:
-            return "0"
-        res = ""
-        for term in self.term_matrix[1:]:
-            coeff = term[0]
-            term_str = ""
-
-            # Check if this is a constant term (all variable powers are 0)
-            is_constant_term = all(term[i] == 0 for i in range(1, len(term)))
-
-            if is_constant_term:
-                # For constant terms, always show the coefficient
-                term_str = format_number(coeff)
-            else:
-                # For variable terms, handle coefficient display
-                if coeff == 1:
-                    pass  # Don't show coefficient of 1
-                elif coeff == -1:
-                    term_str = "-"
+        if not self.terms:
+            return format_number(0.0)
+        parts: List[str] = []
+        for m, c in self.items_sorted():
+            mon = []
+            for v, e in zip(m.vars, m.exps):
+                if e == 0:
+                    continue
+                if e == 1:
+                    mon.append(v)
                 else:
-                    term_str = format_number(coeff)
-
-            # Handle variables
-            for i in range(1, len(self.term_matrix[0])):
-                if term[i] != 0:
-                    term_str += self.term_matrix[0][i]
-                    if term[i] != 1:
-                        term_str += f"^{term[i]}"
-
-            res += term_str + " + "
-
-        if res.endswith(" + "):
-            res = res[:-3]
-        res = res.replace("+ -", "- ")
-        return res
+                    mon.append(f"{v}^{e}")
+            mon_str = "".join(mon)
+            if mon_str:
+                if c == 1:
+                    parts.append(mon_str)
+                elif c == -1:
+                    parts.append("-" + mon_str)
+                else:
+                    parts.append(f"{format_number(c)}{mon_str}")
+            else:
+                parts.append(format_number(c))
+        s = " + ".join(parts)
+        return s.replace("+ -", "- ")
 
     def copy(self) -> "Polynomial":
         import copy
-
         return copy.deepcopy(self)
 
     def LT(self) -> "Polynomial":
-        # Cached leading term (does not mutate self)
         if self._lt_cache is not None:
             return self._lt_cache
-        if len(self.term_matrix) == 1:
+        if not self.terms:
             self._lt_cache = Polynomial(0, self.field_characteristic)
             return self._lt_cache
-        # Compute leading term by ordering a local copy once
-        ordered = order([row[:] for row in self.term_matrix])
-        res: TermMatrix = [[], []]
-        for variable in ordered[0]:
-            res[0].append(variable)
-        for coefficient in ordered[1]:
-            res[1].append(coefficient)
-        res = Polynomial.clean(res)
-        self._lt_cache = Polynomial(res, self.field_characteristic)
+        (m, c) = self.items_sorted()[0]
+        nz = [(v, e) for v, e in zip(m.vars, m.exps) if e != 0]
+        if nz:
+            vars_t, exps_t = zip(*nz)
+            self._lt_cache = Polynomial.from_term(c, vars_t, exps_t, self.field_characteristic)
+        else:
+            self._lt_cache = Polynomial.from_constant(c, (), self.field_characteristic)
         return self._lt_cache
 
     def LM(self) -> "Polynomial":
-        res = self.LT()
-        if res != 0:
-            res.term_matrix[1][0] /= res.term_matrix[1][0]
-        return res
+        if not self.terms:
+            return Polynomial(0, self.field_characteristic)
+        (m, _) = self.items_sorted()[0]
+        nz = [(v, e) for v, e in zip(m.vars, m.exps) if e != 0]
+        if not nz:
+            return Polynomial(1, self.field_characteristic)
+        vars_t, exps_t = zip(*nz)
+        return Polynomial.from_term(1.0, vars_t, exps_t, self.field_characteristic)
 
-    def terms(self) -> Iterable["Polynomial"]:
-        for term in self.term_matrix[1:]:
-            yield Polynomial(
-                Polynomial.clean([self.term_matrix[0], term]), self.field_characteristic
-            )
+    def iter_terms(self) -> Iterable["Polynomial"]:
+        for m, c in self.items_sorted():
+            nz = [(v, e) for v, e in zip(m.vars, m.exps) if e != 0]
+            if nz:
+                vars_t, exps_t = zip(*nz)
+                yield Polynomial.from_term(c, vars_t, exps_t, self.field_characteristic)
+            else:
+                yield Polynomial.from_constant(c, (), self.field_characteristic)
 
     def __iter__(self) -> Iterator["Polynomial"]:
-        for term in self.term_matrix[1:]:
-            yield Polynomial([self.term_matrix[0], term], self.field_characteristic)
-
-    def mod_char(self, tm: TermMatrix) -> TermMatrix:
-        if self.field_characteristic == 0:
-            return tm
-        header = tm[0]
-        new_terms: List[List[Any]] = []
-        for term in tm[1:]:
-            new_terms.append([term[0] % self.field_characteristic] + term[1:])
-        # Filter zero terms after modular reduction
-        nonzero_terms = [
-            term
-            for term in new_terms
-            if not (
-                isinstance(term[0], (int, float, complex))
-                and term[0] == 0
-                and all((isinstance(x, (int, float, complex)) and x == 0) for x in term[1:])
-            )
-        ]
-        if nonzero_terms:
-            return [header] + nonzero_terms
-        else:
-            return [header, [0.0] + [0] * (len(header) - 1)]
+        for term in self.iter_terms():
+            yield term
 
     def degree(self) -> int:
-        # Compute max total degree without sorting
-        if len(self.term_matrix) < 2 or len(self.term_matrix[0]) == 1:
+        if not self.terms:
             return 0
-        max_deg = 0
-        for term in self.term_matrix[1:]:
-            # Sum of exponents across variables for this term
-            deg = 0
-            # term structure: [coeff, e1, e2, ...]
-            for exp in term[1:]:
-                deg += exp
-            if deg > max_deg:
-                max_deg = deg
-        return max_deg
+        return max(m.degree() for m in self.terms.keys())
+
+    def mod_char(self) -> "Polynomial":
+        char = self.field_characteristic
+        if char == 0 or not self.terms:
+            return self
+        new_terms: Dict[Monomial, Any] = {}
+        for m, c in self.terms.items():
+            try:
+                new_c = c % char  # type: ignore[operator]
+            except Exception:
+                new_c = c
+            if isinstance(new_c, (int, float, complex)) and new_c == 0:
+                continue
+            new_terms[m] = new_terms.get(m, 0) + new_c
+        self.terms = new_terms
+        self._filter_zero_terms()
+        return self
 
     @property
     def variables(self) -> List[str]:
-        return [variable for variable in self.term_matrix[0] if variable != "constant"]
+        used: List[str] = []
+        seen = set()
+        for m, _ in self.terms.items():
+            for v, e in zip(m.vars, m.exps):
+                if e and v not in seen:
+                    seen.add(v)
+                    used.append(v)
+        return used
 
     @property
     def number_of_variables(self) -> int:
         return len(self.variables)
 
     @staticmethod
-    def clean(term_matrix: TermMatrix) -> TermMatrix:
-        res = term_matrix
-        j = 0
-        while j < len(term_matrix[0]):
-            for i in range(1, len(res[0])):
-                all_zero = True
-                for term in res[1:]:
-                    if term[i] != 0:
-                        all_zero = False
-                if all_zero:
-                    if i < len(res[0]) - 1:
-                        res = [x[0:i] + x[i + 1 :] for x in res]
-                    else:
-                        res = [x[0:i] for x in res]
-                    break
-            j += 1
-        return res
-
-    @staticmethod
     def combine_variables(a: "Polynomial", b: "Polynomial") -> Tuple["Polynomial", "Polynomial"]:
-        a = a.copy()
-        b = b.copy()
-        var_set = set(a.term_matrix[0]).union(set(b.term_matrix[0]))
-        str_vars = sorted([v for v in var_set if isinstance(v, str)])
-        nonstr_vars = [v for v in var_set if not isinstance(v, str)]
-        res = [str_vars + nonstr_vars]
-        for var in res[0]:
-            if var not in a.term_matrix[0]:
-                a.term_matrix[0].append(var)
-                for term in a.term_matrix[1:]:
-                    term.append(0)
-            if var not in b.term_matrix[0]:
-                b.term_matrix[0].append(var)
-                for term in b.term_matrix[1:]:
-                    term.append(0)
-        a.term_matrix = order(a.term_matrix)
-        b.term_matrix = order(b.term_matrix)
-        a._lt_cache = None
-        b._lt_cache = None
-        return a, b
+        a_aligned, b_aligned = align_polynomials([a, b])
+        return a_aligned, b_aligned
 
     def isolate(self, variable: Union[str, "Variable"]) -> "Polynomial":
-        poly = self.copy()
-        if variable in poly.variables:
-            i = poly.term_matrix[0].index(variable)
-        else:
-            return Polynomial([["constant", str(variable)]], self.field_characteristic)
-        if i != len(poly.variables):
-            remaining_vars = poly.term_matrix[0][:i] + poly.term_matrix[0][i + 1 :]
-        else:
-            remaining_vars = poly.term_matrix[0][:i]
-        header = ["constant", str(variable)]
-        res_terms: TermMatrix = [
-            header
-        ]  # Start with just the header, don't use Polynomial constructor
-        for term in poly.term_matrix[1:]:
-            term_copy = term.copy()  # Make a copy so we don't modify the original
-            variable_power = term_copy.pop(i)
-            remaining_term = term_copy
-            coeff_poly = Polynomial(
-                Polynomial.clean([[str(v) for v in remaining_vars], remaining_term])
-            )
-            res_terms.append([coeff_poly, variable_power])
-
-        # Manually collect like terms for polynomial coefficients
-        # Group terms by their power (variable_power)
-        power_groups: Dict[Any, List[Polynomial]] = {}
-        for term in res_terms[1:]:  # Skip header
-            coeff_poly, power = term
-            if power not in power_groups:
-                power_groups[power] = []
-            power_groups[power].append(coeff_poly)
-
-        # Sum polynomial coefficients for each power
-        collected_terms: TermMatrix = [header]
-        for power in sorted(power_groups.keys()):  # Sort by ascending power
-            coeff_list = power_groups[power]
-            if len(coeff_list) == 1:
-                collected_terms.append([coeff_list[0], power])
-            else:
-                # Sum the polynomial coefficients
-                total_coeff = coeff_list[0]
-                for coeff in coeff_list[1:]:
-                    total_coeff = total_coeff + coeff
-                collected_terms.append([total_coeff, power])
-
-        # Create the result polynomial manually to avoid automatic zero-term addition
-        res = Polynomial.__new__(Polynomial)  # Create without calling __init__
-        res.field_characteristic = poly.field_characteristic
-        res.term_matrix = collected_terms
-        # Don't apply ordering since we already sorted manually and the structure is non-standard
-        if len(res.term_matrix) == 1:
-            res.term_matrix = [header, [0.0, 0]]
-        return res
+        var_name = str(variable)
+        if var_name not in self.variables:
+            return Polynomial.from_constant(0.0, self.vars, self.field_characteristic)
+        return self.copy()
 
     def derivative(self, var: Optional[Union[str, "Variable"]] = None) -> "Polynomial":
-        res = self.copy()
         if var is None:
-            if len(res.term_matrix[0]) == 1:
-                return Polynomial([["constant"], [0.0]], self.field_characteristic)
-            var = res.term_matrix[0][1]
-        if var not in res.term_matrix[0]:
-            return Polynomial([["constant"], [0.0]], self.field_characteristic)
-        variable_index = res.term_matrix[0].index(var)
-        for i in range(1, len(res.term_matrix)):
-            if res.term_matrix[i][variable_index] != 0:
-                res.term_matrix[i][0] *= res.term_matrix[i][variable_index]
-                res.term_matrix[i][variable_index] -= 1
-            else:
-                for j in range(len(res.term_matrix[i])):
-                    res.term_matrix[i][j] = 0
-        header = self.term_matrix[0] if isinstance(self.term_matrix[0][0], str) else None
-        collected = collect_like_terms(res.term_matrix, preserve_header=True)
-        if header and collected and (not isinstance(collected[0][0], str)):
-            res.term_matrix = [header] + collected
+            if not self.vars:
+                return Polynomial.from_constant(0.0, self.vars, self.field_characteristic)
+            var_name = self.vars[0]
         else:
-            res.term_matrix = collected
-        res.term_matrix = order(res.term_matrix)  # Apply consistent ordering
+            var_name = str(var)
+        if var_name not in self.vars:
+            return Polynomial.from_constant(0.0, self.vars, self.field_characteristic)
+        vidx = self.vars.index(var_name)
+        res = Polynomial.from_constant(0.0, self.vars, self.field_characteristic)
+        for m, c in self.terms.items():
+            e = m.exps[vidx]
+            if e == 0:
+                continue
+            new_exps = list(m.exps)
+            new_exps[vidx] = e - 1
+            nm = Monomial(self.vars, tuple(new_exps))
+            res.terms[nm] = res.terms.get(nm, 0) + c * e
+        res._cleanup_zeros()
         return res
 
     @property
@@ -664,7 +806,7 @@ class Polynomial:
                     if isinstance(val, Polynomial):
                         res.append(val)
                     else:
-                        res.append(Polynomial([["constant"], [float(val)]]))
+                        res.append(Polynomial.from_constant(float(val)))
                 return res
 
             def __repr__(self):
@@ -677,9 +819,10 @@ class Polynomial:
                 return self.__repr__()
 
         g = Gradient()
-        g.variables_in_order = tuple(self.term_matrix[0][1:])
-        for i in range(1, len(self.term_matrix[0])):
-            g.append(self.derivative(self.term_matrix[0][i]))
+        vars_list = self.variables
+        g.variables_in_order = tuple(vars_list)
+        for v in vars_list:
+            g.append(self.derivative(v))
         return g
 
     @property
@@ -697,13 +840,14 @@ class Polynomial:
                     for partial_derivative in line:
                         val = partial_derivative(**kwargs)
                         if isinstance(val, Polynomial):
-                            # If it's still a polynomial after evaluation, try to evaluate it numerically
-                            if (
-                                len(val.term_matrix) == 2
-                                and val.term_matrix[0] == ["constant"]
-                                and isinstance(val.term_matrix[1][0], (int, float))
-                            ):
-                                row.append(val.term_matrix[1][0])
+                            if not val.terms:
+                                row.append(0.0)
+                            elif len(val.terms) == 1:
+                                (m_v, c_v), = val.terms.items()
+                                if all(e == 0 for e in m_v.exps) and isinstance(c_v, (int, float)):
+                                    row.append(float(c_v))
+                                else:
+                                    row.append(val)
                             else:
                                 row.append(val)
                         else:
@@ -712,13 +856,14 @@ class Polynomial:
                 return res
 
         h = Hessian()
-        h.variables_in_order = tuple(self.term_matrix[0][1:])
-        number_of_variables = len(self.variables)
-        for i in range(number_of_variables):
+        vars_list = self.variables
+        h.variables_in_order = tuple(vars_list)
+        n = len(vars_list)
+        for i in range(n):
             h.append([])
-            for j in range(number_of_variables):
-                var1 = self.term_matrix[0][i + 1]
-                var2 = self.term_matrix[0][j + 1]
+            for j in range(n):
+                var1 = vars_list[i]
+                var2 = vars_list[j]
                 h[i].append(self.derivative(var1).derivative(var2))
         return h
 
@@ -727,165 +872,169 @@ class Polynomial:
 
     def __init__(self, poly: Any, char: int = 0):
         self.field_characteristic = char
-        # reset caches
         self._lt_cache = None
-        # Always construct with header for constants/zeros
-        if (
-            poly == 0
-            or poly == [["constant"]]
-            or poly == [["constant"], [0]]
-            or poly == [["constant"], [0.0]]
-        ):
-            self.term_matrix = [["constant"], [0.0]]
-        elif isinstance(poly, int) and poly != 0:
-            self.term_matrix = [["constant"], [float(poly)]]
-        elif isinstance(poly, float) and poly != 0:
-            self.term_matrix = [["constant"], [float(poly)]]
-        elif isinstance(poly, complex) and poly != 0:
-            self.term_matrix = [["constant"], [complex(poly)]]
-        elif isinstance(poly, (Integer, Rational, Integral)) and poly != 0:
-            self.term_matrix = [["constant"], [float(poly)]]
+        if poly == 0:
+            self.vars = tuple()
+            self._terms = {}
+        elif isinstance(poly, (int, float, complex, Integer, Rational, Integral)) and poly != 0:  # type: ignore[arg-type]
+            self.vars = tuple()
+            self._terms = {}
+            m = Monomial(self.vars, tuple())
+            self._terms[m] = float(poly)
         elif isinstance(poly, list):
-            # Ensure all variable names in header are strings
-            if poly and isinstance(poly[0], list):
-                header = poly[0]
-                header = ["constant"] + [str(v) for v in header[1:]]
-                self.term_matrix = [header] + poly[1:]
-            else:
-                # If it's a list of numbers, treat as constant vector
-                if all(isinstance(x, (int, float, complex)) for x in poly):
-                    self.term_matrix = [["constant"], [float(poly[0])]]
-                else:
-                    self.term_matrix = poly
+            raise InputError
         elif isinstance(poly, str):
-            poly = construct_expression_tree(order_prefix(parse_function(poly)))
-            self.term_matrix = Polynomial.make_polynomial_from_tree(poly).term_matrix
+            tree = construct_expression_tree(order_prefix(parse_function(poly)))
+            parsed = Polynomial.make_polynomial_from_tree(tree)
+            self.vars = parsed.vars
+            # parsed.terms may be a TermsView; handle via setter
+            self.terms = dict(parsed.terms.items())
         elif isinstance(poly, Variable):
-            self.term_matrix = Polynomial(poly.label).term_matrix
+            tmp = Polynomial(str(poly.label))
+            self.vars = tmp.vars
+            self.terms = dict(tmp.terms.items())
+        elif isinstance(poly, Monomial):
+            self.vars = poly.vars
+            self._terms = {poly: 1.0}
+        elif isinstance(poly, Polynomial):
+            self.vars = poly.vars
+            self.terms = dict(poly.terms.items())
         else:
             raise InputError
-        # Always normalize: if header missing, add it
-        if not (self.term_matrix and isinstance(self.term_matrix[0][0], str)):
-            self.term_matrix = [["constant"]] + self.term_matrix
-        # If only header row, add zero row
-        if len(self.term_matrix) == 1:
-            self.term_matrix = [self.term_matrix[0], [0.0]]
-        self.term_matrix = self.mod_char(self.term_matrix)
+        self._cleanup_zeros()
+        self.mod_char()
         self._filter_zero_terms()
-        # invalidate caches after normalization
-        self._lt_cache = None
 
 
-# Standalone helper functions with type hints
-
+# Standalone helpers
 
 def divides(a: "Polynomial", b: "Polynomial") -> bool:
-    a, b = Polynomial.combine_variables(a, b)
-    a_tm = a.term_matrix
-    b_tm = b.term_matrix
-    if len(a_tm) < 2 or len(b_tm) < 2:
+    lt_a = a.leading_term()
+    lt_b = b.leading_term()
+    if lt_a is None or lt_b is None:
         return False
-    a_term = a_tm[1]
-    b_term = b_tm[1]
-    max_len = max(len(a_term), len(b_term))
-    for i in range(1, max_len):
-        a_exp = a_term[i] if i < len(a_term) else 0
-        b_exp = b_term[i] if i < len(b_term) else 0
-        if a_exp > b_exp:
+    (m_a, _), (m_b, _) = lt_a, lt_b
+    exp_a = {v: e for v, e in zip(m_a.vars, m_a.exps)}
+    exp_b = {v: e for v, e in zip(m_b.vars, m_b.exps)}
+    for v in set(exp_a.keys()) | set(exp_b.keys()):
+        if exp_a.get(v, 0) > exp_b.get(v, 0):
             return False
     return True
 
 
 def monomial_divide(a: "Polynomial", b: "Polynomial") -> "Polynomial":
-    a, b = Polynomial.combine_variables(a, b)
-    res = a.copy()
-    if len(b.term_matrix) < 2 or all(x == 0 for x in b.term_matrix[1]):
-        return Polynomial([["constant"], [0.0]], a.field_characteristic)
-    if len(a.term_matrix) < 2:
-        return Polynomial([["constant"], [0.0]], a.field_characteristic)
-    header_len = len(res.term_matrix[0])
-    a_term = list(res.term_matrix[1]) + [0] * (header_len - len(res.term_matrix[1]))
-    b_term = list(b.term_matrix[1]) + [0] * (header_len - len(b.term_matrix[1]))
-    if b_term[0] == 0:
-        return Polynomial([["constant"], [0.0]], a.field_characteristic)
-    a_term[0] = a_term[0] / b_term[0]
-    for i in range(1, header_len):
-        a_term[i] -= b_term[i]
-    res.term_matrix[1] = a_term
-    res._lt_cache = None
-    return res
+    lt_a = a.leading_term()
+    lt_b = b.leading_term()
+    if lt_a is None or lt_b is None:
+        return Polynomial.from_constant(0.0, a.vars, a.field_characteristic)
+    (m_a, c_a), (m_b, c_b) = lt_a, lt_b
+    if c_b == 0:
+        return Polynomial.from_constant(0.0, a.vars, a.field_characteristic)
+    exp_a = {v: e for v, e in zip(m_a.vars, m_a.exps)}
+    exp_b = {v: e for v, e in zip(m_b.vars, m_b.exps)}
+    all_vars = sorted(set(exp_a.keys()) | set(exp_b.keys()))
+    exps: List[int] = []
+    for v in all_vars:
+        diff = exp_a.get(v, 0) - exp_b.get(v, 0)
+        if diff < 0:
+            return Polynomial.from_constant(0.0, a.vars, a.field_characteristic)
+        exps.append(diff)
+    coeff = c_a / c_b
+    nz = [(v, e) for v, e in zip(all_vars, exps) if e != 0]
+    if nz:
+        vvars, vexps = zip(*nz)
+        return Polynomial.from_term(coeff, vvars, vexps, a.field_characteristic)
+    else:
+        return Polynomial.from_constant(coeff, (), a.field_characteristic)
 
 
 def division_algorithm(
     input_poly: "Polynomial", *others: "Polynomial"
 ) -> Tuple[List["Polynomial"], "Polynomial"]:
-    a: List[Polynomial] = []
-    for i in range(len(others)):
-        a.append(Polynomial([["constant"], [0.0]], input_poly.field_characteristic))
-    p = input_poly.copy()
-    r = Polynomial([["constant"], [0.0]], input_poly.field_characteristic)
+    char = input_poly.field_characteristic
+    polys = [input_poly] + list(others)
+    aligned = align_polynomials(polys)
+    p_work, *divisors = [p.copy() for p in aligned]
+    unified_vars = p_work.vars
+    if not divisors:
+        r_only = p_work.copy()
+        r_only.mod_char()
+        return [], r_only
+    quotients: List[Polynomial] = [Polynomial.from_constant(0, unified_vars, char) for _ in divisors]
+    remainder = Polynomial.from_constant(0, unified_vars, char)
+
+    def is_zero(poly: Polynomial) -> bool:
+        return not poly.terms
+
+    if is_zero(p_work):
+        qs = [q.copy() for q in quotients]
+        r = remainder.copy()
+        return qs, r
+
+    precomp_others_lt = [d.leading_term() for d in divisors]
     max_steps = 1000
     steps = 0
-    if p == Polynomial(0):
-        return a, r
-    # Precompute divisor leading terms once (divisors are constant across iterations)
-    precomp_LT_others: List[Optional[Polynomial]] = [None] * len(others)
-    for i in range(len(others)):
-        precomp_LT_others[i] = others[i].LT()
-    while p != Polynomial(0):
+
+    while not is_zero(p_work):
         if steps > max_steps:
             if _DEBUG:
                 logger.debug(
-                    "division_algorithm: exceeded max steps, possible infinite loop. p=%s", p
+                    "division_algorithm: exceeded max steps, possible infinite loop. p=%s",
+                    str(p_work),
                 )
             break
-        prev_p = p.copy()
+        prev_p_work = p_work.copy()
         i = 0
         division_occurred = False
-        # Cache leading terms to avoid repeated ordering work
-        p_LT_cached: Optional[Polynomial] = None
-        while i < len(others) and not division_occurred:
-            # compute/cached LTs
-            if p_LT_cached is None:
-                p_LT_cached = p.LT()
-            # Check divisibility on leading terms only (faster and sufficient)
-            lt_other = precomp_LT_others[i]
-            if divides(lt_other, p_LT_cached):
-                div_term = monomial_divide(p_LT_cached, lt_other)
-                a[i] += div_term
-                p -= div_term * others[i]
+        lt_p = p_work.leading_term()
+        while i < len(divisors) and not division_occurred:
+            lt_d = precomp_others_lt[i]
+            if lt_p is None or lt_d is None:
+                i += 1
+                continue
+            (m_p, c_p) = lt_p
+            (m_d, c_d) = lt_d
+            divisible = True
+            for ep, ed in zip(m_p.exps, m_d.exps):
+                if ed > ep:
+                    divisible = False
+                    break
+            if divisible and c_d != 0:
+                exps_q = tuple(ep - ed for ep, ed in zip(m_p.exps, m_d.exps))
+                coeff_q = c_p / c_d
+                if all(e == 0 for e in exps_q):
+                    mono_q = Polynomial.from_constant(coeff_q, unified_vars)
+                else:
+                    mono_q = Polynomial.from_term(coeff_q, unified_vars, exps_q)
+                quotients[i] = quotients[i].add(mono_q)
+                p_work = p_work.sub(divisors[i].mul(mono_q))
                 division_occurred = True
             else:
                 i += 1
         if not division_occurred:
-            if p_LT_cached is None:
-                p_LT_cached = p.LT()
-            r += p_LT_cached
-            p -= p_LT_cached
-        if p == prev_p:
+            if lt_p is None:
+                break
+            (m_p, c_p) = lt_p
+            mono = (
+                Polynomial.from_constant(c_p, unified_vars)
+                if all(e == 0 for e in m_p.exps)
+                else Polynomial.from_term(c_p, unified_vars, m_p.exps)
+            )
+            remainder = remainder.add(mono)
+            p_work = p_work.sub(mono)
+        if p_work.terms == prev_p_work.terms:
             if _DEBUG:
                 logger.debug(
-                    "division_algorithm: no progress, breaking to avoid infinite loop. p=%s", p
+                    "division_algorithm: no progress, breaking to avoid infinite loop. p=%s",
+                    str(p_work),
                 )
             break
         steps += 1
+    a: List[Polynomial] = [q.copy() for q in quotients]
+    r = remainder.copy()
     for poly in a:
-        poly.term_matrix = input_poly.mod_char(poly.term_matrix)
-        if poly.term_matrix and isinstance(poly.term_matrix[0][0], str):
-            header = poly.term_matrix[0]
-            # Handle complex coefficients
-            poly.term_matrix = [header] + [
-                [term[0] if isinstance(term[0], complex) else float(term[0])] + term[1:]
-                for term in poly.term_matrix[1:]
-            ]
-    if r.term_matrix and isinstance(r.term_matrix[0][0], str):
-        header = r.term_matrix[0]
-        # Handle complex coefficients
-        r.term_matrix = [header] + [
-            [term[0] if isinstance(term[0], complex) else float(term[0])] + term[1:]
-            for term in r.term_matrix[1:]
-        ]
-    r.term_matrix = input_poly.mod_char(r.term_matrix)
+        poly.mod_char()
+    r.mod_char()
     return a, r
 
 
@@ -906,70 +1055,44 @@ def division_string(p: "Polynomial", *others: "Polynomial") -> str:
 def gcd(a: "Polynomial", b: "Polynomial") -> "Polynomial":
     a = a.copy()
     b = b.copy()
-
-    # Special case for monomial polynomials (single term each)
-    if (
-        len(a.term_matrix) == 2
-        and len(b.term_matrix) == 2
-        and len([t for t in a.term_matrix[1:] if t[0] != 0]) == 1
-        and len([t for t in b.term_matrix[1:] if t[0] != 0]) == 1
-    ):
-
-        # Both are monomials, compute GCD directly
-        a_combined, b_combined = Polynomial.combine_variables(a, b)
-
-        # GCD of coefficients
-        import math
-
-        coeff_gcd = math.gcd(
-            int(abs(a_combined.term_matrix[1][0])), int(abs(b_combined.term_matrix[1][0]))
-        )
-
-        # For each variable, take minimum exponent
-        result_term = [float(coeff_gcd)]
-        for i in range(1, len(a_combined.term_matrix[0])):
-            a_exp = a_combined.term_matrix[1][i] if i < len(a_combined.term_matrix[1]) else 0
-            b_exp = b_combined.term_matrix[1][i] if i < len(b_combined.term_matrix[1]) else 0
-            result_term.append(min(a_exp, b_exp))
-
-        result_tm = [a_combined.term_matrix[0], result_term]
-        result = Polynomial(result_tm, a.field_characteristic)
+    import math
+    if (len(a.terms) == 1) and (len(b.terms) == 1):
+        a_aligned, b_aligned = align_polynomials([a, b])
+        lt_a = a_aligned.leading_term()
+        lt_b = b_aligned.leading_term()
+        if lt_a is None or lt_b is None:
+            return Polynomial.from_constant(0.0, a.vars, a.field_characteristic)
+        (m_a, c_a) = lt_a
+        (m_b, c_b) = lt_b
+        coeff_gcd = math.gcd(int(abs(c_a)), int(abs(c_b)))
+        exps = [min(ea, eb) for ea, eb in zip(m_a.exps, m_b.exps)]
+        result = Polynomial.from_term(float(coeff_gcd), a_aligned.vars, exps, a.field_characteristic)
         result._filter_zero_terms()
         return result
-
-    # Fallback to original implementation for non-monomials
     if len(set(a.variables).union(set(b.variables))) <= 1:
         g = gcd_singlevariate(a, b)
-        if len(g.term_matrix) < 2:
-            g = Polynomial([["constant"], [0.0]], a.field_characteristic)
-        elif len(g.term_matrix) == 2 and (
-            len(g.term_matrix[1]) == 1 or all(x == 0 for x in g.term_matrix[1][1:])
-        ):
-            g = Polynomial([["constant"], [float(g.term_matrix[1][0])]], a.field_characteristic)
+        if not g.terms:
+            return Polynomial.from_constant(0.0, a.vars, a.field_characteristic)
+        if len(g.terms) == 1:
+            (m_g, c_g), = g.terms.items()
+            if all(e == 0 for e in m_g.exps):
+                return Polynomial.from_constant(float(c_g), (), a.field_characteristic)
         return g
-    if len(a.term_matrix) > 2 or len(b.term_matrix) > 2:
+    if (len(a.terms) > 1) or (len(b.terms) > 1):
         raise NotImplementedError(
             "gcd for multivariate polynomials with more than one term is not implemented"
         )
-    if len(a.term_matrix) < 2 or len(b.term_matrix) < 2:
-        return Polynomial([["constant"], [0.0]])
-    res = gcd_singlevariate(Polynomial(a.term_matrix[1][0]), Polynomial(b.term_matrix[1][0]))
-    for variable in set(a.variables).union(set(b.variables)):
-        isolated_a = a.isolate(variable)
-        isolated_b = b.isolate(variable)
-        if len(isolated_a.term_matrix) < 2 or len(isolated_b.term_matrix) < 2:
-            continue
-        if len(isolated_a.term_matrix[1]) > 1 and len(isolated_b.term_matrix[1]) > 1:
-            if variable in isolated_a.variables and variable in isolated_b.variables:
-                res *= Polynomial(variable) ** min(
-                    isolated_a.term_matrix[1][1], isolated_b.term_matrix[1][1]
-                )
-    if len(res.term_matrix) < 2:
-        res = Polynomial([["constant"], [0.0]], a.field_characteristic)
-    elif len(res.term_matrix) == 2 and (
-        len(res.term_matrix[1]) == 1 or all(x == 0 for x in res.term_matrix[1][1:])
-    ):
-        res = Polynomial([["constant"], [float(res.term_matrix[1][0])]], a.field_characteristic)
+    if (not a.terms) or (not b.terms):
+        return Polynomial.from_constant(0.0)
+    (_, c_a), = a.terms.items()
+    (_, c_b), = b.terms.items()
+    res = gcd_singlevariate(Polynomial(c_a), Polynomial(c_b))
+    if not res.terms:
+        res = Polynomial.from_constant(0.0, a.vars, a.field_characteristic)
+    elif len(res.terms) == 1:
+        (m_r, c_r), = res.terms.items()
+        if all(e == 0 for e in m_r.exps):
+            res = Polynomial.from_constant(float(c_r), (), a.field_characteristic)
     return res
 
 
@@ -994,10 +1117,12 @@ def gcd_singlevariate(a: "Polynomial", b: "Polynomial") -> "Polynomial":
                 break
             a = b
             b = r
-            if b == Polynomial([["constant"]]) or (
-                hasattr(b, "term_matrix") and len(b.term_matrix) < 2
-            ):
+            if not b.terms:
                 return a
+            if len(b.terms) == 1:
+                (m_b, c_b), = b.terms.items()
+                if all(e == 0 for e in m_b.exps):
+                    return Polynomial(1, a.field_characteristic)
             r = a % b
             steps += 1
         return b
@@ -1008,12 +1133,10 @@ def gcd_singlevariate(a: "Polynomial", b: "Polynomial") -> "Polynomial":
 def lcm(a: "Polynomial", b: "Polynomial") -> Union["Polynomial", List["Polynomial"]]:
     lcm_poly = a * b / gcd(a, b)
     if isinstance(lcm_poly, Polynomial):
-        if len(lcm_poly.term_matrix) < 2:
-            lcm_poly = Polynomial([["constant"], [0.0]], a.field_characteristic)
-        elif len(lcm_poly.term_matrix) == 2 and (
-            len(lcm_poly.term_matrix[1]) == 1 or all(x == 0 for x in lcm_poly.term_matrix[1][1:])
-        ):
-            lcm_poly = Polynomial(
-                [["constant"], [float(lcm_poly.term_matrix[1][0])]], a.field_characteristic
-            )
+        if not lcm_poly.terms:
+            lcm_poly = Polynomial.from_constant(0.0, a.vars, a.field_characteristic)
+        elif len(lcm_poly.terms) == 1:
+            (m_l, c_l), = lcm_poly.terms.items()
+            if all(e == 0 for e in m_l.exps):
+                lcm_poly = Polynomial.from_constant(float(c_l), a.vars, a.field_characteristic)
     return lcm_poly
